@@ -1,0 +1,60 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mpv="clr-namespace:HanumanInstitute.LibMpv.Avalonia;assembly=HanumanInstitute.LibMpv.Avalonia"
+        xmlns:vm="clr-namespace:ChroaVideoPlayer.ViewModels"
+        xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
+        x:Class="ChroaVideoPlayer.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="ChroaVideoPlayer"
+        Width="1280" Height="720"
+        WindowDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        CanResize="True"
+        Background="#0A0A0B">
+	<Grid x:Name="Root" Background="Transparent">
+		<Grid.Styles>
+			<Style Selector="Border#Chrome">
+				<Setter Property="Opacity" Value="0" />
+				<Setter Property="Transitions">
+					<Transitions>
+						<DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+					</Transitions>
+				</Setter>
+			</Style>
+			<Style Selector="Grid#Root:pointerover Border#Chrome">
+				<Setter Property="Opacity" Value="1" />
+			</Style>
+		</Grid.Styles>
+
+		<mpv:MpvView MpvContext="{Binding Mpv}" Renderer="OpenGl" />
+
+		<Border x:Name="Chrome" VerticalAlignment="Top" Background="Transparent" WindowDecorationProperties.ElementRole="TitleBar">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+				<chroa:SVGIconButton Icon="M5 12h14"
+									 ButtonShape="Square"
+									 ButtonSize="48"
+									 IconSize="24"
+									 WindowDecorationProperties.ElementRole="MinimizeButton" 
+									 Click="OnMinimizeClick" />
+
+				<chroa:SVGIconButton Icon="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+									 ButtonSize="48"
+									 IconSize="24"
+									 ButtonShape="Square"
+									 WindowDecorationProperties.ElementRole="MaximizeButton" 
+									 Click="OnMaximizeClick" />
+
+				<chroa:SVGIconButton Icon="M18 6 6 18 M6 6 18 18"
+									 ButtonSize="48"
+									 IconSize="24"
+									 ButtonShape="Square"
+									 WindowDecorationProperties.ElementRole="CloseButton" 
+									 Click="OnCloseClick" />
+			</StackPanel>
+		</Border>
+	</Grid>
+</Window>
