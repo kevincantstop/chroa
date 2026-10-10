@@ -1,19 +1,71 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using ChroaVideoPlayer.ViewModels;
 
 namespace ChroaVideoPlayer;
 
 public partial class MainWindow : Window
 {
+    /// <summary>四角缩放热区 → 缩放方向。</summary>
+    private readonly Dictionary<object, WindowEdge> _gripEdges;
+
     private MainViewModel? _viewModel;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        _gripEdges = new Dictionary<object, WindowEdge>
+        {
+            [GripTopLeft] = WindowEdge.NorthWest,
+            [GripTopRight] = WindowEdge.NorthEast,
+            [GripBottomLeft] = WindowEdge.SouthWest,
+            [GripBottomRight] = WindowEdge.SouthEast,
+        };
+    }
+
+    // ==== 拖动窗口：整窗任意位置（按钮与四角热区除外）====
+
+    private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Handled) return;                                          // 按钮 / 四角热区已经处理掉
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+
+        // 两种情况不要抢：
+        //   1) 源元素是四角热区（保险，正常路径会被上面的 e.Handled 挡掉）
+        //   2) 源元素有 Button 祖先 —— 包括点在按钮内部的 Path 上
+        if (e.Source is Visual source &&
+            (_gripEdges.ContainsKey(source) || source.FindAncestorOfType<Button>(true) is not null))
+        {
+            return;
+        }
+
+        BeginMoveDrag(e);
+    }
+
+    // ==== 四角缩放 ====
+
+    private void OnResizeGripPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is null || !_gripEdges.TryGetValue(sender, out var edge)) return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+
+        e.Handled = true;       // 不要让根上的"拖动窗口"再处理一次
+        BeginResizeDrag(edge, e);
+    }
+
+    // ==== 双击控制带空白处 = 最大化 / 还原 ====
+    // 刻意仍挂在 Chrome 而不是 Root：双击视频区域要留给以后的"双击全屏"（架构文档 §5.4）
+    private void OnChromeDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (!ReferenceEquals(e.Source, sender)) return;
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
 
     // ==== 窗口自动适应视频宽高比（只读 ViewModel 的状态，不直接碰 mpv）====
@@ -57,13 +109,11 @@ public partial class MainWindow : Window
         var height = width / aspect;
 
         // 限制在当前屏幕的工作区内。
-        // 用 this.Screens 而不是裸写 Screens：后者会和类型名 Avalonia.Controls.Screens 撞名，
-        // 在继承链上遇到同名属性时会报 CS0176（之前 HorizontalAlignment 就是这么踩的）。
         // Screen.WorkingArea 是物理像素，而 Window.Width/Height 是 DIP，所以要除以显示缩放。
-        var screen = this.Screens.ScreenFromWindow(this);
+        var screen = Screens.ScreenFromWindow(this);
         if (screen is null)
         {
-            screen = this.Screens.Primary;
+            screen = Screens.Primary;
         }
 
         if (screen is not null)
@@ -81,20 +131,7 @@ public partial class MainWindow : Window
         Height = Math.Round(height);
     }
 
-    // ==== 自己实现窗口拖动与双击最大化（不使用 WindowDecorationProperties.ElementRole）====
-    private void OnChromePointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        // 按钮的 PointerPressed 会冒泡到这里；不挡掉的话按按钮会变成拖窗口
-        if (e.Handled || !ReferenceEquals(e.Source, sender)) return;
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
-        BeginMoveDrag(e);
-    }
-
-    private void OnChromeDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (!ReferenceEquals(e.Source, sender)) return;
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-    }
+    // ==== 三个窗口按钮 ====
 
     private void OnMinimizeClick(object? sender, RoutedEventArgs e) =>
         WindowState = WindowState.Minimized;
