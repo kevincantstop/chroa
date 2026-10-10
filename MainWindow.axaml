@@ -32,27 +32,31 @@
 
 		<mpv:MpvView MpvContext="{Binding Mpv}" Renderer="OpenGl" />
 
-		<Border x:Name="Chrome" VerticalAlignment="Top" Background="Transparent" WindowDecorationProperties.ElementRole="TitleBar">
+		<!-- 控制带：刻意不使用 WindowDecorationProperties.ElementRole。
+		     那套机制会把整条区域变成 Windows 的非客户区（标题栏），导致：
+		       · Avalonia 的指针悬停追踪失效 → 整条把自己淡出成隐形，按钮点不到
+		       · 光标归属权交给 OS → 永远是箭头，Cursor="Hand" 无效
+		     所以拖动与双击最大化改为自己实现，见 MainWindow.axaml.cs。 -->
+		<Border x:Name="Chrome" VerticalAlignment="Top" Background="Transparent"
+		        PointerPressed="OnChromePointerPressed"
+		        DoubleTapped="OnChromeDoubleTapped">
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 				<chroa:SVGIconButton Icon="M5 12h14"
 									 ButtonShape="Square"
 									 ButtonSize="48"
 									 IconSize="24"
-									 WindowDecorationProperties.ElementRole="MinimizeButton" 
 									 Click="OnMinimizeClick" />
 
 				<chroa:SVGIconButton Icon="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
 									 ButtonSize="48"
 									 IconSize="24"
 									 ButtonShape="Square"
-									 WindowDecorationProperties.ElementRole="MaximizeButton" 
 									 Click="OnMaximizeClick" />
 
 				<chroa:SVGIconButton Icon="M18 6 6 18 M6 6 18 18"
 									 ButtonSize="48"
 									 IconSize="24"
 									 ButtonShape="Square"
-									 WindowDecorationProperties.ElementRole="CloseButton" 
 									 Click="OnCloseClick" />
 			</StackPanel>
 		</Border>
