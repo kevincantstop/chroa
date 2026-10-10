@@ -30,7 +30,7 @@
 			</Style>
 		</Grid.Styles>
 
-		<mpv:MpvView MpvContext="{Binding Mpv}" Renderer="OpenGl" />
+		<mpv:MpvView MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
 
 		<!-- 控制带：刻意不使用 WindowDecorationProperties.ElementRole。
 		     那套机制会把整条区域变成 Windows 的非客户区（标题栏），导致：

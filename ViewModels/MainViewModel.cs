@@ -1,9 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using HanumanInstitute.LibMpv;
-using HanumanInstitute.LibMpv.Avalonia;
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System;
+using Avalonia.Threading;
+using ChroaVideoPlayer.Mpv;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ChroaVideoPlayer.ViewModels
 {
@@ -11,40 +9,25 @@ namespace ChroaVideoPlayer.ViewModels
     {
         private const string StartupFile = @"D:\Movies\Horror\Dune-IMAX.mkv";
 
-        [ObservableProperty]
-        public partial MpvContext? Mpv { get; set; }
-        
-        [ObservableProperty]
-        public partial VideoRenderer Renderer { get; set; }
+        /// <summary>mpv 交互全部收敛在 ChroaMpvContext 里，这里只持有它。</summary>
+        public ChroaMpvContext Mpv { get; } = new();
 
-        partial void OnMpvChanged(MpvContext? value)
+        /// <summary>视频宽高比（显示宽 / 显示高）。0 表示还没探测到。</summary>
+        [ObservableProperty]
+        public partial double VideoAspect { get; set; }
+
+        public MainViewModel()
         {
-            if (value is null) return;
-            _ = PlayStartupFileAsync(value);
+            Mpv.VideoAspectDetected += OnVideoAspectDetected;
+
+            // 启动播放：此刻视图还没创建、mpv 上下文还没推过来，
+            // ChroaMpvContext 会记住文件并在上下文就绪后自动播放。
+            Mpv.Play(StartupFile);
         }
 
-        private async Task PlayStartupFileAsync(MpvContext mpv)
-        {
-            try
-            {
-                var waited = 0;
-                while (!mpv.IsCustomRendering() && waited < 5000)
-                {
-                    await Task.Delay(50);
-                    waited += 50;
-                }
-
-                if (!mpv.IsCustomRendering())
-                {
-                    Debug.WriteLine("OpenGL 渲染上下文 5 秒内没建立，画面出不来（检查 ANGLE / RenderingMode）");
-                }
-
-                await mpv.LoadFile(StartupFile).InvokeAsync();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Startup playback failed: {ex}");
-            }
-        }
+        private void OnVideoAspectDetected(object? sender, double aspect) =>
+            // mpv 事件在它自己的线程上，状态统一在 UI 线程上改，
+            // 这样订阅方的 PropertyChanged 也一定在 UI 线程。
+            Dispatcher.UIThread.Post(() => VideoAspect = aspect);
     }
 }
