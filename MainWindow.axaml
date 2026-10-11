@@ -73,22 +73,45 @@
 
 		<!-- 底部热区：始终"有绘制"（透明背景）所以能被悬停到，控制条靠它触发淡入 -->
 		<Border Classes="hotzone" VerticalAlignment="Bottom" Height="120" Background="Transparent">
-			<Border Classes="overlay bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-			        Margin="0,0,0,28"
+			<Border Classes="overlay bottom" VerticalAlignment="Bottom"
+			        Margin="24,0,24,28"
 			        IsVisible="{Binding HasVideo}">
-				<StackPanel Orientation="Horizontal">
-					<!-- 暂停中 → 显示"播放"图标，点它继续 -->
-					<chroa:SVGIconButton Icon="/Icons/play.svg"
-										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
-										 IsVisible="{Binding IsPaused}"
-										 Click="OnPlayPauseClick" />
+				<!-- 一行：[播放/暂停] [当前时间] [======进度条======] [总时长]
+				     进度条那列是 *，窗口变宽变窄它都跟着变。 -->
+				<Grid ColumnDefinitions="Auto,Auto,*,Auto">
+					<StackPanel Grid.Column="0" Orientation="Horizontal">
+						<!-- 暂停中 → 显示"播放"图标，点它继续 -->
+						<chroa:SVGIconButton Icon="/Icons/play.svg"
+											 ButtonShape="Circle" ButtonSize="48" IconSize="24"
+											 IsVisible="{Binding IsPaused}"
+											 Click="OnPlayPauseClick" />
 
-					<!-- 播放中 → 显示"暂停"图标，点它暂停 -->
-					<chroa:SVGIconButton Icon="/Icons/pause.svg"
-										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
-										 IsVisible="{Binding !IsPaused}"
-										 Click="OnPlayPauseClick" />
-				</StackPanel>
+						<!-- 播放中 → 显示"暂停"图标，点它暂停 -->
+						<chroa:SVGIconButton Icon="/Icons/pause.svg"
+											 ButtonShape="Circle" ButtonSize="48" IconSize="24"
+											 IsVisible="{Binding !IsPaused}"
+											 Click="OnPlayPauseClick" />
+					</StackPanel>
+
+					<TextBlock Grid.Column="1" Classes="time" Text="{Binding PositionText}" />
+
+					<!-- 进度条拖动区。必须给 Background="Transparent"：null 背景不参与命中测试。
+					     它本身 20px 高（上下都好按），轨道在里面居中：默认 3px、悬停展开 6px。
+					     已播段宽度由代码按比例算（见 UpdateSeekFill）—— 3px 细线不适合用 Slider。 -->
+					<Border Grid.Column="2" x:Name="SeekArea" Classes="seek"
+					        Background="Transparent" Cursor="Hand"
+					        PointerPressed="OnSeekPointerPressed"
+					        PointerMoved="OnSeekPointerMoved"
+					        PointerReleased="OnSeekPointerReleased"
+					        PointerCaptureLost="OnSeekPointerCaptureLost"
+					        SizeChanged="OnSeekAreaSizeChanged">
+						<Border x:Name="SeekTrack" Classes="seekTrack">
+							<Border x:Name="SeekFill" Classes="seekFill" HorizontalAlignment="Left" />
+						</Border>
+					</Border>
+
+					<TextBlock Grid.Column="3" Classes="time" Text="{Binding DurationText}" />
+				</Grid>
 			</Border>
 		</Border>
 

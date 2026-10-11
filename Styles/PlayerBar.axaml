@@ -1,0 +1,44 @@
+<Styles xmlns="https://github.com/avaloniaui">
+	<!-- 底部控制条里的进度条与时间文本。
+	     进度条刻意不用 Fluent 的 Slider / ProgressBar：它俩有 4px 最小高、强调色和自带动画，
+	     跟架构文档 §5.4 要的"3px 细线、悬停展开 6px"对不上。这里用"轨道 + 已播段"两个 Border 自己搭，
+	     已播段宽度由 MainWindow 按比例算（见 UpdateSeekFill）。 -->
+
+	<!-- 进度条两侧的时间文本 -->
+	<Style Selector="TextBlock.time">
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Margin" Value="12,0" />
+		<Setter Property="FontSize" Value="13" />
+		<Setter Property="Foreground" Value="#C8C8C8" />
+	</Style>
+
+	<!-- 拖动区：20px 高保证上下都好按，轨道在它里面居中 -->
+	<Style Selector="Border.seek">
+		<Setter Property="Height" Value="20" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<!-- 轨道：默认 3px 细线 -->
+	<Style Selector="Border.seekTrack">
+		<Setter Property="Height" Value="3" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="CornerRadius" Value="2" />
+		<Setter Property="Background" Value="#33FFFFFF" />
+		<Setter Property="Transitions">
+			<Transitions>
+				<DoubleTransition Property="Height" Duration="0:0:0.12" />
+			</Transitions>
+		</Setter>
+	</Style>
+
+	<!-- 悬停在拖动区上 → 展开到 6px -->
+	<Style Selector="Border.seek:pointerover Border.seekTrack">
+		<Setter Property="Height" Value="6" />
+	</Style>
+
+	<!-- 已播过的一段：宽度由代码给，这里只管颜色和圆角 -->
+	<Style Selector="Border.seekFill">
+		<Setter Property="CornerRadius" Value="2" />
+		<Setter Property="Background" Value="#F0F0F0" />
+	</Style>
+</Styles>

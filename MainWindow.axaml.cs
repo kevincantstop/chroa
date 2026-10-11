@@ -19,6 +19,9 @@ public partial class MainWindow : Window
 
     private MainViewModel? _viewModel;
 
+    /// <summary>正在拖动进度条的那根指针。null = 没在拖。</summary>
+    private IPointer? _seekingPointer;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -39,11 +42,14 @@ public partial class MainWindow : Window
         if (e.Handled) return;                                          // 按钮 / 四角热区已经处理掉
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
 
-        // 两种情况不要抢：
+        // 三种情况不要抢：
         //   1) 源元素是四角热区（保险，正常路径会被上面的 e.Handled 挡掉）
         //   2) 源元素有 Button 祖先 —— 包括点在按钮内部的 Path 上
+        //   3) 源元素在进度条拖动区里 —— 那根指针归进度条自己
         if (e.Source is Visual source &&
-            (_gripEdges.ContainsKey(source) || source.FindAncestorOfType<Button>(true) is not null))
+            (_gripEdges.ContainsKey(source)
+             || source.FindAncestorOfType<Button>(true) is not null
+             || IsInside(source, SeekArea)))
         {
             return;
         }
@@ -92,10 +98,17 @@ public partial class MainWindow : Window
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (_viewModel is null) return;
+
         // VideoAspect 只在 UI 线程上被赋值（见 MainViewModel），所以这里不需要再切线程
-        if (e.PropertyName == nameof(MainViewModel.VideoAspect) && _viewModel is not null)
+        if (e.PropertyName == nameof(MainViewModel.VideoAspect))
         {
             ApplyVideoAspect(_viewModel.VideoAspect);
+        }
+        else if (e.PropertyName is nameof(MainViewModel.Position) or nameof(MainViewModel.Duration))
+        {
+            // 位置 / 时长变了 → 已播段宽度要重算（拖动进度条时也走这里）
+            UpdateSeekFill();
         }
     }
 
@@ -174,6 +187,90 @@ public partial class MainWindow : Window
         }
 
         return null;
+    }
+
+    // ==== 进度条：拖动 seek ====
+    // 视图只负责"指针在轨道上的横向比例"，换算成秒、是否忽略 mpv 回报等都在 ViewModel 里。
+
+    private void OnSeekPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(SeekArea).Properties.IsLeftButtonPressed) return;
+        if (_viewModel is null || !_viewModel.CanSeek) return;    // 时长未知（比如直播流）就别拖
+
+        e.Handled = true;               // 保险：别让根上的"拖动窗口"接走
+        _seekingPointer = e.Pointer;
+        e.Pointer.Capture(SeekArea);    // 指针移出这 20px 也要继续收到 Moved
+
+        _viewModel.BeginSeek();
+        UpdateSeekFromPointer(e);
+    }
+
+    private void OnSeekPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!ReferenceEquals(e.Pointer, _seekingPointer)) return;
+
+        e.Handled = true;
+        UpdateSeekFromPointer(e);
+    }
+
+    private void OnSeekPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!ReferenceEquals(e.Pointer, _seekingPointer)) return;
+
+        e.Handled = true;
+        _seekingPointer = null;
+        e.Pointer.Capture(null);
+
+        UpdateSeekFromPointer(e);       // 松手那一点也算进去
+        _viewModel?.CommitSeek();
+    }
+
+    private void OnSeekPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        // 捕获丢了（窗口失活、指针被别处抢走）：必须收尾，否则 ViewModel 里的 IsSeeking
+        // 会一直为真，从此忽略 mpv 的回报 —— 进度条就永远停住了。
+        if (_seekingPointer is null) return;
+
+        _seekingPointer = null;
+        _viewModel?.CommitSeek();
+    }
+
+    private void UpdateSeekFromPointer(PointerEventArgs e)
+    {
+        var width = SeekArea.Bounds.Width;
+        if (width <= 0) return;
+
+        _viewModel?.UpdateSeekFraction(e.GetPosition(SeekArea).X / width);
+    }
+
+    private void OnSeekAreaSizeChanged(object? sender, SizeChangedEventArgs e) => UpdateSeekFill();
+
+    /// <summary>
+    /// 已播段的宽度 = 比例 × 轨道实际宽度。轨道还没布局完（宽度 0）就先按 0 处理。
+    /// 之所以由代码算：3px 细线上没有可拖的 Thumb，宽度等于"比例 × 实宽"，绑定做不了乘法。
+    /// </summary>
+    private void UpdateSeekFill()
+    {
+        var trackWidth = SeekTrack.Bounds.Width;
+        if (trackWidth <= 0 || _viewModel is null)
+        {
+            SeekFill.Width = 0;
+            return;
+        }
+
+        var fraction = Math.Clamp(_viewModel.Position / _viewModel.DurationMaximum, 0, 1);
+        SeekFill.Width = Math.Round(fraction * trackWidth);
+    }
+
+    /// <summary>source 自己或它的某个视觉祖先是不是 target。</summary>
+    private static bool IsInside(Visual source, Visual target)
+    {
+        for (Visual? v = source; v is not null; v = v.GetVisualParent())
+        {
+            if (ReferenceEquals(v, target)) return true;
+        }
+
+        return false;
     }
 
     // ==== 空状态：选文件并播放 ====

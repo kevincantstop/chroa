@@ -5,6 +5,9 @@ using HanumanInstitute.LibMpv;
 
 namespace ChroaVideoPlayer.Mpv;
 
+/// <summary>一次播放进度上报：当前位置与总时长（秒）。</summary>
+public readonly record struct PlaybackProgress(double Position, double Duration);
+
 /// <summary>
 /// 所有与 mpv 的交互都收敛在这里：接住 MpvView 推来的 <see cref="MpvContext"/>、
 /// 订阅事件、把 mpv 语义翻译成应用语义（播放、宽高比…）。
@@ -22,6 +25,16 @@ public sealed class ChroaMpvContext
     /// 那时读出来的宽高比是旧的 —— 会导致新视频的比例永远不被上报。
     /// </summary>
     private bool _sizeTrustworthy;
+
+    /// <summary>
+    /// 进度上报的最小间隔（毫秒）。mpv 的 time-pos 是逐帧变的，
+    /// 原样推给 UI 只会让进度条抖（架构文档 §6.4）。
+    /// </summary>
+    private const int ProgressPublishIntervalMs = 200;
+
+    private readonly Stopwatch _progressClock = Stopwatch.StartNew();
+    private double _position;
+    private double _duration;
 
     /// <summary>
     /// 由 MpvView 通过 OneWayToSource 绑定写入（见 MainWindow.axaml 的 MpvContext="{Binding Mpv.ViewContext}"）。
@@ -60,6 +73,13 @@ public sealed class ChroaMpvContext
     public event EventHandler? MediaOpened;
 
     /// <summary>
+    /// 播放进度（位置 / 总时长，秒）。来自 mpv 的 time-pos 与 duration 属性推送，
+    /// 已按 ProgressPublishIntervalMs 节流；seek / 暂停 / 换文件时会强制补发一次。
+    /// 可能在 mpv 自己的线程上触发。
+    /// </summary>
+    public event EventHandler<PlaybackProgress>? ProgressChanged;
+
+    /// <summary>
     /// 播放指定文件。若 mpv 上下文还没就绪（视图尚未创建），会记住这个文件，
     /// 等上下文推过来之后自动播放。
     /// </summary>
@@ -84,6 +104,28 @@ public sealed class ChroaMpvContext
         // 每次都读 mpv 的真实状态再取反，不在应用侧自己维护一份，
         // 免得和 mpv 实际状态脱节（新文件加载时 mpv 会把 pause 重置）。
         context.Pause.Set(!(context.Pause.Get() ?? false));
+    }
+
+    /// <summary>跳到指定位置（秒）。绝对定位。</summary>
+    public void SeekTo(double seconds)
+    {
+        var context = _context;
+        if (context is null || !double.IsFinite(seconds) || seconds < 0) return;
+
+        try
+        {
+            // 乐观上报：先把本地位置改成目标值并立刻推一次。
+            // 否则进度条要等 mpv 回报新位置才动，中途还可能收到"seek 之前的旧时间"而弹回去。
+            _position = seconds;
+            PublishProgress(force: true);
+
+            // 命令用异步形式，不要阻塞 UI 线程（架构文档 §6.4）
+            _ = context.Seek(seconds, SeekOption.Absolute).InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Seek failed: {ex}");
+        }
     }
 
     private static async Task PlayAsync(MpvContext context, string path)
@@ -122,6 +164,9 @@ public sealed class ChroaMpvContext
         context.FileLoaded += OnFileLoaded;
         context.VideoReconfig += OnVideoReconfig;
         context.Pause.Changed += OnPausePropertyChanged;
+        context.TimePos.Changed += OnTimePosChanged;
+        context.Duration.Changed += OnDurationChanged;
+        context.SeekRaised += OnSeekRaised;
 
         // 上下文就绪之前调用过 Play 的话，在这里补播
         var pending = _pendingFile;
@@ -140,6 +185,9 @@ public sealed class ChroaMpvContext
         context.FileLoaded -= OnFileLoaded;
         context.VideoReconfig -= OnVideoReconfig;
         context.Pause.Changed -= OnPausePropertyChanged;
+        context.TimePos.Changed -= OnTimePosChanged;
+        context.Duration.Changed -= OnDurationChanged;
+        context.SeekRaised -= OnSeekRaised;
     }
 
     // ==== 视频宽高比探测 ====
@@ -151,6 +199,11 @@ public sealed class ChroaMpvContext
             // 所以要等 video-reconfig 之后才允许读取（见 _sizeTrustworthy）。
             _aspectReported = false;
             _sizeTrustworthy = false;
+
+            // 进度也重置：新文件从头开始。duration 稍后会由 mpv 推来。
+            _position = 0;
+            _duration = 0;
+            PublishProgress(force: true);
         });
 
     private void OnVideoReconfig(object? sender, EventArgs e) =>
@@ -174,7 +227,13 @@ public sealed class ChroaMpvContext
         });
 
     private void OnPausePropertyChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
-        SafeRun(nameof(OnPausePropertyChanged), () => PauseChanged?.Invoke(this, e.NewValue ?? false));
+        SafeRun(nameof(OnPausePropertyChanged), () =>
+        {
+            PauseChanged?.Invoke(this, e.NewValue ?? false);
+
+            // 暂停瞬间补报一次：节流可能把最后一个位置吞掉了，停下来时应当停在准确的位置上。
+            PublishProgress(force: true);
+        });
 
     private void TryReportAspect()
     {
@@ -226,6 +285,36 @@ public sealed class ChroaMpvContext
 
             SafeRun(nameof(RetryAspectAsync), TryReportAspect);
         }
+    }
+
+    // ==== 播放进度（time-pos / duration）====
+
+    private void OnTimePosChanged(object? sender, MpvValueChangedEventArgs<double, double> e) =>
+        SafeRun(nameof(OnTimePosChanged), () =>
+        {
+            if (e.NewValue is { } v && double.IsFinite(v) && v >= 0) _position = v;
+            PublishProgress(force: false);
+        });
+
+    private void OnDurationChanged(object? sender, MpvValueChangedEventArgs<double, double> e) =>
+        SafeRun(nameof(OnDurationChanged), () =>
+        {
+            if (e.NewValue is { } v && double.IsFinite(v) && v >= 0) _duration = v;
+
+            // 时长极少变，一变就要立刻反映到进度条量程上，不能等节流窗口。
+            PublishProgress(force: true);
+        });
+
+    private void OnSeekRaised(object? sender, EventArgs e) =>
+        SafeRun(nameof(OnSeekRaised), () => PublishProgress(force: true));
+
+    /// <summary>把当前进度推给订阅方。force=false 时按 ProgressPublishIntervalMs 节流。</summary>
+    private void PublishProgress(bool force)
+    {
+        if (!force && _progressClock.ElapsedMilliseconds < ProgressPublishIntervalMs) return;
+
+        _progressClock.Restart();
+        ProgressChanged?.Invoke(this, new PlaybackProgress(_position, _duration));
     }
 
     /// <summary>

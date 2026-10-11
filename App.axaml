@@ -9,5 +9,6 @@
 		<StyleInclude Source="avares://ChroaVideoPlayer/Styles/SVGIconButton.axaml" />
 		<StyleInclude Source="avares://ChroaVideoPlayer/Styles/WindowChrome.axaml" />
 		<StyleInclude Source="avares://ChroaVideoPlayer/Styles/LoadVideoButton.axaml" />
+		<StyleInclude Source="avares://ChroaVideoPlayer/Styles/PlayerBar.axaml" />
     </Application.Styles>
 </Application>
