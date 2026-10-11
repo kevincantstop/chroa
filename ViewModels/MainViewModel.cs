@@ -7,8 +7,6 @@ namespace ChroaVideoPlayer.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
-        private const string StartupFile = @"D:\Movies\Horror\Dune-IMAX.mkv";
-
         /// <summary>mpv 交互全部收敛在 ChroaMpvContext 里，这里只持有它。</summary>
         public ChroaMpvContext Mpv { get; } = new();
 
@@ -24,10 +22,6 @@ namespace ChroaVideoPlayer.ViewModels
         {
             Mpv.VideoAspectDetected += OnVideoAspectDetected;
             Mpv.PauseChanged += OnPauseChanged;
-
-            // 启动播放：此刻视图还没创建、mpv 上下文还没推过来，
-            // ChroaMpvContext 会记住文件并在上下文就绪后自动播放。
-            Mpv.Play(StartupFile);
         }
 
         private void OnVideoAspectDetected(object? sender, double aspect) =>

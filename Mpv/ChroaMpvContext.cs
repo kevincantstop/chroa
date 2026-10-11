@@ -17,6 +17,13 @@ public sealed class ChroaMpvContext
     private bool _aspectReported;
 
     /// <summary>
+    /// dwidth/dheight 是否已经反映"当前这个视频"。
+    /// start-file 之后、video-reconfig 之前，这两个属性很可能还是**上一个视频**的值，
+    /// 那时读出来的宽高比是旧的 —— 会导致新视频的比例永远不被上报。
+    /// </summary>
+    private bool _sizeTrustworthy;
+
+    /// <summary>
     /// 由 MpvView 通过 OneWayToSource 绑定写入（见 MainWindow.axaml 的 MpvContext="{Binding Mpv.ViewContext}"）。
     /// 注意：切换 Renderer 时 MpvView 会销毁旧 context 并推来一个新的，所以这里会被赋值多次 ——
     /// 不要把 context 引用缓存到别处，setter 内部会自动完成事件订阅/解绑。
@@ -104,6 +111,7 @@ public sealed class ChroaMpvContext
         if (context is null) return;
 
         _aspectReported = false;
+        _sizeTrustworthy = false;
         context.StartFile += OnStartFile;
         context.FileLoaded += OnFileLoaded;
         context.VideoReconfig += OnVideoReconfig;
@@ -131,13 +139,30 @@ public sealed class ChroaMpvContext
     // ==== 视频宽高比探测 ====
 
     private void OnStartFile(object? sender, MpvStartFileEventArgs e) =>
-        SafeRun(nameof(OnStartFile), () => _aspectReported = false);
-
-    private void OnFileLoaded(object? sender, EventArgs e) =>
-        SafeRun(nameof(OnFileLoaded), TryReportAspect);
+        SafeRun(nameof(OnStartFile), () =>
+        {
+            // 新文件开始：重置。此刻 dwidth/dheight 还是上一个视频的值，
+            // 所以要等 video-reconfig 之后才允许读取（见 _sizeTrustworthy）。
+            _aspectReported = false;
+            _sizeTrustworthy = false;
+        });
 
     private void OnVideoReconfig(object? sender, EventArgs e) =>
-        SafeRun(nameof(OnVideoReconfig), TryReportAspect);
+        SafeRun(nameof(OnVideoReconfig), () =>
+        {
+            // 视频输出已按新尺寸重新配置 —— 此刻 dwidth/dheight 才可信
+            _sizeTrustworthy = true;
+            TryReportAspect();
+        });
+
+    private void OnFileLoaded(object? sender, EventArgs e) =>
+        SafeRun(nameof(OnFileLoaded), () =>
+        {
+            // file-loaded 可能早于 video-reconfig，此时读到的是上一个视频的尺寸。
+            // 所以尺寸不可信时只安排重试，等 video-reconfig 到了（或超时兜底）再读。
+            if (_sizeTrustworthy) TryReportAspect();
+            else _ = RetryAspectAsync();
+        });
 
     private void OnPausePropertyChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
         SafeRun(nameof(OnPausePropertyChanged), () => PauseChanged?.Invoke(this, e.NewValue ?? false));
@@ -148,6 +173,9 @@ public sealed class ChroaMpvContext
         // 若跟着每次 video-reconfig 调窗口，窗口会一直跳。
         if (_aspectReported) return;
 
+        // 尺寸还不可信就读，会拿到上一个视频的比例
+        if (!_sizeTrustworthy) return;
+
         var context = _context;
         if (context is null) return;
 
@@ -157,15 +185,14 @@ public sealed class ChroaMpvContext
             // dwidth/dheight = 应用了 aspect scaling 之后的显示尺寸。
             // width/height 是解码尺寸，变形片源会算错。
             //
-            // 但在 vo=libmpv 的渲染路径下，FileLoaded 时刻这两个属性可能还不可用，
-            // 而 LibMpv 对不可用的属性会抛 MpvException。这个异常绝不能放出去 ——
-            // 它会顺着事件循环线程冒出去，把整个事件循环永久搞死（详见 SafeRun 的说明）。
+            // 但在 vo=libmpv 的渲染路径下，这两个属性可能还不可用，而 LibMpv 对不可用的
+            // 属性会抛 MpvException。这个异常绝不能放出去 —— 它会顺着事件循环线程冒出去，
+            // 把整个事件循环永久搞死（详见 SafeRun 的说明）。
             width = context.DisplayWidth.Get() ?? 0;
             height = context.DisplayHeight.Get() ?? 0;
         }
         catch (Exception ex)
         {
-            // 还没就绪：过一会儿重试
             Debug.WriteLine($"aspect not ready yet ({ex.GetType().Name})");
             _ = RetryAspectAsync();
             return;
@@ -183,6 +210,11 @@ public sealed class ChroaMpvContext
         for (var i = 0; i < 20 && !_aspectReported; i++)
         {
             await Task.Delay(100);
+
+            // 兜底：1 秒后即使没等到 video-reconfig 也允许读一次 ——
+            // 那时新视频肯定已经配置完成，尺寸是可信的。
+            if (i == 10) _sizeTrustworthy = true;
+
             SafeRun(nameof(RetryAspectAsync), TryReportAspect);
         }
     }
