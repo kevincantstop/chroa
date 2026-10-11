@@ -36,19 +36,19 @@
 		<Border Classes="overlay top" VerticalAlignment="Top" Background="Transparent"
 		        DoubleTapped="OnChromeDoubleTapped">
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-				<chroa:SVGIconButton Icon="M5 12h14"
+				<chroa:SVGIconButton Icon="/Icons/minus.svg"
 									 ButtonShape="Square"
 									 ButtonSize="48"
 									 IconSize="24"
 									 Click="OnMinimizeClick" />
 
-				<chroa:SVGIconButton Icon="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+				<chroa:SVGIconButton Icon="/Icons/square.svg"
 									 ButtonSize="48"
 									 IconSize="24"
 									 ButtonShape="Square"
 									 Click="OnMaximizeClick" />
 
-				<chroa:SVGIconButton Icon="M18 6 6 18 M6 6 18 18"
+				<chroa:SVGIconButton Icon="/Icons/x.svg"
 									 ButtonSize="48"
 									 IconSize="24"
 									 ButtonShape="Square"
@@ -62,13 +62,13 @@
 			        Margin="0,0,0,28">
 				<StackPanel Orientation="Horizontal">
 					<!-- 暂停中 → 显示"播放"图标，点它继续 -->
-					<chroa:SVGIconButton Icon="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"
+					<chroa:SVGIconButton Icon="/Icons/play.svg"
 										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
 										 IsVisible="{Binding IsPaused}"
 										 Click="OnPlayPauseClick" />
 
 					<!-- 播放中 → 显示"暂停"图标，点它暂停 -->
-					<chroa:SVGIconButton Icon="M6 3h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z M15 3h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"
+					<chroa:SVGIconButton Icon="/Icons/pause.svg"
 										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
 										 IsVisible="{Binding !IsPaused}"
 										 Click="OnPlayPauseClick" />
