@@ -9,6 +9,7 @@
         x:Class="ChroaVideoPlayer.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="ChroaVideoPlayer"
+        Icon="/Assets/AppIcon@256.png"
         Width="1280" Height="720"
         WindowDecorations="BorderOnly"
         ExtendClientAreaToDecorationsHint="True"

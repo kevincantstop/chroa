@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,5 +38,8 @@
        否则运行时 AssetLoader 找不到 —— 表现为图标空白，只在调试输出里有一条提示。 -->
   <ItemGroup>
     <AvaloniaResource Include="Icons\**" />
+    <!-- Assets 里是 app 身份图标：PNG 给 Window.Icon 用，.ico 只给上面的 ApplicationIcon 嵌进 exe，
+         不再当 avares 资源重复打包一遍。 -->
+    <AvaloniaResource Include="Assets\**" Exclude="Assets\*.ico" />
   </ItemGroup>
 </Project>
