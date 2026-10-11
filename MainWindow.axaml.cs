@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
+using ChroaVideoPlayer.Utils;
 using ChroaVideoPlayer.ViewModels;
 using Avalonia.Platform.Storage;
 
@@ -51,6 +52,21 @@ public partial class MainWindow : Window
         };
         _volumeBar.Dragged += fraction => _viewModel?.UpdateVolumeFraction(fraction);
         // 音量不需要收尾动作（拖动中就已经写给 mpv 了），所以不接 Committed
+
+        // 拖动期间让浮层保持显示（指针被捕获后可能被拖到窗口外）
+        KeepChromeVisibleWhileDragging(_seekBar);
+        KeepChromeVisibleWhileDragging(_volumeBar);
+    }
+
+    // ==== 窗口外观（平台相关）====
+
+    // 必须在窗口真正创建之后调用，所以挂在 OnOpened，而不是构造函数里。
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+
+        // 去掉 DWM 画的那圈 1px 系统边框（阴影与圆角保留），细节见 Utils/WindowUtils.cs
+        WindowUtils.RemoveSystemBorder(this);
     }
 
     // ==== 拖动窗口：整窗任意位置（按钮与四角热区除外）====
@@ -221,6 +237,16 @@ public partial class MainWindow : Window
     // 指针交互（捕获、命中、已填充宽度）都在 Controls/DragBar.cs 里，两条共用；
     // 这里只把"比例"翻译成各自的含义：进度 → 秒（走 ViewModel 的 seek 三件套），音量 → 0~100。
     // 两条的接线在构造函数末尾。
+
+    /// <summary>
+    /// 拖动比例条期间给根 Grid 挂一个 dragging 类，让浮层保持显示 —— 指针被捕获后可能被拖到
+    /// 窗口外，那时 :pointerover 失效，控制条会在拖动中途自己淡掉（样式见 Styles/WindowChrome.axaml）。
+    /// </summary>
+    private void KeepChromeVisibleWhileDragging(DragBar bar)
+    {
+        bar.Started += () => RootGrid.Classes.Set("dragging", true);
+        bar.Committed += _ => RootGrid.Classes.Set("dragging", false);
+    }
 
     /// <summary>source 自己或它的某个视觉祖先是不是 target。</summary>
     private static bool IsInside(Visual source, Visual target)

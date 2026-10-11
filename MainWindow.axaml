@@ -20,7 +20,7 @@
 
 	     整窗都能拖动窗口：在手柄里靠"源元素是否有 Button 祖先"放行按钮，
 	     靠 e.Handled 放行四角热区。视频区域按下去也会走这里。 -->
-	<Grid Classes="root" Background="Transparent"
+	<Grid x:Name="RootGrid" Classes="root" Background="Transparent"
 	      PointerPressed="OnRootPointerPressed"
 	      DragDrop.AllowDrop="True"
 	      DragDrop.DragOver="OnDragOver"
@@ -29,7 +29,7 @@
 		<mpv:MpvView MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
 
 		<!-- 空状态入口：还没有任何文件被加载时，屏幕中央显示 Load Video。
-		     放 MpvView 之后、控制带之前：压在视频上、被底部热区盖住（正常窗口尺寸下不重叠）。
+		     放 MpvView 之后、控制带之前：压在视频上（正常窗口尺寸下不与控制条重叠）。
 		     它是个 Button，所以根上的"拖动窗口"会自动放行 ——
 		     OnRootPointerPressed 里既有 e.Handled 判断，也有 Button 祖先判断，不用额外处理。 -->
 		<Button Classes="loadVideo"
@@ -71,66 +71,64 @@
 			</StackPanel>
 		</Border>
 
-		<!-- 底部热区：始终"有绘制"（透明背景）所以能被悬停到，控制条靠它触发淡入 -->
-		<Border Classes="hotzone" VerticalAlignment="Bottom" Height="120" Background="Transparent">
-			<Border Classes="overlay bottom" VerticalAlignment="Bottom"
-			        Margin="24,0,24,28"
-			        IsVisible="{Binding HasVideo}">
-				<!-- 一行：[播放/暂停] [当前时间] [======进度条======] [总时长] [音量图标] [音量条]
-				     进度条那列是 *，窗口变宽变窄它都跟着变。 -->
-				<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
-					<StackPanel Grid.Column="0" Orientation="Horizontal">
-						<!-- 暂停中 → 显示"播放"图标，点它继续 -->
-						<chroa:SVGIconButton Icon="/Icons/play.svg"
-											 ButtonShape="Circle" ButtonSize="48" IconSize="24"
-											 IsVisible="{Binding IsPaused}"
-											 Click="OnPlayPauseClick" />
+		<!-- 底部控制条：显隐完全交给 Styles/WindowChrome.axaml（指针在窗口内任意位置就显示） -->
+		<Border Classes="overlay bottom" VerticalAlignment="Bottom"
+		        Margin="24,0,24,28"
+		        IsVisible="{Binding HasVideo}">
+			<!-- 一行：[播放/暂停] [当前时间] [======进度条======] [总时长] [音量图标] [音量条]
+			     进度条那列是 *，窗口变宽变窄它都跟着变。 -->
+			<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+				<StackPanel Grid.Column="0" Orientation="Horizontal">
+					<!-- 暂停中 → 显示"播放"图标，点它继续 -->
+					<chroa:SVGIconButton Icon="/Icons/play.svg"
+										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
+										 IsVisible="{Binding IsPaused}"
+										 Click="OnPlayPauseClick" />
 
-						<!-- 播放中 → 显示"暂停"图标，点它暂停 -->
-						<chroa:SVGIconButton Icon="/Icons/pause.svg"
-											 ButtonShape="Circle" ButtonSize="48" IconSize="24"
-											 IsVisible="{Binding !IsPaused}"
-											 Click="OnPlayPauseClick" />
-					</StackPanel>
+					<!-- 播放中 → 显示"暂停"图标，点它暂停 -->
+					<chroa:SVGIconButton Icon="/Icons/pause.svg"
+										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
+										 IsVisible="{Binding !IsPaused}"
+										 Click="OnPlayPauseClick" />
+				</StackPanel>
 
-					<TextBlock Grid.Column="1" Classes="time" Text="{Binding PositionText}" />
+				<TextBlock Grid.Column="1" Classes="time" Text="{Binding PositionText}" />
 
-					<!-- 进度条拖动区。必须给 Background="Transparent"：null 背景不参与命中测试。
-					     指针交互（按下 / 拖动 / 松手 / 捕获丢失）由代码里的 DragBar 接管，接线见 MainWindow 构造函数。
-					     它本身 20px 高（上下都好按），轨道在里面居中：默认 3px、悬停展开 6px。 -->
-					<Border Grid.Column="2" x:Name="SeekArea" Classes="bar" Background="Transparent" Cursor="Hand">
-						<Border x:Name="SeekTrack" Classes="barTrack">
-							<Border x:Name="SeekFill" Classes="barFill" HorizontalAlignment="Left" />
-						</Border>
+				<!-- 进度条拖动区。必须给 Background="Transparent"：null 背景不参与命中测试。
+				     指针交互（按下 / 拖动 / 松手 / 捕获丢失）由代码里的 DragBar 接管，接线见 MainWindow 构造函数。
+				     它本身 20px 高（上下都好按），轨道在里面居中：默认 3px、悬停展开 6px。 -->
+				<Border Grid.Column="2" x:Name="SeekArea" Classes="bar" Background="Transparent" Cursor="Hand">
+					<Border x:Name="SeekTrack" Classes="barTrack">
+						<Border x:Name="SeekFill" Classes="barFill" HorizontalAlignment="Left" />
 					</Border>
+				</Border>
 
-					<TextBlock Grid.Column="3" Classes="time" Text="{Binding DurationText}" />
+				<TextBlock Grid.Column="3" Classes="time" Text="{Binding DurationText}" />
 
-					<!-- 音量图标：点一下直接静音 / 取消静音。
-					     同一格里两个按钮按状态显隐 —— 和播放/暂停一个套路，省掉动态换图标的绑定。 -->
-					<chroa:SVGIconButton Grid.Column="4"
-					                    Icon="/Icons/volume-2.svg"
-					                    ButtonShape="Circle" ButtonSize="40" IconSize="20"
-					                    VerticalAlignment="Center"
-					                    IsVisible="{Binding !IsMuted}"
-					                    Click="OnMuteClick" />
+				<!-- 音量图标：点一下直接静音 / 取消静音。
+				     同一格里两个按钮按状态显隐 —— 和播放/暂停一个套路，省掉动态换图标的绑定。 -->
+				<chroa:SVGIconButton Grid.Column="4"
+				                    Icon="/Icons/volume-2.svg"
+				                    ButtonShape="Circle" ButtonSize="40" IconSize="20"
+				                    VerticalAlignment="Center"
+				                    IsVisible="{Binding !IsMuted}"
+				                    Click="OnMuteClick" />
 
-					<chroa:SVGIconButton Grid.Column="4"
-					                    Icon="/Icons/volume-x.svg"
-					                    ButtonShape="Circle" ButtonSize="40" IconSize="20"
-					                    VerticalAlignment="Center"
-					                    IsVisible="{Binding IsMuted}"
-					                    Click="OnMuteClick" />
+				<chroa:SVGIconButton Grid.Column="4"
+				                    Icon="/Icons/volume-x.svg"
+				                    ButtonShape="Circle" ButtonSize="40" IconSize="20"
+				                    VerticalAlignment="Center"
+				                    IsVisible="{Binding IsMuted}"
+				                    Click="OnMuteClick" />
 
-					<!-- 音量条：和进度条同一套外观与交互，只是比例的含义不同（0~100） -->
-					<Border Grid.Column="5" x:Name="VolumeArea" Classes="bar" Width="90"
-					        Background="Transparent" Cursor="Hand">
-						<Border x:Name="VolumeTrack" Classes="barTrack">
-							<Border x:Name="VolumeFill" Classes="barFill" HorizontalAlignment="Left" />
-						</Border>
+				<!-- 音量条：和进度条同一套外观与交互，只是比例的含义不同（0~100） -->
+				<Border Grid.Column="5" x:Name="VolumeArea" Classes="bar" Width="90"
+				        Background="Transparent" Cursor="Hand">
+					<Border x:Name="VolumeTrack" Classes="barTrack">
+						<Border x:Name="VolumeFill" Classes="barFill" HorizontalAlignment="Left" />
 					</Border>
-				</Grid>
-			</Border>
+				</Border>
+			</Grid>
 		</Border>
 
 		<!-- 四角缩放热区。必须给 Background="Transparent"：null 背景不参与命中测试。
