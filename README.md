@@ -4,7 +4,7 @@
 
 # Chroa Video Player
 
-### A minimal, frameless video player for Windows, powered by **mpv** and built with **Avalonia UI**.
+### A minimal, frameless video player for Windows (for now ;-) Linux, MacOS are planned), powered by **mpv** and built with **Avalonia UI**.
 
 Chroa is a small, quiet player that stays out of the way: frameless and ad-free, so you can focus on the
 video. Powered by [libmpv](https://mpv.io/), it plays almost every video format and never asks you to
