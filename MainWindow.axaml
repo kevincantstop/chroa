@@ -109,20 +109,23 @@
 				     同一格里两个按钮按状态显隐 —— 和播放/暂停一个套路，省掉动态换图标的绑定。 -->
 				<chroa:SVGIconButton Grid.Column="4"
 				                    Icon="/Icons/volume-2.svg"
+				                    IsEnabled="{Binding CanAdjustVolume}"
 				                    ButtonShape="Circle" ButtonSize="40" IconSize="20"
 				                    VerticalAlignment="Center"
-				                    IsVisible="{Binding !IsMuted}"
+				                    IsVisible="{Binding ShowVolumeIcon}"
 				                    Click="OnMuteClick" />
 
 				<chroa:SVGIconButton Grid.Column="4"
 				                    Icon="/Icons/volume-x.svg"
+				                    IsEnabled="{Binding CanAdjustVolume}"
 				                    ButtonShape="Circle" ButtonSize="40" IconSize="20"
 				                    VerticalAlignment="Center"
-				                    IsVisible="{Binding IsMuted}"
+				                    IsVisible="{Binding ShowMutedIcon}"
 				                    Click="OnMuteClick" />
 
 				<!-- 音量条：和进度条同一套外观与交互，只是比例的含义不同（0~100） -->
 				<Border Grid.Column="5" x:Name="VolumeArea" Classes="bar" Width="90"
+				        Classes.disabled="{Binding !CanAdjustVolume}"
 				        Margin="12,0,0,0"
 				        Background="Transparent" Cursor="Hand">
 					<Border x:Name="VolumeTrack" Classes="barTrack">

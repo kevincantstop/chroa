@@ -41,4 +41,8 @@
 		<Setter Property="CornerRadius" Value="2" />
 		<Setter Property="Background" Value="#F0F0F0" />
 	</Style>
+	<!-- 音量条在"没有音轨"时禁用：整体变暗表示不可调 -->
+	<Style Selector="Border.bar.disabled">
+		<Setter Property="Opacity" Value="0.35" />
+	</Style>
 </Styles>

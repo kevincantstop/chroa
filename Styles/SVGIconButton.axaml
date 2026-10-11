@@ -27,4 +27,9 @@
 	<Style Selector="controls|SVGIconButton:pressed /template/ ContentPresenter">
 		<Setter Property="Background" Value="#66FFFFFF" />
 	</Style>
+	<!-- 禁用（比如当前文件没有音轨）：图标变暗，和可点状态区分开。
+	     必须显式写这条 —— 上面的基础样式无条件设了 Foreground，不写的话禁用态看起来和可用态一模一样。 -->
+	<Style Selector="controls|SVGIconButton:disabled">
+		<Setter Property="Foreground" Value="#55FFFFFF" />
+	</Style>
 </Styles>

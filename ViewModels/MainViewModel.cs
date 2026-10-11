@@ -75,8 +75,8 @@ namespace ChroaVideoPlayer.ViewModels
         /// <summary>当前位置的显示文本（mm:ss / h:mm:ss）。</summary>
         public string PositionText => Format(Position);
 
-        /// <summary>总时长的显示文本。</summary>
-        public string DurationText => Format(Duration);
+        /// <summary>总时长的显示文本。时长未知（裸流 / 直播）时显示 --:--，别假装是 00:00。</summary>
+        public string DurationText => Duration > 0 ? Format(Duration) : "--:--";
 
         /// <summary>用户正在拖动进度条。此时 mpv 推来的位置要让位给手指，否则两者会打架。</summary>
         [ObservableProperty]
@@ -92,10 +92,28 @@ namespace ChroaVideoPlayer.ViewModels
 
         /// <summary>是否静音。点音量图标切换。</summary>
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowMutedIcon))]
+        [NotifyPropertyChangedFor(nameof(ShowVolumeIcon))]
         public partial bool IsMuted { get; set; }
 
         /// <summary>音量条的填充比例（0~1）。</summary>
         public double VolumeFraction => Math.Clamp(Volume / MaxVolume, 0, 1);
+
+        /// <summary>当前文件是否有音轨。没有音轨时音量控件显示成静音并禁用。</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanAdjustVolume))]
+        [NotifyPropertyChangedFor(nameof(ShowMutedIcon))]
+        [NotifyPropertyChangedFor(nameof(ShowVolumeIcon))]
+        public partial bool HasAudioTrack { get; set; }
+
+        /// <summary>音量能不能调：没有音轨时不给调（mpv 的 volume 对无音频的文件没有意义）。</summary>
+        public bool CanAdjustVolume => HasAudioTrack;
+
+        /// <summary>显示"静音"图标：静音中，或者当前文件根本没有音轨。</summary>
+        public bool ShowMutedIcon => IsMuted || !HasAudioTrack;
+
+        /// <summary>显示"音量"图标。</summary>
+        public bool ShowVolumeIcon => !ShowMutedIcon;
 
         public MainViewModel()
         {
@@ -105,9 +123,13 @@ namespace ChroaVideoPlayer.ViewModels
             Mpv.ProgressChanged += OnProgressChanged;
             Mpv.VolumeChanged += OnVolumeChanged;
             Mpv.EndedChanged += OnEndedChanged;
+            Mpv.AudioTrackChanged += OnAudioTrackChanged;
 
             // mpv 的默认音量是 100；真实值推来之前先按默认显示，免得音量条空着
             Volume = MaxVolume;
+
+            // 还没加载任何文件时按"有音轨"显示：真实值在 file-loaded 时由 ChroaMpvContext 推来
+            HasAudioTrack = true;
         }
 
         private void OnVideoAspectDetected(object? sender, double aspect) =>
@@ -190,5 +212,8 @@ namespace ChroaVideoPlayer.ViewModels
 
         private void OnEndedChanged(object? sender, bool ended) =>
             Dispatcher.UIThread.Post(() => HasEnded = ended);
+
+        private void OnAudioTrackChanged(object? sender, bool hasAudio) =>
+            Dispatcher.UIThread.Post(() => HasAudioTrack = hasAudio);
     }
 }

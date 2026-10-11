@@ -48,7 +48,7 @@ public partial class MainWindow : Window
 
         _volumeBar = new DragBar(VolumeArea, VolumeTrack, VolumeFill)
         {
-            CanDrag = () => _viewModel?.HasVideo == true,
+            CanDrag = () => _viewModel is { HasVideo: true, CanAdjustVolume: true },
         };
         _volumeBar.Dragged += fraction => _viewModel?.UpdateVolumeFraction(fraction);
         // 音量不需要收尾动作（拖动中就已经写给 mpv 了），所以不接 Committed

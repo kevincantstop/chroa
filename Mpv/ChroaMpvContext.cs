@@ -52,6 +52,9 @@ public sealed class ChroaMpvContext
     /// </summary>
     private bool _ended;
 
+    /// <summary>当前文件有没有音轨。没有时 UI 会禁用音量控件（aid 为 no → 读成 null）。</summary>
+    private bool _hasAudio = true;
+
     /// <summary>
     /// 由 MpvView 通过 OneWayToSource 绑定写入（见 MainWindow.axaml 的 MpvContext="{Binding Mpv.ViewContext}"）。
     /// 注意：切换 Renderer 时 MpvView 会销毁旧 context 并推来一个新的，所以这里会被赋值多次 ——
@@ -108,6 +111,12 @@ public sealed class ChroaMpvContext
     /// 可能在 mpv 自己的线程上触发。
     /// </summary>
     public event EventHandler<bool>? EndedChanged;
+
+    /// <summary>
+    /// 当前文件是否有音轨。没有音轨时 UI 把音量控件显示成静音并禁用。
+    /// 可能在 mpv 自己的线程上触发。
+    /// </summary>
+    public event EventHandler<bool>? AudioTrackChanged;
 
     /// <summary>
     /// 播放指定文件。若 mpv 上下文还没就绪（视图尚未创建），会记住这个文件，
@@ -264,6 +273,7 @@ public sealed class ChroaMpvContext
         context.Mute.Changed += OnMutePropertyChanged;
         context.EndFile += OnEndFile;
         context.EofReached.Changed += OnEofReachedChanged;
+        context.AudioReconfig += OnAudioReconfig;
 
         // 上下文就绪之前调用过 Play 的话，在这里补播
         var pending = _pendingFile;
@@ -292,6 +302,7 @@ public sealed class ChroaMpvContext
         context.Mute.Changed -= OnMutePropertyChanged;
         context.EndFile -= OnEndFile;
         context.EofReached.Changed -= OnEofReachedChanged;
+        context.AudioReconfig -= OnAudioReconfig;
     }
 
     // ==== 视频宽高比探测 ====
@@ -327,6 +338,9 @@ public sealed class ChroaMpvContext
             // 音频输出此时才就绪，顺手把音量/静音再确认一次
             // （Attach 时的读取可能落在"属性还不可读"的窗口里）
             TryPublishVolume();
+
+            // 文件加载后确认有没有音轨（aid 由 demuxer 探测后写入）
+            _ = RefreshAudioTrackAsync();
 
             // 先通知"有东西加载了"：这是 UI 切布局的信号，不该被下面的比例重试拖延。
             MediaOpened?.Invoke(this, EventArgs.Empty);
@@ -465,6 +479,55 @@ public sealed class ChroaMpvContext
         }
 
         PublishVolume();
+    }
+
+    // ==== 有没有音轨（aid）====
+
+    private void OnAudioReconfig(object? sender, EventArgs e) =>
+        // 音频输出起来了 = 一定有音轨（无音轨的文件根本不会发这个事件）
+        SafeRun(nameof(OnAudioReconfig), () => SetHasAudio(true));
+
+    /// <summary>文件刚加载时 aid 可能还没写进去，短时间内多试几次。</summary>
+    private async Task RefreshAudioTrackAsync()
+    {
+        for (var i = 0; i < 10; i++)
+        {
+            if (TryReadHasAudio(out var hasAudio))
+            {
+                SetHasAudio(hasAudio);
+                return;
+            }
+
+            await Task.Delay(100);
+        }
+    }
+
+    private bool TryReadHasAudio(out bool hasAudio)
+    {
+        hasAudio = true;
+
+        var context = _context;
+        if (context is null) return false;
+
+        try
+        {
+            // aid = 选中的音轨号；没有音轨时 mpv 报 "no"，LibMpv 读成 null
+            hasAudio = context.AudioId.Get() is not null;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"aid not ready yet ({ex.GetType().Name})");
+            return false;
+        }
+    }
+
+    private void SetHasAudio(bool hasAudio)
+    {
+        if (_hasAudio == hasAudio) return;
+
+        _hasAudio = hasAudio;
+        AudioTrackChanged?.Invoke(this, hasAudio);
     }
 
     // ==== 播放结束（片尾 / idle）====
