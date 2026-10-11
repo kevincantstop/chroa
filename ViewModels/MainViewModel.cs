@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Avalonia.Threading;
 using ChroaVideoPlayer.Mpv;
 using CommunityToolkit.Mvvm.ComponentModel;

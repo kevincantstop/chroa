@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using HanumanInstitute.LibMpv;
@@ -39,6 +39,7 @@ public sealed class ChroaMpvContext
     /// 可能在 mpv 自己的线程上触发，订阅方若要改 UI 需要自己切回 UI 线程。
     /// </summary>
     public event EventHandler<double>? VideoAspectDetected;
+
     /// <summary>
     /// 播放/暂停状态变化。来自 mpv 的 pause 属性推送（属性观察，不是轮询 —— 架构文档 §6.4 的要求）。
     /// 可能在 mpv 自己的线程上触发。
@@ -129,14 +130,17 @@ public sealed class ChroaMpvContext
 
     // ==== 视频宽高比探测 ====
 
-    private void OnStartFile(object? sender, MpvStartFileEventArgs e) => _aspectReported = false;
+    private void OnStartFile(object? sender, MpvStartFileEventArgs e) =>
+        SafeRun(nameof(OnStartFile), () => _aspectReported = false);
 
-    private void OnFileLoaded(object? sender, EventArgs e) => TryReportAspect();
+    private void OnFileLoaded(object? sender, EventArgs e) =>
+        SafeRun(nameof(OnFileLoaded), TryReportAspect);
 
-    private void OnVideoReconfig(object? sender, EventArgs e) => TryReportAspect();
+    private void OnVideoReconfig(object? sender, EventArgs e) =>
+        SafeRun(nameof(OnVideoReconfig), TryReportAspect);
 
     private void OnPausePropertyChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
-        PauseChanged?.Invoke(this, e.NewValue ?? false);
+        SafeRun(nameof(OnPausePropertyChanged), () => PauseChanged?.Invoke(this, e.NewValue ?? false));
 
     private void TryReportAspect()
     {
@@ -147,13 +151,58 @@ public sealed class ChroaMpvContext
         var context = _context;
         if (context is null) return;
 
-        // dwidth/dheight = 应用了 aspect scaling 之后的显示尺寸。
-        // width/height 是解码尺寸，变形片源会算错。
-        var width = context.DisplayWidth.Get() ?? 0;
-        var height = context.DisplayHeight.Get() ?? 0;
+        int width, height;
+        try
+        {
+            // dwidth/dheight = 应用了 aspect scaling 之后的显示尺寸。
+            // width/height 是解码尺寸，变形片源会算错。
+            //
+            // 但在 vo=libmpv 的渲染路径下，FileLoaded 时刻这两个属性可能还不可用，
+            // 而 LibMpv 对不可用的属性会抛 MpvException。这个异常绝不能放出去 ——
+            // 它会顺着事件循环线程冒出去，把整个事件循环永久搞死（详见 SafeRun 的说明）。
+            width = context.DisplayWidth.Get() ?? 0;
+            height = context.DisplayHeight.Get() ?? 0;
+        }
+        catch (Exception ex)
+        {
+            // 还没就绪：过一会儿重试
+            Debug.WriteLine($"aspect not ready yet ({ex.GetType().Name})");
+            _ = RetryAspectAsync();
+            return;
+        }
+
         if (width <= 0 || height <= 0) return;      // 还没就绪，等下一个事件
 
         _aspectReported = true;
         VideoAspectDetected?.Invoke(this, (double)width / height);
+    }
+
+    /// <summary>属性还没就绪时，短时间内多试几次。</summary>
+    private async Task RetryAspectAsync()
+    {
+        for (var i = 0; i < 20 && !_aspectReported; i++)
+        {
+            await Task.Delay(100);
+            SafeRun(nameof(RetryAspectAsync), TryReportAspect);
+        }
+    }
+
+    /// <summary>
+    /// 事件处理器绝不能抛异常。
+    /// LibMpv 的事件循环是跑在 Task 上的（MpvSimpleEventLoop.ProcessEvents），处理器里的异常会
+    /// 顺着它冒出去把这个 Task 永久 fault —— 之后再也收不到任何 mpv 事件。而该 Task 从未被观察，
+    /// 所以既不崩溃也不报错：画面照播、同步调用（Get/Set/LoadFile）照常，只有"事件驱动"的功能
+    /// 集体哑掉，极难定位。
+    /// </summary>
+    private static void SafeRun(string name, Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"mpv handler {name} threw: {ex}");
+        }
     }
 }
