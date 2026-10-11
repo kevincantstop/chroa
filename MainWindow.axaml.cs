@@ -112,6 +112,12 @@ public partial class MainWindow : Window
         if (_viewModel is not null)
         {
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+            // 订阅到之前 ViewModel 就已经有值了（它的默认值），而 [ObservableProperty] 生成的
+            // setter 只在"值真的变了"时才 raise PropertyChanged —— 光靠通知会让视图停在初值上。
+            // 所以这里必须主动拉一次：音量条曾因此永远显示 0（mpv 侧其实是 100，声音也在响）。
+            _seekBar.SetFraction(_viewModel.SeekFraction);
+            _volumeBar.SetFraction(_viewModel.VolumeFraction);
         }
     }
 

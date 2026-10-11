@@ -10,7 +10,7 @@
         x:DataType="vm:MainViewModel"
         Title="ChroaVideoPlayer"
         Width="1280" Height="720"
-        WindowDecorations="None"
+        WindowDecorations="BorderOnly"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="-1"
         CanResize="True"
