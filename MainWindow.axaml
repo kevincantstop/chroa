@@ -8,7 +8,7 @@
         mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
         x:Class="ChroaVideoPlayer.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="ChroaVideoPlayer"
+        Title="Chroa Video Player"
         Icon="/Assets/AppIcon@256.png"
         Width="1280" Height="720"
         WindowDecorations="BorderOnly"
