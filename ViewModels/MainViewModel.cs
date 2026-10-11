@@ -25,6 +25,7 @@ namespace ChroaVideoPlayer.ViewModels
         [NotifyPropertyChangedFor(nameof(ShowPlayIcon))]
         [NotifyPropertyChangedFor(nameof(ShowPauseIcon))]
         [NotifyPropertyChangedFor(nameof(CanSeek))]
+        [NotifyPropertyChangedFor(nameof(ShowLoadVideo))]
         public partial bool HasEnded { get; set; }
 
         /// <summary>显示"播放"图标：暂停中，或者已经播完（播完时 mpv 是 idle，pause 靠不住）。</summary>
@@ -34,11 +35,18 @@ namespace ChroaVideoPlayer.ViewModels
         public bool ShowPauseIcon => !ShowPlayIcon;
 
         /// <summary>
+        /// 显示"Load Video"入口：还没加载过文件，或者已经播完（mpv 回到空载状态）。
+        /// 播完之后控制条仍然显示，所以"重播"和"换一个文件"两个入口同时可用。
+        /// </summary>
+        public bool ShowLoadVideo => !HasVideo || HasEnded;
+
+        /// <summary>
         /// 是否已经加载了媒体（对应 mpv 的 file-loaded）。
-        /// UI 用它决定：空状态显示"Load Video"入口，还是显示播放/暂停控制条。
+        /// UI 用它决定：显示播放/暂停控制条，还是显示"Load Video"入口（另一个条件见 ShowLoadVideo）。
         /// 注意不能拿 IsPaused 当判据 —— mpv 空载时也报 pause=false，语义上根本没有"暂停"这回事。
         /// </summary>
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowLoadVideo))]
         public partial bool HasVideo { get; set; }
 
         /// <summary>当前播放位置（秒）。播放中由 mpv 推来；拖动进度条时是拖动值。</summary>

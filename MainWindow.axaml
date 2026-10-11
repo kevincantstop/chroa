@@ -35,7 +35,7 @@
 		<Button Classes="loadVideo"
 		        HorizontalAlignment="Center" VerticalAlignment="Center"
 		        Cursor="Hand"
-		        IsVisible="{Binding !HasVideo}"
+		        IsVisible="{Binding ShowLoadVideo}"
 		        Click="OnLoadVideoClick">
 			<StackPanel Orientation="Horizontal" Spacing="10">
 				<chroa:SvgIcon Icon="/Icons/film.svg" IconSize="20" VerticalAlignment="Center" />
