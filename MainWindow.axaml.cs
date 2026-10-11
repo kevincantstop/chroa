@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -173,6 +174,55 @@ public partial class MainWindow : Window
         }
 
         return null;
+    }
+
+    // ==== 空状态：选文件并播放 ====
+
+    /// <summary>文件选择框的类型过滤器。mpv 能吃的格式远不止这些，所以第二个"所有文件"是逃生门。</summary>
+    private static readonly FilePickerFileType VideoFileType = new("视频文件")
+    {
+        Patterns = new[]
+        {
+            "*.mp4", "*.mkv", "*.mov", "*.m4v", "*.avi", "*.webm", "*.flv",
+            "*.wmv", "*.ts", "*.m2ts", "*.mpg", "*.mpeg", "*.rmvb", "*.3gp",
+        },
+        MimeTypes = new[] { "video/*" },
+        AppleUniformTypeIdentifiers = new[] { "public.movie" },
+    };
+
+    private static readonly FilePickerFileType AllFileType = new("所有文件")
+    {
+        Patterns = new[] { "*.*" },
+    };
+
+    private async void OnLoadVideoClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // StorageProvider 是 TopLevel 上的属性，Window 继承自 TopLevel，直接可用；
+            // Windows 上它会把对话框挂到本窗口上（模态）。
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "选择视频",
+                AllowMultiple = false,
+                FileTypeFilter = new[] { VideoFileType, AllFileType },
+            });
+
+            if (files.Count == 0) return;                 // 用户取消 → 空集合，不是 null
+
+            var path = files[0].TryGetLocalPath();
+            if (string.IsNullOrEmpty(path)) return;
+
+            // 和拖放共用同一条链路：ChroaMpvContext 会等渲染上下文就绪后再 loadfile，
+            // 加载成功后的 file-loaded 会把 HasVideo 打开 → 空状态按钮自动消失。
+            // mpv 默认 pause=no，所以选完文件就是直接播放。
+            _viewModel?.Mpv.Play(path);
+        }
+        catch (Exception ex)
+        {
+            // async void 事件处理器里的异常没人接，会直接掀掉进程 —— 必须自己兜住
+            Debug.WriteLine($"Open file picker failed: {ex}");
+        }
     }
 
     // ==== 三个窗口按钮 ====

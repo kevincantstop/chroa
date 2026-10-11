@@ -8,5 +8,6 @@
         <FluentTheme />
 		<StyleInclude Source="avares://ChroaVideoPlayer/Styles/SVGIconButton.axaml" />
 		<StyleInclude Source="avares://ChroaVideoPlayer/Styles/WindowChrome.axaml" />
+		<StyleInclude Source="avares://ChroaVideoPlayer/Styles/LoadVideoButton.axaml" />
     </Application.Styles>
 </Application>

@@ -18,10 +18,19 @@ namespace ChroaVideoPlayer.ViewModels
         [ObservableProperty]
         public partial bool IsPaused { get; set; }
 
+        /// <summary>
+        /// 是否已经加载了媒体（对应 mpv 的 file-loaded）。
+        /// UI 用它决定：空状态显示"Load Video"入口，还是显示播放/暂停控制条。
+        /// 注意不能拿 IsPaused 当判据 —— mpv 空载时也报 pause=false，语义上根本没有"暂停"这回事。
+        /// </summary>
+        [ObservableProperty]
+        public partial bool HasVideo { get; set; }
+
         public MainViewModel()
         {
             Mpv.VideoAspectDetected += OnVideoAspectDetected;
             Mpv.PauseChanged += OnPauseChanged;
+            Mpv.MediaOpened += OnMediaOpened;
         }
 
         private void OnVideoAspectDetected(object? sender, double aspect) =>
@@ -31,5 +40,9 @@ namespace ChroaVideoPlayer.ViewModels
 
         private void OnPauseChanged(object? sender, bool paused) =>
             Dispatcher.UIThread.Post(() => IsPaused = paused);
+
+        private void OnMediaOpened(object? sender, EventArgs e) =>
+            // 和上面两个一样：mpv 线程 → UI 线程
+            Dispatcher.UIThread.Post(() => HasVideo = true);
     }
 }

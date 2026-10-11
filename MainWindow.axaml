@@ -28,6 +28,17 @@
 
 		<mpv:MpvView MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
 
+		<!-- 空状态入口：还没有任何文件被加载时，屏幕中央显示 Load Video。
+		     放 MpvView 之后、控制带之前：压在视频上、被底部热区盖住（正常窗口尺寸下不重叠）。
+		     它是个 Button，所以根上的"拖动窗口"会自动放行 ——
+		     OnRootPointerPressed 里既有 e.Handled 判断，也有 Button 祖先判断，不用额外处理。 -->
+		<Button Classes="loadVideo"
+		        HorizontalAlignment="Center" VerticalAlignment="Center"
+		        Cursor="Hand"
+		        IsVisible="{Binding !HasVideo}"
+		        Click="OnLoadVideoClick"
+		        Content="Load Video" />
+
 		<!-- 顶部控制带：刻意不使用 WindowDecorationProperties.ElementRole。
 		     那套机制会把整条区域变成 Windows 的非客户区（标题栏），导致：
 		       · Avalonia 的指针悬停追踪失效 → 整条把自己淡出成隐形，按钮点不到
@@ -59,7 +70,8 @@
 		<!-- 底部热区：始终"有绘制"（透明背景）所以能被悬停到，控制条靠它触发淡入 -->
 		<Border Classes="hotzone" VerticalAlignment="Bottom" Height="120" Background="Transparent">
 			<Border Classes="overlay bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-			        Margin="0,0,0,28">
+			        Margin="0,0,0,28"
+			        IsVisible="{Binding HasVideo}">
 				<StackPanel Orientation="Horizontal">
 					<!-- 暂停中 → 显示"播放"图标，点它继续 -->
 					<chroa:SVGIconButton Icon="/Icons/play.svg"

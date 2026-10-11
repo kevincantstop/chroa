@@ -54,6 +54,12 @@ public sealed class ChroaMpvContext
     public event EventHandler<bool>? PauseChanged;
 
     /// <summary>
+    /// mpv 成功加载了一个文件（file-loaded）时触发。空状态 UI 靠它切换到"已加载"布局。
+    /// 可能在 mpv 自己的线程上触发，订阅方若要改 UI 需要自己切回 UI 线程。
+    /// </summary>
+    public event EventHandler? MediaOpened;
+
+    /// <summary>
     /// 播放指定文件。若 mpv 上下文还没就绪（视图尚未创建），会记住这个文件，
     /// 等上下文推过来之后自动播放。
     /// </summary>
@@ -158,6 +164,9 @@ public sealed class ChroaMpvContext
     private void OnFileLoaded(object? sender, EventArgs e) =>
         SafeRun(nameof(OnFileLoaded), () =>
         {
+            // 先通知"有东西加载了"：这是 UI 切布局的信号，不该被下面的比例重试拖延。
+            MediaOpened?.Invoke(this, EventArgs.Empty);
+
             // file-loaded 可能早于 video-reconfig，此时读到的是上一个视频的尺寸。
             // 所以尺寸不可信时只安排重试，等 video-reconfig 到了（或超时兜底）再读。
             if (_sizeTrustworthy) TryReportAspect();
