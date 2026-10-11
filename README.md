@@ -30,7 +30,7 @@ run `ChroaVideoPlayer.exe`.
   <img src="screenshots/screenshot_2.jpg" alt="The Chroa Video Player interface" width="100%">
 </p>
 
-| **The player interface** | **Before anything is loaded** |
+| **Truely frameless when playing** | **Before anything is loaded** |
 | :---: | :---: |
 | ![Chroa Video Player playing a video](screenshots/screenshot_1.jpg) | ![The main window before anything is loaded](screenshots/screenshot_3.jpg) |
 
