@@ -123,6 +123,7 @@
 
 				<!-- 音量条：和进度条同一套外观与交互，只是比例的含义不同（0~100） -->
 				<Border Grid.Column="5" x:Name="VolumeArea" Classes="bar" Width="90"
+				        Margin="12,0,0,0"
 				        Background="Transparent" Cursor="Hand">
 					<Border x:Name="VolumeTrack" Classes="barTrack">
 						<Border x:Name="VolumeFill" Classes="barFill" HorizontalAlignment="Left" />
