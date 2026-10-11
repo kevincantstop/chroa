@@ -205,7 +205,7 @@ public partial class MainWindow : Window
             {
                 Title = "选择视频",
                 AllowMultiple = false,
-                FileTypeFilter = new[] { VideoFileType, AllFileType },
+                FileTypeFilter = [ VideoFileType, AllFileType ],
             });
 
             if (files.Count == 0) return;                 // 用户取消 → 空集合，不是 null

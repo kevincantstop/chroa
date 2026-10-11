@@ -36,8 +36,12 @@
 		        HorizontalAlignment="Center" VerticalAlignment="Center"
 		        Cursor="Hand"
 		        IsVisible="{Binding !HasVideo}"
-		        Click="OnLoadVideoClick"
-		        Content="Load Video" />
+		        Click="OnLoadVideoClick">
+			<StackPanel Orientation="Horizontal" Spacing="10">
+				<chroa:SvgIcon Icon="/Icons/film.svg" IconSize="20" VerticalAlignment="Center" />
+				<TextBlock Text="Load Video" VerticalAlignment="Center" />
+			</StackPanel>
+		</Button>
 
 		<!-- 顶部控制带：刻意不使用 WindowDecorationProperties.ElementRole。
 		     那套机制会把整条区域变成 Windows 的非客户区（标题栏），导致：
