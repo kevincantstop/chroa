@@ -142,7 +142,7 @@ public class SvgIcon : Decorator
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"图标 path 数据解析失败: {ex.Message}");
+                Debug.WriteLine($"Failed to parse icon path data: {ex.Message}");
                 return null;
             }
         }
@@ -163,7 +163,7 @@ public class SvgIcon : Decorator
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"图标文件加载失败 {source}: {ex.Message}");
+            Debug.WriteLine($"Failed to load icon file {source}: {ex.Message}");
         }
 
         IconCache[source] = geometry;

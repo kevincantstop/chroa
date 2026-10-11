@@ -40,7 +40,7 @@ internal static class WindowUtils
         var handle = window.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
         if (handle == IntPtr.Zero)
         {
-            Debug.WriteLine("拿不到窗口句柄，系统边框没去掉");
+            Debug.WriteLine("Could not get the window handle; the system border was not removed");
             return;
         }
 
@@ -48,11 +48,11 @@ internal static class WindowUtils
         try
         {
             var hr = DwmSetWindowAttribute(handle, DwmwaBorderColor, ref none, sizeof(int));
-            if (hr != 0) Debug.WriteLine($"DWMWA_BORDER_COLOR 失败: 0x{hr:X8}（Win11 22000 以下不支持，可忽略）");
+            if (hr != 0) Debug.WriteLine($"DWMWA_BORDER_COLOR failed: 0x{hr:X8} (unsupported before Windows 11 build 22000; safe to ignore)");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"DWMWA_BORDER_COLOR 抛异常: {ex.Message}");
+            Debug.WriteLine($"DWMWA_BORDER_COLOR threw: {ex.Message}");
         }
     }
 }

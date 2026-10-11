@@ -252,7 +252,7 @@ public sealed class ChroaMpvContext
 
             if (!context.IsCustomRendering())
             {
-                Debug.WriteLine("OpenGL 渲染上下文 5 秒内没建立，画面出不来（检查 ANGLE / RenderingMode）");
+                Debug.WriteLine("OpenGL render context was not created within 5 seconds; no video output (check ANGLE / RenderingMode)");
             }
 
             await context.LoadFile(path).InvokeAsync();
@@ -330,7 +330,7 @@ public sealed class ChroaMpvContext
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"设置 hwdec={HardwareDecodingMode} 失败，继续用软解：{ex.Message}");
+            Debug.WriteLine($"Failed to set hwdec={HardwareDecodingMode}; falling back to software decoding: {ex.Message}");
         }
     }
 

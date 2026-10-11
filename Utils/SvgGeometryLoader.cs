@@ -32,7 +32,7 @@ internal static class SvgGeometryLoader
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"SVG 解析失败: {ex.Message}");
+            Debug.WriteLine($"Failed to parse SVG: {ex.Message}");
             return null;
         }
 
@@ -77,7 +77,7 @@ internal static class SvgGeometryLoader
             catch (Exception ex)
             {
                 // 单个元素坏掉只丢它自己，不再像以前那样整枚图标一起废掉
-                Debug.WriteLine($"SVG path 解析失败: {ex.Message}（data={d}）");
+                Debug.WriteLine($"Failed to parse SVG path: {ex.Message} (data={d})");
             }
         }
 
@@ -95,7 +95,7 @@ internal static class SvgGeometryLoader
         if (Math.Abs(n[0]) < 0.001 && Math.Abs(n[1]) < 0.001 &&
             Math.Abs(n[2] - 24) < 0.001 && Math.Abs(n[3] - 24) < 0.001) return;
 
-        Debug.WriteLine($"SVG 的 viewBox 不是 0 0 24 24（实际 {vb}），当前不会自动缩放，图标可能过大或过小。");
+        Debug.WriteLine($"SVG viewBox is not '0 0 24 24' (actual {vb}); no auto-scaling is applied, the icon may render too large or too small.");
     }
 
     private static double Num(XElement el, string name, double fallback = 0)

@@ -317,7 +317,7 @@ public partial class MainWindow : Window
     // ==== 空状态：选文件并播放 ====
 
     /// <summary>文件选择框的类型过滤器。mpv 能吃的格式远不止这些，所以第二个"所有文件"是逃生门。</summary>
-    private static readonly FilePickerFileType VideoFileType = new("视频文件")
+    private static readonly FilePickerFileType VideoFileType = new("Video Files")
     {
         Patterns = new[]
         {
@@ -328,7 +328,7 @@ public partial class MainWindow : Window
         AppleUniformTypeIdentifiers = new[] { "public.movie" },
     };
 
-    private static readonly FilePickerFileType AllFileType = new("所有文件")
+    private static readonly FilePickerFileType AllFileType = new("All Files")
     {
         Patterns = new[] { "*.*" },
     };
@@ -341,7 +341,7 @@ public partial class MainWindow : Window
             // Windows 上它会把对话框挂到本窗口上（模态）。
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "选择视频",
+                Title = "Load Video",
                 AllowMultiple = false,
                 FileTypeFilter = [ VideoFileType, AllFileType ],
             });
