@@ -15,6 +15,7 @@ using VAlign = Avalonia.Layout.VerticalAlignment;
 // 必须起别名：本文件同时 using 了 System.IO（为了 StreamReader），
 // 那个名字空间里也有一个 Path（System.IO.Path），直接用 Path 会 CS0104 二义性。
 using Path = Avalonia.Controls.Shapes.Path;
+using ChroaVideoPlayer.Utils;
 
 namespace ChroaVideoPlayer.Controls;
 

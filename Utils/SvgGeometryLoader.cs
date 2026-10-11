@@ -7,14 +7,15 @@ using System.Text;
 using System.Xml.Linq;
 using Avalonia.Media;
 
-namespace ChroaVideoPlayer.Controls;
+namespace ChroaVideoPlayer.Utils;
 
 /// <summary>
 /// 最小 SVG → Geometry 转换器：只处理图标类 SVG 会用到的几何元素
 /// （path / rect / circle / ellipse / line / polyline / polygon），
 /// 忽略颜色、样式、transform、文字等一切非几何内容。
 ///
-/// 刻意不引入 Avalonia.Svg.Skia 这类完整 SVG 渲染库 —— 图标只需要几何。
+/// 刻意不引入 Avalonia.Svg.Skia / SvgML 这类完整 SVG 渲染库 —— 图标只需要几何。
+/// （渲染库会把颜色画进图形里，Foreground 绑定与 :pointerover 样式就没了。）
 /// </summary>
 internal static class SvgGeometryLoader
 {
@@ -61,15 +62,11 @@ internal static class SvgGeometryLoader
 
         if (parts.Count == 0) return null;
 
-        // 关键：绝不能把多个元素拼成一条 path 数据再解析。
-        // SVG 里"首位的小写 m"等价于绝对 M，但它后面跟着的隐式 lineto 仍是**相对**的；
-        // 拼成一条后 m 不再是首位，这段相对语义会被当成绝对坐标读，终点就错了。
-        // x.svg 正是这种：
-        //   <path d="M18 6 6 18"/>  → (18,6) → (6,18)
-        //   <path d="m6 6 12 12"/>  → 起点按绝对 (6,6)，终点相对位移 (12,12) → (18,18)
-        // 拼起来写成 "M6 6 12 12" 会解析成 (6,6) → (12,12)，第二捺只剩一半（图标"缺一块"）。
-        // 正确做法：每个元素各解析成独立几何，再用 GeometryGroup 组合 —— 相对语义互不干扰
-        // （单独解析时当前点是原点，首位小写 m 自然等于绝对坐标）。
+        // 每个元素各自解析成独立几何，用 GeometryGroup 组合 —— 不把它们拼成一条 path 数据。
+        // 拼接会改变语义：SVG 里"首位的小写 m"等价于绝对 M，但它后面跟着的隐式 lineto 仍是相对的；
+        // 拼起来后 m 不再是首位，这段相对语义会被当成绝对坐标读。
+        // （实测：改成分元素解析后，关闭图标的表现没有变化 —— 也就是说这个现象另有原因，
+        //   若某个图标的相对命令画不对，最稳的写法是把图标文件里的 d 直接写成绝对坐标。）
         var group = new GeometryGroup();
         foreach (var d in parts)
         {
