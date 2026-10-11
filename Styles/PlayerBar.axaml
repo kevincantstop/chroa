@@ -1,10 +1,5 @@
 <Styles xmlns="https://github.com/avaloniaui">
-	<!-- 底部控制条里的进度条与音量条，以及时间文本。
-	     两条比例条刻意不用 Fluent 的 Slider / ProgressBar：它俩有 4px 最小高、强调色和自带动画，
-	     跟架构文档 §5.4 要的"3px 细线、悬停展开 6px"对不上。这里用"轨道 + 已播段"两个 Border 自己搭，
-	     已填充宽度由 Controls/DragBar.cs 按"比例 × 轨道实宽"算。 -->
 
-	<!-- 进度条两侧的时间文本 -->
 	<Style Selector="TextBlock.time">
 		<Setter Property="VerticalAlignment" Value="Center" />
 		<Setter Property="Margin" Value="12,0" />
@@ -12,13 +7,11 @@
 		<Setter Property="Foreground" Value="#C8C8C8" />
 	</Style>
 
-	<!-- 拖动区：20px 高保证上下都好按，轨道在它里面居中 -->
 	<Style Selector="Border.bar">
 		<Setter Property="Height" Value="20" />
 		<Setter Property="VerticalAlignment" Value="Center" />
 	</Style>
 
-	<!-- 轨道：默认 3px 细线 -->
 	<Style Selector="Border.barTrack">
 		<Setter Property="Height" Value="3" />
 		<Setter Property="VerticalAlignment" Value="Center" />
@@ -31,17 +24,14 @@
 		</Setter>
 	</Style>
 
-	<!-- 悬停在拖动区上 → 展开到 6px -->
 	<Style Selector="Border.bar:pointerover Border.barTrack">
 		<Setter Property="Height" Value="6" />
 	</Style>
 
-	<!-- 已播过的一段：宽度由 DragBar 给，这里只管颜色和圆角 -->
 	<Style Selector="Border.barFill">
 		<Setter Property="CornerRadius" Value="2" />
 		<Setter Property="Background" Value="#F0F0F0" />
 	</Style>
-	<!-- 音量条在"没有音轨"时禁用：整体变暗表示不可调 -->
 	<Style Selector="Border.bar.disabled">
 		<Setter Property="Opacity" Value="0.35" />
 	</Style>

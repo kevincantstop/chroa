@@ -1,9 +1,4 @@
 <Styles xmlns="https://github.com/avaloniaui">
-	<!-- 空状态入口按钮。为什么不复用 SVGIconButton：那是纯图标按钮（固定方/圆尺寸 + Geometry），
-	     这个是带文字的主行动按钮，形状和尺寸语义都不一样，硬塞会把 SVGIconButton 撑成万能控件。
-
-	     所有外观写在这里而不是元素上：元素上直接写属性是局部值，优先级高于样式，
-	     :pointerover 会永远不生效（这个坑在 SVGIconButton 上踩过）。 -->
 	<Style Selector="Button.loadVideo">
 		<Setter Property="Background" Value="#26FFFFFF" />
 		<Setter Property="Foreground" Value="#E8E8E8" />
@@ -18,8 +13,6 @@
 		</Setter>
 	</Style>
 
-	<!-- 悬停 / 按下：Fluent 主题自己在 :pointerover 上改 /template/ ContentPresenter 的 Background，
-	     只设 Button.Background 会被盖掉，所以两处都写（同 SVGIconButton.axaml）。 -->
 	<Style Selector="Button.loadVideo:pointerover">
 		<Setter Property="Background" Value="#40FFFFFF" />
 	</Style>

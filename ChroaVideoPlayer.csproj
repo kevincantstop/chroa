@@ -21,9 +21,6 @@
     <PackageReference Include="HanumanInstitute.LibMpv.Avalonia" Version="0.10.1" />
   </ItemGroup>
 
-  <!-- LibMpv only searches MpvApi.RootPath for libmpv-2.dll, whose default is the folder holding the
-       exe. The DLL stays in a native\ subfolder in the output, and Program.cs points RootPath at it.
-       (No Link metadata, so MSBuild keeps the native\ folder in the output path.) -->
   <ItemGroup>
     <None Include="native\libmpv-2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -33,13 +30,8 @@
     <Folder Include="Controls\" />
   </ItemGroup>
 
-  <!-- 图标以 Avalonia 资源形式打包。Avalonia 默认只把 *.axaml / *.paml 作为资源
-       （见 AvaloniaBuildTasks.props 里的默认 glob），其它文件（.svg / .png）必须显式声明，
-       否则运行时 AssetLoader 找不到 —— 表现为图标空白，只在调试输出里有一条提示。 -->
   <ItemGroup>
     <AvaloniaResource Include="Icons\**" />
-    <!-- Assets 里是 app 身份图标：PNG 给 Window.Icon 用，.ico 只给上面的 ApplicationIcon 嵌进 exe，
-         不再当 avares 资源重复打包一遍。 -->
     <AvaloniaResource Include="Assets\**" Exclude="Assets\*.ico" />
   </ItemGroup>
 </Project>

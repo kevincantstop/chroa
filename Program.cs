@@ -8,22 +8,14 @@ namespace ChroaVideoPlayer;
 
 class Program
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
     [STAThread]
     public static void Main(string[] args)
     {
-        // LibMpv searches MpvApi.RootPath only, and resolves libmpv-2.dll lazily the moment the first
-        // MpvContext is built (MpvView creates it while the window's XAML loads). The DLL ships in the
-        // native\ subfolder rather than the exe folder, so point RootPath there first. Assigning this
-        // plain static path neither loads the native library nor touches Avalonia.
         MpvApi.RootPath = Path.Combine(AppContext.BaseDirectory, "native");
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
     {
         AppBuilder builder = AppBuilder.Configure<App>()

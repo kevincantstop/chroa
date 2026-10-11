@@ -9,20 +9,8 @@ using Avalonia.Media;
 
 namespace ChroaVideoPlayer.Utils;
 
-/// <summary>
-/// 最小 SVG → Geometry 转换器：只处理图标类 SVG 会用到的几何元素
-/// （path / rect / circle / ellipse / line / polyline / polygon），
-/// 忽略颜色、样式、transform、文字等一切非几何内容。
-///
-/// 刻意不引入 Avalonia.Svg.Skia / SvgML 这类完整 SVG 渲染库 —— 图标只需要几何。
-/// （渲染库会把颜色画进图形里，Foreground 绑定与 :pointerover 样式就没了。）
-/// </summary>
 internal static class SvgGeometryLoader
 {
-    /// <summary>
-    /// 把 SVG 文本里每个几何元素各自解析成一个 <see cref="Geometry"/>，再用 <see cref="GeometryGroup"/>
-    /// 组合返回（不拼接成一条 path 数据 —— 理由见 Parse 内的注释）。没有几何元素时返回 null。
-    /// </summary>
     public static Geometry? Parse(string svgText)
     {
         XDocument doc;
@@ -44,7 +32,6 @@ internal static class SvgGeometryLoader
         var parts = new List<string>();
         foreach (var el in root.Descendants())
         {
-            // 命名空间可能缺省，所以只比较本地名
             var d = el.Name.LocalName switch
             {
                 "path" => el.Attribute("d")?.Value,
@@ -62,11 +49,6 @@ internal static class SvgGeometryLoader
 
         if (parts.Count == 0) return null;
 
-        // 每个元素各自解析成独立几何，用 GeometryGroup 组合 —— 不把它们拼成一条 path 数据。
-        // 拼接会改变语义：SVG 里"首位的小写 m"等价于绝对 M，但它后面跟着的隐式 lineto 仍是相对的；
-        // 拼起来后 m 不再是首位，这段相对语义会被当成绝对坐标读。
-        // （实测：改成分元素解析后，关闭图标的表现没有变化 —— 也就是说这个现象另有原因，
-        //   若某个图标的相对命令画不对，最稳的写法是把图标文件里的 d 直接写成绝对坐标。）
         var group = new GeometryGroup();
         foreach (var d in parts)
         {
@@ -76,7 +58,6 @@ internal static class SvgGeometryLoader
             }
             catch (Exception ex)
             {
-                // 单个元素坏掉只丢它自己，不再像以前那样整枚图标一起废掉
                 Debug.WriteLine($"Failed to parse SVG path: {ex.Message} (data={d})");
             }
         }
@@ -84,7 +65,6 @@ internal static class SvgGeometryLoader
         return group.Children.Count > 0 ? group : null;
     }
 
-    /// <summary>控件按 24×24 坐标系渲染。非 24 的 viewBox 目前只告警，不做缩放。</summary>
     private static void WarnIfNonStandardViewBox(XElement root)
     {
         var vb = root.Attribute("viewBox")?.Value;
@@ -111,7 +91,6 @@ internal static class SvgGeometryLoader
            .Select(s => double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : double.NaN)
            .ToArray();
 
-    /// <summary>rect → 路径，支持 rx/ry 圆角（Lucide 的 square、pause 都用它）。</summary>
     private static string RectToPath(XElement el)
     {
         var x = Num(el, "x");
@@ -131,7 +110,6 @@ internal static class SvgGeometryLoader
                $"V{F(y + r)}A{F(r)} {F(r)} 0 0 1 {F(x + r)} {F(y)}Z";
     }
 
-    /// <summary>circle / ellipse → 两段半圆弧。</summary>
     private static string EllipseToPath(XElement el, bool isCircle)
     {
         var cx = Num(el, "cx");

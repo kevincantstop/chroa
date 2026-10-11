@@ -1,8 +1,4 @@
 <Styles xmlns="https://github.com/avaloniaui">
-	<!-- 浮层（右上角三个按钮 + 底部控制条）的显隐只有一个触发条件：
-	     指针在窗口内任意位置 —— Grid.root 有透明背景，整窗都能被 hover 到。
-	     这样播放按钮 / 进度条 / 音量 / 右上角按钮的行为完全一致，
-	     不必再把鼠标移到底部才能看到控制条。 -->
 	<Style Selector="Border.overlay">
 		<Setter Property="Opacity" Value="0" />
 		<Setter Property="Transitions">
@@ -16,8 +12,6 @@
 		<Setter Property="Opacity" Value="1" />
 	</Style>
 
-	<!-- 拖动进度条 / 音量条期间强制显示：指针被捕获后可能被拖到窗口外，
-	     那时 :pointerover 会失效，控制条会在拖动中途自己淡掉。 -->
 	<Style Selector="Grid.root.dragging Border.overlay">
 		<Setter Property="Opacity" Value="1" />
 	</Style>

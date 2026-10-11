@@ -2,9 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:ChroaVideoPlayer.Controls">
 
-	<!-- 常态：透明、无边框、无 margin。
-	     VerticalAlignment 用 Top 而不是 Center：万一按钮比控制条高，
-	     往视频方向溢出（可见）比被窗口上边缘裁掉（不可见）安全。 -->
 	<Style Selector="controls|SVGIconButton">
 		<Setter Property="Background" Value="Transparent" />
 		<Setter Property="BorderThickness" Value="0" />
@@ -12,7 +9,6 @@
 		<Setter Property="VerticalAlignment" Value="Top" />
 	</Style>
 
-	<!-- 悬停：半透明灰底（改这两个值即可调色） -->
 	<Style Selector="controls|SVGIconButton:pointerover">
 		<Setter Property="Background" Value="#40FFFFFF" />
 	</Style>
@@ -20,15 +16,12 @@
 		<Setter Property="Background" Value="#40FFFFFF" />
 	</Style>
 
-	<!-- 按下：比悬停稍深 -->
 	<Style Selector="controls|SVGIconButton:pressed">
 		<Setter Property="Background" Value="#66FFFFFF" />
 	</Style>
 	<Style Selector="controls|SVGIconButton:pressed /template/ ContentPresenter">
 		<Setter Property="Background" Value="#66FFFFFF" />
 	</Style>
-	<!-- 禁用（比如当前文件没有音轨）：图标变暗，和可点状态区分开。
-	     必须显式写这条 —— 上面的基础样式无条件设了 Foreground，不写的话禁用态看起来和可用态一模一样。 -->
 	<Style Selector="controls|SVGIconButton:disabled">
 		<Setter Property="Foreground" Value="#55FFFFFF" />
 	</Style>
