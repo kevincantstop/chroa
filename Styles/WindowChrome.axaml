@@ -1,0 +1,18 @@
+<Styles xmlns="https://github.com/avaloniaui">
+	<Style Selector="Border.overlay">
+		<Setter Property="Opacity" Value="0" />
+		<Setter Property="Transitions">
+			<Transitions>
+				<DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+			</Transitions>
+		</Setter>
+	</Style>
+
+	<Style Selector="Grid.root:pointerover Border.overlay.top">
+		<Setter Property="Opacity" Value="1" />
+	</Style>
+
+	<Style Selector="Border.hotzone:pointerover Border.overlay.bottom">
+		<Setter Property="Opacity" Value="1" />
+	</Style>
+</Styles>

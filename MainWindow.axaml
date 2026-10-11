@@ -15,47 +15,25 @@
         ExtendClientAreaTitleBarHeightHint="-1"
         CanResize="True"
         Background="#0A0A0B">
-	<!-- 整窗都能拖动窗口：在手柄里靠"源元素是否有 Button 祖先"放行按钮，
+	<!-- 浮层的样式（淡入淡出 + 触发条件）已分离到 Styles/WindowChrome.axaml，
+	     通过 App.axaml 的 StyleInclude 引入；这里只负责结构与行为。
+
+	     整窗都能拖动窗口：在手柄里靠"源元素是否有 Button 祖先"放行按钮，
 	     靠 e.Handled 放行四角热区。视频区域按下去也会走这里。 -->
-	<Grid x:Name="Root" Background="Transparent"
+	<Grid Classes="root" Background="Transparent"
 	      PointerPressed="OnRootPointerPressed"
 	      DragDrop.AllowDrop="True"
 	      DragDrop.DragOver="OnDragOver"
 	      DragDrop.Drop="OnDrop">
-		<Grid.Styles>
-			<Style Selector="Border#Chrome">
-				<Setter Property="Opacity" Value="0" />
-				<Setter Property="Transitions">
-					<Transitions>
-						<DoubleTransition Property="Opacity" Duration="0:0:0.18" />
-					</Transitions>
-				</Setter>
-			</Style>
-			<!-- 底部控制条：鼠标进入底部热区才淡入 -->
-			<Style Selector="Border#Controls">
-				<Setter Property="Opacity" Value="0" />
-				<Setter Property="Transitions">
-					<Transitions>
-						<DoubleTransition Property="Opacity" Duration="0:0:0.18" />
-					</Transitions>
-				</Setter>
-			</Style>
-			<Style Selector="Border#BottomHotZone:pointerover Border#Controls">
-				<Setter Property="Opacity" Value="1" />
-			</Style>
-			<Style Selector="Grid#Root:pointerover Border#Chrome">
-				<Setter Property="Opacity" Value="1" />
-			</Style>
-		</Grid.Styles>
 
 		<mpv:MpvView MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
 
-		<!-- 控制带：刻意不使用 WindowDecorationProperties.ElementRole。
+		<!-- 顶部控制带：刻意不使用 WindowDecorationProperties.ElementRole。
 		     那套机制会把整条区域变成 Windows 的非客户区（标题栏），导致：
 		       · Avalonia 的指针悬停追踪失效 → 整条把自己淡出成隐形，按钮点不到
 		       · 光标归属权交给 OS → 永远是箭头，Cursor="Hand" 无效
 		     所以拖动与双击最大化改为自己实现，见 MainWindow.axaml.cs。 -->
-		<Border x:Name="Chrome" VerticalAlignment="Top" Background="Transparent"
+		<Border Classes="overlay top" VerticalAlignment="Top" Background="Transparent"
 		        DoubleTapped="OnChromeDoubleTapped">
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 				<chroa:SVGIconButton Icon="M5 12h14"
@@ -78,8 +56,9 @@
 			</StackPanel>
 		</Border>
 
-		<Border x:Name="BottomHotZone" VerticalAlignment="Bottom" Height="120" Background="Transparent">
-			<Border x:Name="Controls" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+		<!-- 底部热区：始终"有绘制"（透明背景）所以能被悬停到，控制条靠它触发淡入 -->
+		<Border Classes="hotzone" VerticalAlignment="Bottom" Height="120" Background="Transparent">
+			<Border Classes="overlay bottom" VerticalAlignment="Bottom" HorizontalAlignment="Center"
 			        Margin="0,0,0,28">
 				<StackPanel Orientation="Horizontal">
 					<!-- 暂停中 → 显示"播放"图标，点它继续 -->
@@ -97,8 +76,8 @@
 			</Border>
 		</Border>
 
-		<!-- 四角缩放热区。必须给 Background="Transparent"：null 背景不参与命中测试
-		     （本项目已经踩过这个坑）。放在最后 = z 序最高，压在视频和控制带之上。
+		<!-- 四角缩放热区。必须给 Background="Transparent"：null 背景不参与命中测试。
+		     放在最后 = z 序最高，压在视频和控制带之上。
 		     Size 想调就改这四个 Width/Height。 -->
 		<Border x:Name="GripTopLeft" Width="10" Height="10" Background="Transparent"
 		        HorizontalAlignment="Left" VerticalAlignment="Top"
