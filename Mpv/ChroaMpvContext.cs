@@ -39,6 +39,11 @@ public sealed class ChroaMpvContext
     /// 可能在 mpv 自己的线程上触发，订阅方若要改 UI 需要自己切回 UI 线程。
     /// </summary>
     public event EventHandler<double>? VideoAspectDetected;
+    /// <summary>
+    /// 播放/暂停状态变化。来自 mpv 的 pause 属性推送（属性观察，不是轮询 —— 架构文档 §6.4 的要求）。
+    /// 可能在 mpv 自己的线程上触发。
+    /// </summary>
+    public event EventHandler<bool>? PauseChanged;
 
     /// <summary>
     /// 播放指定文件。若 mpv 上下文还没就绪（视图尚未创建），会记住这个文件，
@@ -54,6 +59,17 @@ public sealed class ChroaMpvContext
         }
 
         _ = PlayAsync(context, path);
+    }
+
+    /// <summary>切换播放 / 暂停。</summary>
+    public void TogglePause()
+    {
+        var context = _context;
+        if (context is null) return;
+
+        // 每次都读 mpv 的真实状态再取反，不在应用侧自己维护一份，
+        // 免得和 mpv 实际状态脱节（新文件加载时 mpv 会把 pause 重置）。
+        context.Pause.Set(!(context.Pause.Get() ?? false));
     }
 
     private static async Task PlayAsync(MpvContext context, string path)
@@ -90,6 +106,7 @@ public sealed class ChroaMpvContext
         context.StartFile += OnStartFile;
         context.FileLoaded += OnFileLoaded;
         context.VideoReconfig += OnVideoReconfig;
+        context.Pause.Changed += OnPausePropertyChanged;
 
         // 上下文就绪之前调用过 Play 的话，在这里补播
         var pending = _pendingFile;
@@ -107,6 +124,7 @@ public sealed class ChroaMpvContext
         context.StartFile -= OnStartFile;
         context.FileLoaded -= OnFileLoaded;
         context.VideoReconfig -= OnVideoReconfig;
+        context.Pause.Changed -= OnPausePropertyChanged;
     }
 
     // ==== 视频宽高比探测 ====
@@ -116,6 +134,9 @@ public sealed class ChroaMpvContext
     private void OnFileLoaded(object? sender, EventArgs e) => TryReportAspect();
 
     private void OnVideoReconfig(object? sender, EventArgs e) => TryReportAspect();
+
+    private void OnPausePropertyChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
+        PauseChanged?.Invoke(this, e.NewValue ?? false);
 
     private void TryReportAspect()
     {

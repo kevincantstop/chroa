@@ -16,9 +16,14 @@ namespace ChroaVideoPlayer.ViewModels
         [ObservableProperty]
         public partial double VideoAspect { get; set; }
 
+        /// <summary>是否处于暂停状态。由 mpv 的 pause 属性推送而来，UI 用它切换按钮图标。</summary>
+        [ObservableProperty]
+        public partial bool IsPaused { get; set; }
+
         public MainViewModel()
         {
             Mpv.VideoAspectDetected += OnVideoAspectDetected;
+            Mpv.PauseChanged += OnPauseChanged;
 
             // 启动播放：此刻视图还没创建、mpv 上下文还没推过来，
             // ChroaMpvContext 会记住文件并在上下文就绪后自动播放。
@@ -29,5 +34,8 @@ namespace ChroaVideoPlayer.ViewModels
             // mpv 事件在它自己的线程上，状态统一在 UI 线程上改，
             // 这样订阅方的 PropertyChanged 也一定在 UI 线程。
             Dispatcher.UIThread.Post(() => VideoAspect = aspect);
+
+        private void OnPauseChanged(object? sender, bool paused) =>
+            Dispatcher.UIThread.Post(() => IsPaused = paused);
     }
 }

@@ -31,6 +31,18 @@
 					</Transitions>
 				</Setter>
 			</Style>
+			<!-- 底部控制条：鼠标进入底部热区才淡入 -->
+			<Style Selector="Border#Controls">
+				<Setter Property="Opacity" Value="0" />
+				<Setter Property="Transitions">
+					<Transitions>
+						<DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+					</Transitions>
+				</Setter>
+			</Style>
+			<Style Selector="Border#BottomHotZone:pointerover Border#Controls">
+				<Setter Property="Opacity" Value="1" />
+			</Style>
 			<Style Selector="Grid#Root:pointerover Border#Chrome">
 				<Setter Property="Opacity" Value="1" />
 			</Style>
@@ -64,6 +76,25 @@
 									 ButtonShape="Square"
 									 Click="OnCloseClick" />
 			</StackPanel>
+		</Border>
+
+		<Border x:Name="BottomHotZone" VerticalAlignment="Bottom" Height="120" Background="Transparent">
+			<Border x:Name="Controls" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+			        Margin="0,0,0,28">
+				<StackPanel Orientation="Horizontal">
+					<!-- 暂停中 → 显示"播放"图标，点它继续 -->
+					<chroa:SVGIconButton Icon="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"
+										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
+										 IsVisible="{Binding IsPaused}"
+										 Click="OnPlayPauseClick" />
+
+					<!-- 播放中 → 显示"暂停"图标，点它暂停 -->
+					<chroa:SVGIconButton Icon="M6 3h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z M15 3h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"
+										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
+										 IsVisible="{Binding !IsPaused}"
+										 Click="OnPlayPauseClick" />
+				</StackPanel>
+			</Border>
 		</Border>
 
 		<!-- 四角缩放热区。必须给 Background="Transparent"：null 背景不参与命中测试
