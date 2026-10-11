@@ -1,6 +1,5 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('x64', 'x86', 'arm64')]
     [string[]]$Arch = @('x64', 'x86', 'arm64'),
 
     [string]$Configuration = 'Release',
@@ -11,6 +10,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$validArch = @('x64', 'x86', 'arm64')
+$Arch = @($Arch | ForEach-Object { "$_".Split(',') } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+if ($Arch.Count -eq 0) {
+    throw "No architecture selected. Valid values: $($validArch -join ', ')."
+}
+$unknownArch = @($Arch | Where-Object { $validArch -notcontains $_ })
+if ($unknownArch.Count -gt 0) {
+    throw "Unknown architecture: $($unknownArch -join ', '). Valid values: $($validArch -join ', ')."
+}
 
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -46,9 +55,9 @@ Write-Host "ChroaVideoPlayer $version -> $releaseDir"
 
 $results = @()
 
-foreach ($arch in $Arch) {
-    $rid = $ridMap[$arch]
-    $outDir = Join-Path $releaseDir $arch
+foreach ($archName in $Arch) {
+    $rid = $ridMap[$archName]
+    $outDir = Join-Path $releaseDir $archName
 
     Write-Host ''
     Write-Host "==> $rid"
@@ -69,9 +78,9 @@ foreach ($arch in $Arch) {
         throw "ChroaVideoPlayer.exe is missing from the $rid output."
     }
 
-    foreach ($name in $requiredNatives) {
-        if (-not (Get-ChildItem -LiteralPath $outDir -Recurse -File -Filter $name | Select-Object -First 1)) {
-            throw "Native library $name is missing from the $rid output."
+    foreach ($nativeName in $requiredNatives) {
+        if (-not (Get-ChildItem -LiteralPath $outDir -Recurse -File -Filter $nativeName | Select-Object -First 1)) {
+            throw "Native library $nativeName is missing from the $rid output."
         }
     }
 
@@ -92,17 +101,17 @@ foreach ($arch in $Arch) {
     $zipMB = $null
 
     if (-not $NoZip) {
-        $baseName = "chroa-video-player-v$version-$arch"
+        $baseName = "chroa-video-player-v$version-$archName"
         $zipName = "$baseName.zip"
         $zipPath = Join-Path $releaseDir $zipName
         if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
 
         $archive = [IO.Compression.ZipFile]::Open($zipPath, [IO.Compression.ZipArchiveMode]::Create)
         try {
-            foreach ($file in $files) {
-                $relative = $file.FullName.Substring($outDir.Length + 1).Replace('\', '/')
+            foreach ($entry in $files) {
+                $relative = $entry.FullName.Substring($outDir.Length + 1).Replace('\', '/')
                 [IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
-                    $archive, $file.FullName, "$baseName/$relative", [IO.Compression.CompressionLevel]::Optimal) | Out-Null
+                    $archive, $entry.FullName, "$baseName/$relative", [IO.Compression.CompressionLevel]::Optimal) | Out-Null
             }
         }
         finally {
@@ -113,13 +122,16 @@ foreach ($arch in $Arch) {
         Write-Host ("    {0}  {1:N1} MB" -f $zipName, $zipMB)
     }
 
+    $zipMBRounded = $null
+    if ($zipMB) { $zipMBRounded = [math]::Round($zipMB, 1) }
+
     $results += [pscustomobject]@{
-        Arch     = $arch
+        Arch     = $archName
         Rid      = $rid
         Files    = $files.Count
         FolderMB = [math]::Round($folderMB, 1)
         Zip      = $zipName
-        ZipMB    = if ($zipMB) { [math]::Round($zipMB, 1) } else { $null }
+        ZipMB    = $zipMBRounded
     }
 }
 
