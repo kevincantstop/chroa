@@ -76,9 +76,9 @@
 			<Border Classes="overlay bottom" VerticalAlignment="Bottom"
 			        Margin="24,0,24,28"
 			        IsVisible="{Binding HasVideo}">
-				<!-- 一行：[播放/暂停] [当前时间] [======进度条======] [总时长]
+				<!-- 一行：[播放/暂停] [当前时间] [======进度条======] [总时长] [音量图标] [音量条]
 				     进度条那列是 *，窗口变宽变窄它都跟着变。 -->
-				<Grid ColumnDefinitions="Auto,Auto,*,Auto">
+				<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
 					<StackPanel Grid.Column="0" Orientation="Horizontal">
 						<!-- 暂停中 → 显示"播放"图标，点它继续 -->
 						<chroa:SVGIconButton Icon="/Icons/play.svg"
@@ -96,21 +96,39 @@
 					<TextBlock Grid.Column="1" Classes="time" Text="{Binding PositionText}" />
 
 					<!-- 进度条拖动区。必须给 Background="Transparent"：null 背景不参与命中测试。
-					     它本身 20px 高（上下都好按），轨道在里面居中：默认 3px、悬停展开 6px。
-					     已播段宽度由代码按比例算（见 UpdateSeekFill）—— 3px 细线不适合用 Slider。 -->
-					<Border Grid.Column="2" x:Name="SeekArea" Classes="seek"
-					        Background="Transparent" Cursor="Hand"
-					        PointerPressed="OnSeekPointerPressed"
-					        PointerMoved="OnSeekPointerMoved"
-					        PointerReleased="OnSeekPointerReleased"
-					        PointerCaptureLost="OnSeekPointerCaptureLost"
-					        SizeChanged="OnSeekAreaSizeChanged">
-						<Border x:Name="SeekTrack" Classes="seekTrack">
-							<Border x:Name="SeekFill" Classes="seekFill" HorizontalAlignment="Left" />
+					     指针交互（按下 / 拖动 / 松手 / 捕获丢失）由代码里的 DragBar 接管，接线见 MainWindow 构造函数。
+					     它本身 20px 高（上下都好按），轨道在里面居中：默认 3px、悬停展开 6px。 -->
+					<Border Grid.Column="2" x:Name="SeekArea" Classes="bar" Background="Transparent" Cursor="Hand">
+						<Border x:Name="SeekTrack" Classes="barTrack">
+							<Border x:Name="SeekFill" Classes="barFill" HorizontalAlignment="Left" />
 						</Border>
 					</Border>
 
 					<TextBlock Grid.Column="3" Classes="time" Text="{Binding DurationText}" />
+
+					<!-- 音量图标：点一下直接静音 / 取消静音。
+					     同一格里两个按钮按状态显隐 —— 和播放/暂停一个套路，省掉动态换图标的绑定。 -->
+					<chroa:SVGIconButton Grid.Column="4"
+					                    Icon="/Icons/volume-2.svg"
+					                    ButtonShape="Circle" ButtonSize="40" IconSize="20"
+					                    VerticalAlignment="Center"
+					                    IsVisible="{Binding !IsMuted}"
+					                    Click="OnMuteClick" />
+
+					<chroa:SVGIconButton Grid.Column="4"
+					                    Icon="/Icons/volume-x.svg"
+					                    ButtonShape="Circle" ButtonSize="40" IconSize="20"
+					                    VerticalAlignment="Center"
+					                    IsVisible="{Binding IsMuted}"
+					                    Click="OnMuteClick" />
+
+					<!-- 音量条：和进度条同一套外观与交互，只是比例的含义不同（0~100） -->
+					<Border Grid.Column="5" x:Name="VolumeArea" Classes="bar" Width="90"
+					        Background="Transparent" Cursor="Hand">
+						<Border x:Name="VolumeTrack" Classes="barTrack">
+							<Border x:Name="VolumeFill" Classes="barFill" HorizontalAlignment="Left" />
+						</Border>
+					</Border>
 				</Grid>
 			</Border>
 		</Border>

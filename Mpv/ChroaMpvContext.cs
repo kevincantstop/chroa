@@ -8,6 +8,9 @@ namespace ChroaVideoPlayer.Mpv;
 /// <summary>一次播放进度上报：当前位置与总时长（秒）。</summary>
 public readonly record struct PlaybackProgress(double Position, double Duration);
 
+/// <summary>一次音量上报：音量（mpv 的 volume 单位）与是否静音。</summary>
+public readonly record struct PlaybackVolume(double Volume, bool Muted);
+
 /// <summary>
 /// 所有与 mpv 的交互都收敛在这里：接住 MpvView 推来的 <see cref="MpvContext"/>、
 /// 订阅事件、把 mpv 语义翻译成应用语义（播放、宽高比…）。
@@ -35,6 +38,10 @@ public sealed class ChroaMpvContext
     private readonly Stopwatch _progressClock = Stopwatch.StartNew();
     private double _position;
     private double _duration;
+
+    /// <summary>当前音量与静音状态。初值取 mpv 的默认音量 100，Attach 后会立刻读一次真实值。</summary>
+    private double _volume = 100;
+    private bool _muted;
 
     /// <summary>
     /// 由 MpvView 通过 OneWayToSource 绑定写入（见 MainWindow.axaml 的 MpvContext="{Binding Mpv.ViewContext}"）。
@@ -78,6 +85,13 @@ public sealed class ChroaMpvContext
     /// 可能在 mpv 自己的线程上触发。
     /// </summary>
     public event EventHandler<PlaybackProgress>? ProgressChanged;
+
+    /// <summary>
+    /// 音量 / 静音变化。来自 mpv 的 volume 与 mute 属性推送
+    /// （架构文档 §290：音量只走 mpv 的 volume 属性，应用侧不做任何增益）。
+    /// 可能在 mpv 自己的线程上触发。
+    /// </summary>
+    public event EventHandler<PlaybackVolume>? VolumeChanged;
 
     /// <summary>
     /// 播放指定文件。若 mpv 上下文还没就绪（视图尚未创建），会记住这个文件，
@@ -128,6 +142,51 @@ public sealed class ChroaMpvContext
         }
     }
 
+    /// <summary>设置音量。范围由 UI 决定（ViewModel 里是 0~100），mpv 自己会按 volume-max 截断。</summary>
+    public void SetVolume(double volume)
+    {
+        var context = _context;
+        if (context is null || !double.IsFinite(volume) || volume < 0) return;
+
+        try
+        {
+            _volume = volume;
+
+            // 静音状态下拖音量条：顺手解除静音 —— 否则"拖了没声音"，看着像坏了
+            if (_muted && volume > 0)
+            {
+                _muted = false;
+                context.Mute.Set(false);
+            }
+
+            PublishVolume();
+            context.Volume.Set(volume);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"SetVolume failed: {ex}");
+        }
+    }
+
+    /// <summary>切换静音。</summary>
+    public void ToggleMute()
+    {
+        var context = _context;
+        if (context is null) return;
+
+        try
+        {
+            // 和 TogglePause 一样：读 mpv 的真实状态再取反，不在应用侧维护第二份真相
+            _muted = !(context.Mute.Get() ?? false);
+            context.Mute.Set(_muted);
+            PublishVolume();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"ToggleMute failed: {ex}");
+        }
+    }
+
     private static async Task PlayAsync(MpvContext context, string path)
     {
         try
@@ -167,6 +226,8 @@ public sealed class ChroaMpvContext
         context.TimePos.Changed += OnTimePosChanged;
         context.Duration.Changed += OnDurationChanged;
         context.SeekRaised += OnSeekRaised;
+        context.Volume.Changed += OnVolumePropertyChanged;
+        context.Mute.Changed += OnMutePropertyChanged;
 
         // 上下文就绪之前调用过 Play 的话，在这里补播
         var pending = _pendingFile;
@@ -175,6 +236,9 @@ public sealed class ChroaMpvContext
             _pendingFile = null;
             _ = PlayAsync(context, pending);
         }
+
+        // 属性观察只在"变化"时推送，初始值不会自己来 —— 订阅之后主动读一次
+        TryPublishVolume();
     }
 
     private void Detach(MpvContext? context)
@@ -188,6 +252,8 @@ public sealed class ChroaMpvContext
         context.TimePos.Changed -= OnTimePosChanged;
         context.Duration.Changed -= OnDurationChanged;
         context.SeekRaised -= OnSeekRaised;
+        context.Volume.Changed -= OnVolumePropertyChanged;
+        context.Mute.Changed -= OnMutePropertyChanged;
     }
 
     // ==== 视频宽高比探测 ====
@@ -217,6 +283,10 @@ public sealed class ChroaMpvContext
     private void OnFileLoaded(object? sender, EventArgs e) =>
         SafeRun(nameof(OnFileLoaded), () =>
         {
+            // 音频输出此时才就绪，顺手把音量/静音再确认一次
+            // （Attach 时的读取可能落在"属性还不可读"的窗口里）
+            TryPublishVolume();
+
             // 先通知"有东西加载了"：这是 UI 切布局的信号，不该被下面的比例重试拖延。
             MediaOpened?.Invoke(this, EventArgs.Empty);
 
@@ -315,6 +385,45 @@ public sealed class ChroaMpvContext
 
         _progressClock.Restart();
         ProgressChanged?.Invoke(this, new PlaybackProgress(_position, _duration));
+    }
+
+    // ==== 音量 / 静音（volume / mute）====
+
+    private void OnVolumePropertyChanged(object? sender, MpvValueChangedEventArgs<double, double> e) =>
+        SafeRun(nameof(OnVolumePropertyChanged), () =>
+        {
+            if (e.NewValue is { } v && double.IsFinite(v)) _volume = v;
+            PublishVolume();
+        });
+
+    private void OnMutePropertyChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
+        SafeRun(nameof(OnMutePropertyChanged), () =>
+        {
+            _muted = e.NewValue ?? false;
+            PublishVolume();
+        });
+
+    private void PublishVolume() => VolumeChanged?.Invoke(this, new PlaybackVolume(_volume, _muted));
+
+    /// <summary>读一次 mpv 当前的音量 / 静音并上报。属性还没就绪时只记一条调试输出。</summary>
+    private void TryPublishVolume()
+    {
+        var context = _context;
+        if (context is null) return;
+
+        try
+        {
+            // 上下文刚建立、或音频输出还没打开时这两个属性可能不可读（同 DisplayWidth 的情况）
+            _volume = context.Volume.Get() ?? _volume;
+            _muted = context.Mute.Get() ?? _muted;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"volume/mute not ready yet ({ex.GetType().Name})");
+            return;
+        }
+
+        PublishVolume();
     }
 
     /// <summary>

@@ -29,6 +29,7 @@ namespace ChroaVideoPlayer.ViewModels
         /// <summary>当前播放位置（秒）。播放中由 mpv 推来；拖动进度条时是拖动值。</summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(PositionText))]
+        [NotifyPropertyChangedFor(nameof(SeekFraction))]
         public partial double Position { get; set; }
 
         /// <summary>总时长（秒）。0 表示还不知道（还没解析完 / 直播流）。</summary>
@@ -36,6 +37,7 @@ namespace ChroaVideoPlayer.ViewModels
         [NotifyPropertyChangedFor(nameof(DurationText))]
         [NotifyPropertyChangedFor(nameof(DurationMaximum))]
         [NotifyPropertyChangedFor(nameof(CanSeek))]
+        [NotifyPropertyChangedFor(nameof(SeekFraction))]
         public partial double Duration { get; set; }
 
         /// <summary>进度条的量程。Duration 还是 0 时给 1，免得视图算比例时除零。</summary>
@@ -43,6 +45,9 @@ namespace ChroaVideoPlayer.ViewModels
 
         /// <summary>时长未知就不能 seek（比如直播流），视图会直接忽略拖动。</summary>
         public bool CanSeek => Duration > 0;
+
+        /// <summary>进度条的填充比例（0~1）。视图把它交给 DragBar，不用自己算宽度。</summary>
+        public double SeekFraction => Math.Clamp(Position / DurationMaximum, 0, 1);
 
         /// <summary>当前位置的显示文本（mm:ss / h:mm:ss）。</summary>
         public string PositionText => Format(Position);
@@ -54,12 +59,31 @@ namespace ChroaVideoPlayer.ViewModels
         [ObservableProperty]
         public partial bool IsSeeking { get; set; }
 
+        /// <summary>音量上限。mpv 的 volume 可以到 volume-max（默认 130），这个 UI 只做到 100。</summary>
+        public const double MaxVolume = 100;
+
+        /// <summary>音量（0~100，mpv 的 volume 单位）。初值取 mpv 的默认音量，真实值由 ChroaMpvContext 推来。</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(VolumeFraction))]
+        public partial double Volume { get; set; }
+
+        /// <summary>是否静音。点音量图标切换。</summary>
+        [ObservableProperty]
+        public partial bool IsMuted { get; set; }
+
+        /// <summary>音量条的填充比例（0~1）。</summary>
+        public double VolumeFraction => Math.Clamp(Volume / MaxVolume, 0, 1);
+
         public MainViewModel()
         {
             Mpv.VideoAspectDetected += OnVideoAspectDetected;
             Mpv.PauseChanged += OnPauseChanged;
             Mpv.MediaOpened += OnMediaOpened;
             Mpv.ProgressChanged += OnProgressChanged;
+            Mpv.VolumeChanged += OnVolumeChanged;
+
+            // mpv 的默认音量是 100；真实值推来之前先按默认显示，免得音量条空着
+            Volume = MaxVolume;
         }
 
         private void OnVideoAspectDetected(object? sender, double aspect) =>
@@ -120,5 +144,24 @@ namespace ChroaVideoPlayer.ViewModels
                 ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}"
                 : $"{t.Minutes:00}:{t.Seconds:00}";
         }
+
+        // ==== 音量条 ====
+
+        /// <summary>
+        /// 音量条拖动中：比例 → 0~100，**立刻**写给 mpv（音量要边拖边听得到，
+        /// 所以不像进度条那样等松手才生效）。
+        /// </summary>
+        public void UpdateVolumeFraction(double fraction)
+        {
+            Volume = Math.Clamp(fraction, 0, 1) * MaxVolume;
+            Mpv.SetVolume(Volume);
+        }
+
+        private void OnVolumeChanged(object? sender, PlaybackVolume volume) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                Volume = volume.Volume;
+                IsMuted = volume.Muted;
+            });
     }
 }

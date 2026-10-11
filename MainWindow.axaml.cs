@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using ChroaVideoPlayer.Controls;
 using ChroaVideoPlayer.ViewModels;
 using Avalonia.Platform.Storage;
 
@@ -19,8 +20,9 @@ public partial class MainWindow : Window
 
     private MainViewModel? _viewModel;
 
-    /// <summary>正在拖动进度条的那根指针。null = 没在拖。</summary>
-    private IPointer? _seekingPointer;
+    /// <summary>进度条与音量条。落在它们上面的指针归它们自己，窗口不抢。</summary>
+    private readonly DragBar _seekBar;
+    private readonly DragBar _volumeBar;
 
     public MainWindow()
     {
@@ -33,6 +35,22 @@ public partial class MainWindow : Window
             [GripBottomLeft] = WindowEdge.SouthWest,
             [GripBottomRight] = WindowEdge.SouthEast,
         };
+
+        // 两条比例条共用同一套拖动逻辑（Controls/DragBar.cs），差别只在"比例代表什么"。
+        _seekBar = new DragBar(SeekArea, SeekTrack, SeekFill)
+        {
+            CanDrag = () => _viewModel?.CanSeek == true,     // 时长未知（直播流）就不给拖
+        };
+        _seekBar.Started += () => _viewModel?.BeginSeek();
+        _seekBar.Dragged += fraction => _viewModel?.UpdateSeekFraction(fraction);
+        _seekBar.Committed += _ => _viewModel?.CommitSeek();
+
+        _volumeBar = new DragBar(VolumeArea, VolumeTrack, VolumeFill)
+        {
+            CanDrag = () => _viewModel?.HasVideo == true,
+        };
+        _volumeBar.Dragged += fraction => _viewModel?.UpdateVolumeFraction(fraction);
+        // 音量不需要收尾动作（拖动中就已经写给 mpv 了），所以不接 Committed
     }
 
     // ==== 拖动窗口：整窗任意位置（按钮与四角热区除外）====
@@ -42,14 +60,15 @@ public partial class MainWindow : Window
         if (e.Handled) return;                                          // 按钮 / 四角热区已经处理掉
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
 
-        // 三种情况不要抢：
+        // 四种情况不要抢：
         //   1) 源元素是四角热区（保险，正常路径会被上面的 e.Handled 挡掉）
         //   2) 源元素有 Button 祖先 —— 包括点在按钮内部的 Path 上
-        //   3) 源元素在进度条拖动区里 —— 那根指针归进度条自己
+        //   3) 源元素在进度条 / 音量条里 —— 那根指针归它们自己
         if (e.Source is Visual source &&
             (_gripEdges.ContainsKey(source)
              || source.FindAncestorOfType<Button>(true) is not null
-             || IsInside(source, SeekArea)))
+             || IsInside(source, _seekBar.Area)
+             || IsInside(source, _volumeBar.Area)))
         {
             return;
         }
@@ -105,10 +124,13 @@ public partial class MainWindow : Window
         {
             ApplyVideoAspect(_viewModel.VideoAspect);
         }
-        else if (e.PropertyName is nameof(MainViewModel.Position) or nameof(MainViewModel.Duration))
+        else if (e.PropertyName == nameof(MainViewModel.SeekFraction))
         {
-            // 位置 / 时长变了 → 已播段宽度要重算（拖动进度条时也走这里）
-            UpdateSeekFill();
+            _seekBar.SetFraction(_viewModel.SeekFraction);
+        }
+        else if (e.PropertyName == nameof(MainViewModel.VolumeFraction))
+        {
+            _volumeBar.SetFraction(_viewModel.VolumeFraction);
         }
     }
 
@@ -189,78 +211,10 @@ public partial class MainWindow : Window
         return null;
     }
 
-    // ==== 进度条：拖动 seek ====
-    // 视图只负责"指针在轨道上的横向比例"，换算成秒、是否忽略 mpv 回报等都在 ViewModel 里。
-
-    private void OnSeekPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (!e.GetCurrentPoint(SeekArea).Properties.IsLeftButtonPressed) return;
-        if (_viewModel is null || !_viewModel.CanSeek) return;    // 时长未知（比如直播流）就别拖
-
-        e.Handled = true;               // 保险：别让根上的"拖动窗口"接走
-        _seekingPointer = e.Pointer;
-        e.Pointer.Capture(SeekArea);    // 指针移出这 20px 也要继续收到 Moved
-
-        _viewModel.BeginSeek();
-        UpdateSeekFromPointer(e);
-    }
-
-    private void OnSeekPointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (!ReferenceEquals(e.Pointer, _seekingPointer)) return;
-
-        e.Handled = true;
-        UpdateSeekFromPointer(e);
-    }
-
-    private void OnSeekPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        if (!ReferenceEquals(e.Pointer, _seekingPointer)) return;
-
-        e.Handled = true;
-        _seekingPointer = null;
-        e.Pointer.Capture(null);
-
-        UpdateSeekFromPointer(e);       // 松手那一点也算进去
-        _viewModel?.CommitSeek();
-    }
-
-    private void OnSeekPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
-    {
-        // 捕获丢了（窗口失活、指针被别处抢走）：必须收尾，否则 ViewModel 里的 IsSeeking
-        // 会一直为真，从此忽略 mpv 的回报 —— 进度条就永远停住了。
-        if (_seekingPointer is null) return;
-
-        _seekingPointer = null;
-        _viewModel?.CommitSeek();
-    }
-
-    private void UpdateSeekFromPointer(PointerEventArgs e)
-    {
-        var width = SeekArea.Bounds.Width;
-        if (width <= 0) return;
-
-        _viewModel?.UpdateSeekFraction(e.GetPosition(SeekArea).X / width);
-    }
-
-    private void OnSeekAreaSizeChanged(object? sender, SizeChangedEventArgs e) => UpdateSeekFill();
-
-    /// <summary>
-    /// 已播段的宽度 = 比例 × 轨道实际宽度。轨道还没布局完（宽度 0）就先按 0 处理。
-    /// 之所以由代码算：3px 细线上没有可拖的 Thumb，宽度等于"比例 × 实宽"，绑定做不了乘法。
-    /// </summary>
-    private void UpdateSeekFill()
-    {
-        var trackWidth = SeekTrack.Bounds.Width;
-        if (trackWidth <= 0 || _viewModel is null)
-        {
-            SeekFill.Width = 0;
-            return;
-        }
-
-        var fraction = Math.Clamp(_viewModel.Position / _viewModel.DurationMaximum, 0, 1);
-        SeekFill.Width = Math.Round(fraction * trackWidth);
-    }
+    // ==== 进度条 / 音量条 ====
+    // 指针交互（捕获、命中、已填充宽度）都在 Controls/DragBar.cs 里，两条共用；
+    // 这里只把"比例"翻译成各自的含义：进度 → 秒（走 ViewModel 的 seek 三件套），音量 → 0~100。
+    // 两条的接线在构造函数末尾。
 
     /// <summary>source 自己或它的某个视觉祖先是不是 target。</summary>
     private static bool IsInside(Visual source, Visual target)
@@ -333,4 +287,6 @@ public partial class MainWindow : Window
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
     private void OnPlayPauseClick(object? sender, RoutedEventArgs e) => _viewModel?.Mpv.TogglePause();
+
+    private void OnMuteClick(object? sender, RoutedEventArgs e) => _viewModel?.Mpv.ToggleMute();
 }
