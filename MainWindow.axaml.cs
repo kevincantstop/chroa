@@ -60,6 +60,17 @@ public partial class MainWindow : Window
 
     // ==== 窗口外观（平台相关）====
 
+    /// <summary>
+    /// 自动定尺寸的上限：最多占屏幕工作区的这个比例。
+    /// 留边距的原因：窗口一旦顶满屏幕，顶部那排自绘按钮（最小化 / 最大化 / 关闭）
+    /// 就有被挤出屏幕的风险 —— 想铺满请走最大化，不要靠"开窗就顶满"。
+    /// 只作用于本类主动改尺寸的那两条路径，用户自己拖 resize / 最大化一概不受影响。
+    /// </summary>
+    private const double MaxWorkingAreaFraction = 0.8;
+
+    /// <summary>夹位置时给窗口边框留的物理像素余量（BorderOnly 那条不可见的缩放边）。</summary>
+    private const int FrameSlackPixels = 8;
+
     // 必须在窗口真正创建之后调用，所以挂在 OnOpened，而不是构造函数里。
     protected override void OnOpened(EventArgs e)
     {
@@ -67,6 +78,65 @@ public partial class MainWindow : Window
 
         // 去掉 DWM 画的那圈 1px 系统边框（阴影与圆角保留），细节见 Utils/WindowUtils.cs
         WindowUtils.RemoveSystemBorder(this);
+
+        // 默认尺寸也走同一条上限（只缩不放）。大屏上 1280x720 本来就够小，这段不会触发，
+        // 是给小屏 / 高缩放的机器兜底的。
+        ClampToMaxWorkingArea();
+    }
+
+    /// <summary>
+    /// 当前屏幕允许的最大窗口尺寸（DIP），已按 <see cref="MaxWorkingAreaFraction"/> 折算。
+    /// WorkingArea 是物理像素、Window.Width/Height 是 DIP，所以用同一块屏自己的 Scaling 换算。
+    /// 拿不到屏幕信息时返回 null —— 调用方据此放弃自动定尺寸。
+    /// </summary>
+    private (double Width, double Height)? GetMaxWindowSize()
+    {
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (screen is null) return null;
+
+        var scaling = screen.Scaling > 0 ? screen.Scaling : 1.0;
+        return (screen.WorkingArea.Width / scaling * MaxWorkingAreaFraction,
+                screen.WorkingArea.Height / scaling * MaxWorkingAreaFraction);
+    }
+
+    /// <summary>
+    /// 自动定尺寸的统一出口：写回窗口，并保证整个窗口落在工作区内。
+    /// 位置要一起管 —— 尺寸算对了、但窗口本来就贴着屏幕右 / 下边缘时，
+    /// 右上角那排按钮（尤其关闭）会被推到屏幕外面，正是"看不到、点不到"的样子。
+    /// 只在本类主动改尺寸时调用，用户拖动 resize / 最大化一概不碰。
+    /// </summary>
+    private void ApplyWindowSize(double width, double height)
+    {
+        Width = Math.Round(width);
+        Height = Math.Round(height);
+
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (screen is null) return;
+
+        var scaling = screen.Scaling > 0 ? screen.Scaling : 1.0;
+        var work = screen.WorkingArea;                                  // 物理像素
+        var pixelWidth = (int)Math.Round(Width * scaling) + FrameSlackPixels;
+        var pixelHeight = (int)Math.Round(Height * scaling) + FrameSlackPixels;
+        var pos = Position;
+
+        // 只把越界的那部分推回来；本来就在范围内的方向不动
+        var x = Math.Clamp(pos.X, work.X, Math.Max(work.X, work.Right - pixelWidth));
+        var y = Math.Clamp(pos.Y, work.Y, Math.Max(work.Y, work.Bottom - pixelHeight));
+        if (x != pos.X || y != pos.Y) Position = new PixelPoint(x, y);
+    }
+
+    /// <summary>
+    /// 把当前尺寸按同一上限等比缩小（只缩不放，比例不变）。
+    /// XAML 里写死的 1280x720 在小屏 / 高缩放的机器上本身就可能超过 80%。
+    /// </summary>
+    private void ClampToMaxWorkingArea()
+    {
+        if (GetMaxWindowSize() is not { } max) return;
+
+        var scale = Math.Min(1.0, Math.Min(max.Width / Width, max.Height / Height));
+        if (scale >= 1.0) return;
+
+        ApplyWindowSize(Width * scale, Height * scale);
     }
 
     // ==== 拖动窗口：整窗任意位置（按钮与四角热区除外）====
@@ -163,31 +233,16 @@ public partial class MainWindow : Window
         // 最大化 / 全屏时不调整
         if (WindowState != WindowState.Normal) return;
 
-        // 宽度保持不变，按视频比例推高度
+        // 拿不到屏幕信息就没有上限可用 —— 此时宁可不按比例调整，
+        // 也绝不能算出一个比屏幕还大的窗口（旧实现这个分支是"完全不夹"的）。
+        if (GetMaxWindowSize() is not { } max) return;
+
+        // 宽度保持不变，按视频比例推高度；超出上限就整体等比缩小 —— 比例始终等于视频比例
         var width = Width;
         var height = width / aspect;
+        var scale = Math.Min(1.0, Math.Min(max.Width / width, max.Height / height));
 
-        // 限制在当前屏幕的工作区内。
-        // Screen.WorkingArea 是物理像素，而 Window.Width/Height 是 DIP，所以要除以显示缩放。
-        var screen = Screens.ScreenFromWindow(this);
-        if (screen is null)
-        {
-            screen = Screens.Primary;
-        }
-
-        if (screen is not null)
-        {
-            var scaling = RenderScaling > 0 ? RenderScaling : 1.0;
-            var maxWidth = screen.WorkingArea.Width / scaling;
-            var maxHeight = screen.WorkingArea.Height / scaling;
-
-            var scale = Math.Min(1.0, Math.Min(maxWidth / width, maxHeight / height));
-            width *= scale;
-            height *= scale;
-        }
-
-        Width = Math.Round(width);
-        Height = Math.Round(height);
+        ApplyWindowSize(width * scale, height * scale);
     }
 
     private void OnDragOver(object? sender, DragEventArgs e)
