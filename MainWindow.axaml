@@ -18,7 +18,10 @@
 	<!-- 整窗都能拖动窗口：在手柄里靠"源元素是否有 Button 祖先"放行按钮，
 	     靠 e.Handled 放行四角热区。视频区域按下去也会走这里。 -->
 	<Grid x:Name="Root" Background="Transparent"
-	      PointerPressed="OnRootPointerPressed">
+	      PointerPressed="OnRootPointerPressed"
+	      DragDrop.AllowDrop="True"
+	      DragDrop.DragOver="OnDragOver"
+	      DragDrop.Drop="OnDrop">
 		<Grid.Styles>
 			<Style Selector="Border#Chrome">
 				<Setter Property="Opacity" Value="0" />

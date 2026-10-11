@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.ViewModels;
+using Avalonia.Platform.Storage;
 
 namespace ChroaVideoPlayer;
 
@@ -129,6 +130,49 @@ public partial class MainWindow : Window
 
         Width = Math.Round(width);
         Height = Math.Round(height);
+    }
+
+    private void OnDragOver(object? sender, DragEventArgs e)
+    {
+        // 拖动过程中给光标反馈：有文件 → 复制，其它内容 → 禁止
+        e.DragEffects = HasDroppedFile(e) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void OnDrop(object? sender, DragEventArgs e)
+    {
+        e.Handled = true;
+
+        var path = GetFirstDroppedFilePath(e);
+        if (path is null) return;
+
+        // 复用现有链路：ChroaMpvContext 会等渲染上下文就绪后再 loadfile，
+        // 并且新文件加载后会自动重新按宽高比调整窗口。
+        _viewModel?.Mpv.Play(path);
+    }
+
+    private static bool HasDroppedFile(DragEventArgs e)
+    {
+        // 注意 Avalonia 12 是 DataTransfer，不是 Data（IDataObject）
+        var files = e.DataTransfer.TryGetFiles();
+        return files is { Length: > 0 };
+    }
+
+    private static string? GetFirstDroppedFilePath(DragEventArgs e)
+    {
+        var files = e.DataTransfer.TryGetFiles();
+        if (files is null) return null;
+
+        foreach (var item in files)
+        {
+            // 只接受文件；拖进来的是文件夹就忽略（文件夹播放是另一件事，现在不做）
+            if (item is not IStorageFile) continue;
+
+            var path = item.TryGetLocalPath();
+            if (!string.IsNullOrEmpty(path)) return path;
+        }
+
+        return null;
     }
 
     // ==== 三个窗口按钮 ====
