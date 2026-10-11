@@ -16,7 +16,22 @@ namespace ChroaVideoPlayer.ViewModels
 
         /// <summary>是否处于暂停状态。由 mpv 的 pause 属性推送而来，UI 用它切换按钮图标。</summary>
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowPlayIcon))]
+        [NotifyPropertyChangedFor(nameof(ShowPauseIcon))]
         public partial bool IsPaused { get; set; }
+
+        /// <summary>是否已经播到片尾。</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowPlayIcon))]
+        [NotifyPropertyChangedFor(nameof(ShowPauseIcon))]
+        [NotifyPropertyChangedFor(nameof(CanSeek))]
+        public partial bool HasEnded { get; set; }
+
+        /// <summary>显示"播放"图标：暂停中，或者已经播完（播完时 mpv 是 idle，pause 靠不住）。</summary>
+        public bool ShowPlayIcon => IsPaused || HasEnded;
+
+        /// <summary>显示"暂停"图标（正在播放）。</summary>
+        public bool ShowPauseIcon => !ShowPlayIcon;
 
         /// <summary>
         /// 是否已经加载了媒体（对应 mpv 的 file-loaded）。
@@ -43,8 +58,8 @@ namespace ChroaVideoPlayer.ViewModels
         /// <summary>进度条的量程。Duration 还是 0 时给 1，免得视图算比例时除零。</summary>
         public double DurationMaximum => Duration > 0 ? Duration : 1;
 
-        /// <summary>时长未知就不能 seek（比如直播流），视图会直接忽略拖动。</summary>
-        public bool CanSeek => Duration > 0;
+        /// <summary>能不能 seek：时长未知（直播流）或已经播完（mpv 处于 idle、没有文件）都不行。</summary>
+        public bool CanSeek => Duration > 0 && !HasEnded;
 
         /// <summary>进度条的填充比例（0~1）。视图把它交给 DragBar，不用自己算宽度。</summary>
         public double SeekFraction => Math.Clamp(Position / DurationMaximum, 0, 1);
@@ -81,6 +96,7 @@ namespace ChroaVideoPlayer.ViewModels
             Mpv.MediaOpened += OnMediaOpened;
             Mpv.ProgressChanged += OnProgressChanged;
             Mpv.VolumeChanged += OnVolumeChanged;
+            Mpv.EndedChanged += OnEndedChanged;
 
             // mpv 的默认音量是 100；真实值推来之前先按默认显示，免得音量条空着
             Volume = MaxVolume;
@@ -163,5 +179,8 @@ namespace ChroaVideoPlayer.ViewModels
                 Volume = volume.Volume;
                 IsMuted = volume.Muted;
             });
+
+        private void OnEndedChanged(object? sender, bool ended) =>
+            Dispatcher.UIThread.Post(() => HasEnded = ended);
     }
 }

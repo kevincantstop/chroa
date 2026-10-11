@@ -79,16 +79,16 @@
 			     进度条那列是 *，窗口变宽变窄它都跟着变。 -->
 			<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
 				<StackPanel Grid.Column="0" Orientation="Horizontal">
-					<!-- 暂停中 → 显示"播放"图标，点它继续 -->
+					<!-- 暂停中或已播完 → 显示"播放"图标，点它继续 / 从头重播 -->
 					<chroa:SVGIconButton Icon="/Icons/play.svg"
 										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
-										 IsVisible="{Binding IsPaused}"
+										 IsVisible="{Binding ShowPlayIcon}"
 										 Click="OnPlayPauseClick" />
 
 					<!-- 播放中 → 显示"暂停"图标，点它暂停 -->
 					<chroa:SVGIconButton Icon="/Icons/pause.svg"
 										 ButtonShape="Circle" ButtonSize="48" IconSize="24"
-										 IsVisible="{Binding !IsPaused}"
+										 IsVisible="{Binding ShowPauseIcon}"
 										 Click="OnPlayPauseClick" />
 				</StackPanel>
 

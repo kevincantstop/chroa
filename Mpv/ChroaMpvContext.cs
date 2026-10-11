@@ -43,6 +43,15 @@ public sealed class ChroaMpvContext
     private double _volume = 100;
     private bool _muted;
 
+    /// <summary>当前（最近一次）交给 mpv 的文件。播完之后点播放就是把它再 loadfile 一次。</summary>
+    private string? _currentFile;
+
+    /// <summary>
+    /// 是否已经播到片尾。播完 mpv 会进入 idle（没有文件可 seek / unpause），
+    /// 所以播放按钮的语义要变成"从头重播"。
+    /// </summary>
+    private bool _ended;
+
     /// <summary>
     /// 由 MpvView 通过 OneWayToSource 绑定写入（见 MainWindow.axaml 的 MpvContext="{Binding Mpv.ViewContext}"）。
     /// 注意：切换 Renderer 时 MpvView 会销毁旧 context 并推来一个新的，所以这里会被赋值多次 ——
@@ -94,11 +103,20 @@ public sealed class ChroaMpvContext
     public event EventHandler<PlaybackVolume>? VolumeChanged;
 
     /// <summary>
+    /// 播放结束（播到片尾）状态变化。UI 用它把播放/暂停按钮切回"播放"图标 ——
+    /// 此时 mpv 已经 idle，pause 属性不一定还读得到，不能只靠 IsPaused 判断。
+    /// 可能在 mpv 自己的线程上触发。
+    /// </summary>
+    public event EventHandler<bool>? EndedChanged;
+
+    /// <summary>
     /// 播放指定文件。若 mpv 上下文还没就绪（视图尚未创建），会记住这个文件，
     /// 等上下文推过来之后自动播放。
     /// </summary>
     public void Play(string path)
     {
+        _currentFile = path;
+
         var context = _context;
         if (context is null)
         {
@@ -115,9 +133,25 @@ public sealed class ChroaMpvContext
         var context = _context;
         if (context is null) return;
 
-        // 每次都读 mpv 的真实状态再取反，不在应用侧自己维护一份，
-        // 免得和 mpv 实际状态脱节（新文件加载时 mpv 会把 pause 重置）。
-        context.Pause.Set(!(context.Pause.Get() ?? false));
+        // 已经播完：此时 mpv 处于 idle（没有文件），unpause 没有任何意义，
+        // 这个按钮的语义变成"从头重播"。直接 loadfile 同一个文件最省事 ——
+        // mpv 会自己把 pause / 位置 / EOF 状态全部重置，不依赖任何 mpv 选项。
+        if (_ended && _currentFile is not null)
+        {
+            Play(_currentFile);
+            return;
+        }
+
+        try
+        {
+            // 每次都读 mpv 的真实状态再取反，不在应用侧自己维护一份，
+            // 免得和 mpv 实际状态脱节（新文件加载时 mpv 会把 pause 重置）。
+            context.Pause.Set(!(context.Pause.Get() ?? false));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"TogglePause failed: {ex}");
+        }
     }
 
     /// <summary>跳到指定位置（秒）。绝对定位。</summary>
@@ -228,6 +262,8 @@ public sealed class ChroaMpvContext
         context.SeekRaised += OnSeekRaised;
         context.Volume.Changed += OnVolumePropertyChanged;
         context.Mute.Changed += OnMutePropertyChanged;
+        context.EndFile += OnEndFile;
+        context.EofReached.Changed += OnEofReachedChanged;
 
         // 上下文就绪之前调用过 Play 的话，在这里补播
         var pending = _pendingFile;
@@ -254,6 +290,8 @@ public sealed class ChroaMpvContext
         context.SeekRaised -= OnSeekRaised;
         context.Volume.Changed -= OnVolumePropertyChanged;
         context.Mute.Changed -= OnMutePropertyChanged;
+        context.EndFile -= OnEndFile;
+        context.EofReached.Changed -= OnEofReachedChanged;
     }
 
     // ==== 视频宽高比探测 ====
@@ -270,6 +308,9 @@ public sealed class ChroaMpvContext
             _position = 0;
             _duration = 0;
             PublishProgress(force: true);
+
+            // 新文件开始 = 已经不是"播完"状态
+            SetEnded(false);
         });
 
     private void OnVideoReconfig(object? sender, EventArgs e) =>
@@ -424,6 +465,26 @@ public sealed class ChroaMpvContext
         }
 
         PublishVolume();
+    }
+
+    // ==== 播放结束（片尾 / idle）====
+
+    private void OnEndFile(object? sender, MpvEndFileEventArgs e) =>
+        SafeRun(nameof(OnEndFile), () => SetEnded(true));
+
+    private void OnEofReachedChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
+        SafeRun(nameof(OnEofReachedChanged), () =>
+        {
+            // eof-reached 变真 = 播到片尾（end-file 随后就到；两个信号都收，谁先到都不怕）
+            if (e.NewValue == true) SetEnded(true);
+        });
+
+    private void SetEnded(bool ended)
+    {
+        if (_ended == ended) return;
+
+        _ended = ended;
+        EndedChanged?.Invoke(this, ended);
     }
 
     /// <summary>
