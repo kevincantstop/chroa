@@ -4,6 +4,8 @@ param(
 
     [string]$Configuration = 'Release',
 
+    [switch]$FrameworkDependent,
+
     [switch]$NoZip,
 
     [switch]$Clean
@@ -31,6 +33,11 @@ $nativeLib = Join-Path $repoRoot 'native\libmpv-2.dll'
 $ridMap = @{ x64 = 'win-x64'; x86 = 'win-x86'; arm64 = 'win-arm64' }
 $requiredNatives = @('av_libglesv2.dll', 'libSkiaSharp.dll', 'libHarfBuzzSharp.dll')
 
+$selfContained = -not $FrameworkDependent
+$selfContainedArg = if ($selfContained) { 'true' } else { 'false' }
+$nameSuffix = if ($selfContained) { '' } else { '-net10' }
+$runtimeLabel = if ($selfContained) { 'bundled' } else { 'requires .NET 10' }
+
 if (-not (Test-Path -LiteralPath $csproj)) { throw "Project file not found: $csproj" }
 
 [xml]$project = Get-Content -LiteralPath $csproj -Raw
@@ -52,6 +59,7 @@ if ($Clean -and (Test-Path -LiteralPath $releaseDir)) {
 }
 
 Write-Host "ChroaVideoPlayer $version -> $releaseDir"
+Write-Host "runtime   : $runtimeLabel"
 
 $results = @()
 
@@ -64,7 +72,7 @@ foreach ($archName in $Arch) {
 
     if (Test-Path -LiteralPath $outDir) { Remove-Item -LiteralPath $outDir -Recurse -Force }
 
-    & dotnet publish $csproj -c $Configuration -r $rid --self-contained false -o $outDir --nologo -p:DebugType=None -p:DebugSymbols=false
+    & dotnet publish $csproj -c $Configuration -r $rid --self-contained $selfContainedArg -o $outDir --nologo -p:DebugType=None -p:DebugSymbols=false
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed for $rid (exit code $LASTEXITCODE)" }
 
     $pdbs = @(Get-ChildItem -LiteralPath $outDir -Recurse -File -Filter '*.pdb')
@@ -93,6 +101,42 @@ foreach ($archName in $Arch) {
         throw "Non-Windows runtime folders left in $outDir : $($stray.Name -join ', ')"
     }
 
+    $runtimeConfigs = @(Get-ChildItem -LiteralPath $outDir -Recurse -File -Filter '*.runtimeconfig.json')
+    $runtimeConfig = @($runtimeConfigs | Where-Object Name -eq 'ChroaVideoPlayer.runtimeconfig.json') | Select-Object -First 1
+    if (-not $runtimeConfig) { $runtimeConfig = $runtimeConfigs | Select-Object -First 1 }
+    if (-not $runtimeConfig) {
+        throw "runtimeconfig.json is missing from the $rid output, so the package cannot be checked for a bundled runtime."
+    }
+
+    $runtimeConfigText = Get-Content -LiteralPath $runtimeConfig.FullName -Raw
+    $declaresFramework = [bool]($runtimeConfigText -match '"framework"\s*:')
+    $declaresIncluded = [bool]($runtimeConfigText -match '"includedFrameworks"\s*:')
+    $coreclr = Get-ChildItem -LiteralPath $outDir -Recurse -File -Filter 'coreclr.dll' | Select-Object -First 1
+    $bundledVersion = '-'
+    if ($declaresIncluded) {
+        $m = [regex]::Match($runtimeConfigText, '"includedFrameworks"\s*:\s*\[.*?"version"\s*:\s*"([^"]+)"', 'Singleline')
+        if ($m.Success) { $bundledVersion = $m.Groups[1].Value }
+    }
+
+    if ($selfContained) {
+        if (-not $coreclr) {
+            throw "coreclr.dll is missing from the $rid output: the package is not self-contained and would still demand an installed .NET runtime. Refusing to package it."
+        }
+        if ($declaresFramework -and -not $declaresIncluded) {
+            throw "The $rid runtimeconfig.json declares a framework dependency and no includedFrameworks, so the package would still demand an installed .NET runtime. Refusing to package it."
+        }
+    }
+    else {
+        if ($coreclr) {
+            throw "coreclr.dll is present in the $rid output, so this is not a framework-dependent build."
+        }
+        if (-not $declaresFramework) {
+            throw "The $rid runtimeconfig.json declares no framework dependency, so this is not a framework-dependent build."
+        }
+    }
+
+    Write-Host ("    runtime {0} ({1})" -f $runtimeLabel, $bundledVersion)
+
     $files = @(Get-ChildItem -LiteralPath $outDir -Recurse -File)
     $folderMB = ($files | Measure-Object Length -Sum).Sum / 1MB
     Write-Host ("    {0} files, {1:N1} MB" -f $files.Count, $folderMB)
@@ -101,7 +145,7 @@ foreach ($archName in $Arch) {
     $zipMB = $null
 
     if (-not $NoZip) {
-        $baseName = "chroa-video-player-v$version-$archName"
+        $baseName = "chroa-video-player-v$version-$archName$nameSuffix"
         $zipName = "$baseName.zip"
         $zipPath = Join-Path $releaseDir $zipName
         if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
@@ -128,6 +172,7 @@ foreach ($archName in $Arch) {
     $results += [pscustomobject]@{
         Arch     = $archName
         Rid      = $rid
+        Runtime  = $runtimeLabel
         Files    = $files.Count
         FolderMB = [math]::Round($folderMB, 1)
         Zip      = $zipName
@@ -138,4 +183,8 @@ foreach ($archName in $Arch) {
 Write-Host ''
 $results | Format-Table -AutoSize
 Write-Host "version $version"
+Write-Host "runtime $runtimeLabel"
 Write-Host "output  $releaseDir"
+if ($FrameworkDependent) {
+    Write-Host "note    this build needs the .NET 10 runtime installed; end users should get the default self-contained build instead."
+}
