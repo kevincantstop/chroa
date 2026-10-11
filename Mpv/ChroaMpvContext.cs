@@ -56,6 +56,13 @@ public sealed class ChroaMpvContext
     private bool _hasAudio = true;
 
     /// <summary>
+    /// 交给 mpv 的硬件解码策略：auto-safe = 只启用 mpv 认为安全的硬解 API，
+    /// 硬件/编码不支持时 mpv 自己退回软解（因此不会因为开硬解而播不出来）。
+    /// 实测（4K HEVC 25fps，本机）：软解 1.02 CPU 秒/视频秒 → d3d11va-copy 0.18。
+    /// </summary>
+    private const string HardwareDecodingMode = "auto-safe";
+
+    /// <summary>
     /// 由 MpvView 通过 OneWayToSource 绑定写入（见 MainWindow.axaml 的 MpvContext="{Binding Mpv.ViewContext}"）。
     /// 注意：切换 Renderer 时 MpvView 会销毁旧 context 并推来一个新的，所以这里会被赋值多次 ——
     /// 不要把 context 引用缓存到别处，setter 内部会自动完成事件订阅/解绑。
@@ -260,6 +267,9 @@ public sealed class ChroaMpvContext
     {
         if (context is null) return;
 
+        // 硬件解码是"对下一个加载的文件生效"的选项：先设好再补播 pending，第一个文件就吃得上
+        TryEnableHardwareDecoding(context);
+
         _aspectReported = false;
         _sizeTrustworthy = false;
         context.StartFile += OnStartFile;
@@ -303,6 +313,25 @@ public sealed class ChroaMpvContext
         context.EndFile -= OnEndFile;
         context.EofReached.Changed -= OnEofReachedChanged;
         context.AudioReconfig -= OnAudioReconfig;
+    }
+
+    /// <summary>
+    /// 打开硬件解码。
+    /// mpv 把 hwdec 当只读属性暴露（LibMpv 生成的 Hwdec 是 MpvPropertyReadString，没有 Set），
+    /// 运行时改它只能走 option 这条伪属性路径（mpv 的 options/&lt;name&gt;），
+    /// 这也是"不用 mpv.conf / 环境变量"前提下唯一不改架构的做法。
+    /// 失败不影响播放（最多继续软解），所以这里只记日志、不往上抛。
+    /// </summary>
+    private static void TryEnableHardwareDecoding(MpvContext context)
+    {
+        try
+        {
+            context.Option["hwdec"].Set(HardwareDecodingMode);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"设置 hwdec={HardwareDecodingMode} 失败，继续用软解：{ex.Message}");
+        }
     }
 
     // ==== 视频宽高比探测 ====
