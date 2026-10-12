@@ -182,6 +182,7 @@ public partial class MainWindow : Window
 
         WindowButtons.IsVisible = !fullScreen;
         Resizer.IsVisible = !fullScreen;
+        VideoPlayer.IsFullScreen = fullScreen;
 
         _idleTimer.Stop();
 

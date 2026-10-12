@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using ChroaVideoPlayer.ViewModels;
@@ -8,6 +9,9 @@ namespace ChroaVideoPlayer.Controls;
 
 public partial class MpvVideoPlayer : UserControl
 {
+    public static readonly StyledProperty<bool> IsFullScreenProperty =
+        AvaloniaProperty.Register<MpvVideoPlayer, bool>(nameof(IsFullScreen));
+
     public VideoPlayerViewModel ViewModel { get; } = new();
 
     public event Action? FullScreenToggleRequested;
@@ -36,11 +40,24 @@ public partial class MpvVideoPlayer : UserControl
         ApplyState();
     }
 
+    public bool IsFullScreen
+    {
+        get => GetValue(IsFullScreenProperty);
+        set => SetValue(IsFullScreenProperty, value);
+    }
+
     public void Play(string path)
     {
         ViewModel.Mpv.ViewContext = MpvViewControl.MpvContext;
 
         ViewModel.Play(path);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == IsFullScreenProperty) ApplyState();
     }
 
     private void OnBarDragStarted() => ViewModel.IsDragging = true;
@@ -62,6 +79,9 @@ public partial class MpvVideoPlayer : UserControl
 
         VolumeButton.IsVisible = ViewModel.HasAudioTrack && !ViewModel.IsMuted;
         MutedButton.IsVisible = !VolumeButton.IsVisible;
+
+        FullScreenButton.IsVisible = !IsFullScreen;
+        FullScreenExitButton.IsVisible = IsFullScreen;
     }
 
     private double DurationMaximum => ViewModel.Duration > 0 ? ViewModel.Duration : 1;
