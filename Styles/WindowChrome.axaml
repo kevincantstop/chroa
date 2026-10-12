@@ -15,4 +15,8 @@
 	<Style Selector="Grid.root.dragging Border.overlay">
 		<Setter Property="Opacity" Value="1" />
 	</Style>
+
+	<Style Selector="Grid.root.idle Border.overlay">
+		<Setter Property="Opacity" Value="0" />
+	</Style>
 </Styles>

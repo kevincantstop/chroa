@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
@@ -29,6 +29,8 @@ public partial class WindowActionButtons : UserControl
 
     private void OnBarDoubleTapped(object? sender, TappedEventArgs e)
     {
+        e.Handled = true;
+
         if (!ReferenceEquals(e.Source, sender)) return;
 
         ToggleMaximize();

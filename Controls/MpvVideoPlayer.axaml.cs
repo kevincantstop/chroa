@@ -10,6 +10,8 @@ public partial class MpvVideoPlayer : UserControl
 {
     public VideoPlayerViewModel ViewModel { get; } = new();
 
+    public event Action? FullScreenToggleRequested;
+
     public MpvVideoPlayer()
     {
         DataContext = ViewModel;
@@ -81,4 +83,6 @@ public partial class MpvVideoPlayer : UserControl
     private void OnPlayPauseClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.TogglePause();
 
     private void OnMuteClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.ToggleMute();
+
+    private void OnFullScreenClick(object? sender, RoutedEventArgs e) => FullScreenToggleRequested?.Invoke();
 }

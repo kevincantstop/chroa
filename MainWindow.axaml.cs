@@ -3,6 +3,7 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
 using ChroaVideoPlayer.Utils;
@@ -20,12 +21,23 @@ public partial class MainWindow : Window
         DataContext = new MainViewModel(VideoPlayer.ViewModel);
 
         VideoPlayer.ViewModel.PropertyChanged += OnPlayerPropertyChanged;
+        VideoPlayer.FullScreenToggleRequested += ToggleFullScreen;
+
+        _idleTimer.Tick += OnIdleTimerTick;
+
+        PropertyChanged += OnWindowPropertyChanged;
     }
 
 
     private const double MaxWorkingAreaFraction = 0.8;
 
     private const int FrameSlackPixels = 8;
+
+    private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(3) };
+
+    private WindowState _stateBeforeFullScreen = WindowState.Normal;
+
+    private bool _isChromeIdle;
 
     protected override void OnOpened(EventArgs e)
     {
@@ -34,6 +46,22 @@ public partial class MainWindow : Window
         WindowUtils.RemoveSystemBorder(this);
 
         ClampToMaxWorkingArea();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        WakeChrome();
+
+        if (HandleFullScreenKey(e)) return;
+
+        base.OnKeyDown(e);
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+
+        WakeChrome();
     }
 
     private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -102,11 +130,101 @@ public partial class MainWindow : Window
         ApplyWindowSize(width * scale, height * scale);
     }
 
+    private bool HandleFullScreenKey(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            if (WindowState != WindowState.FullScreen) return false;
+
+            SetFullScreen(false);
+        }
+        else if (e.Key == Key.F11 || (e.Key == Key.Enter && (e.KeyModifiers & KeyModifiers.Alt) != 0))
+        {
+            SetFullScreen(WindowState != WindowState.FullScreen);
+        }
+        else
+        {
+            return false;
+        }
+
+        e.Handled = true;
+        return true;
+    }
+
+    private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == WindowStateProperty) ApplyFullScreenState();
+    }
+
+    private void ToggleFullScreen() => SetFullScreen(WindowState != WindowState.FullScreen);
+
+    private void SetFullScreen(bool fullScreen)
+    {
+        if (fullScreen)
+        {
+            if (WindowState == WindowState.FullScreen) return;
+
+            _stateBeforeFullScreen = WindowState;
+
+            WindowState = WindowState.FullScreen;
+
+            return;
+        }
+
+        if (WindowState != WindowState.FullScreen) return;
+
+        WindowState = _stateBeforeFullScreen;
+    }
+
+    private void ApplyFullScreenState()
+    {
+        var fullScreen = WindowState == WindowState.FullScreen;
+
+        WindowButtons.IsVisible = !fullScreen;
+        Resizer.IsVisible = !fullScreen;
+
+        _idleTimer.Stop();
+
+        SetChromeIdle(false);
+
+        if (fullScreen) _idleTimer.Start();
+    }
+
+    private void OnIdleTimerTick(object? sender, EventArgs e)
+    {
+        _idleTimer.Stop();
+
+        SetChromeIdle(true);
+    }
+
+    private void WakeChrome()
+    {
+        if (WindowState != WindowState.FullScreen) return;
+
+        SetChromeIdle(false);
+
+        _idleTimer.Stop();
+        _idleTimer.Start();
+    }
+
+    private void SetChromeIdle(bool idle)
+    {
+        if (_isChromeIdle == idle) return;
+
+        _isChromeIdle = idle;
+
+        RootGrid.Classes.Set("idle", idle);
+        IdleLayer.IsVisible = idle;
+    }
+
 
     private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        WakeChrome();
+
         if (e.Handled) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        if (WindowState == WindowState.FullScreen) return;
 
         if (e.Source is Visual source &&
             (source.FindAncestorOfType<Button>(true) is not null
@@ -116,6 +234,20 @@ public partial class MainWindow : Window
         }
 
         BeginMoveDrag(e);
+    }
+
+    private void OnRootDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Handled) return;
+
+        if (e.Source is Visual source &&
+            (source.FindAncestorOfType<Button>(true) is not null
+             || source.FindAncestorOfType<DragBar>(true) is not null))
+        {
+            return;
+        }
+
+        ToggleFullScreen();
     }
 
 

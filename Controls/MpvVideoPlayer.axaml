@@ -11,42 +11,55 @@
 		<Border Classes="overlay bottom" VerticalAlignment="Bottom"
 		        Margin="24,0,24,28"
 		        IsVisible="{Binding HasVideo}">
-			<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
-				<StackPanel Grid.Column="0" Orientation="Horizontal">
-					<chroa:SVGIconButton x:Name="PlayButton"
-					                     Icon="/Icons/play.svg"
-					                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
-					                     Click="OnPlayPauseClick" />
+			<Grid RowDefinitions="Auto,Auto">
+				<Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+					<TextBlock x:Name="PositionText" Grid.Column="0" Classes="time" Margin="0,0,12,0" />
 
-					<chroa:SVGIconButton x:Name="PauseButton"
-					                     Icon="/Icons/pause.svg"
-					                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
-					                     Click="OnPlayPauseClick" />
-				</StackPanel>
+					<chroa:DragBar x:Name="SeekBar" Grid.Column="1" />
 
-				<TextBlock x:Name="PositionText" Grid.Column="1" Classes="time" />
+					<TextBlock x:Name="DurationText" Grid.Column="2" Classes="time" Margin="12,0,0,0" />
+				</Grid>
 
-				<chroa:DragBar x:Name="SeekBar" Grid.Column="2" />
+				<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
+					<StackPanel Grid.Column="1" Orientation="Horizontal">
+						<chroa:SVGIconButton x:Name="PlayButton"
+						                     Icon="/Icons/play.svg"
+						                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
+						                     Click="OnPlayPauseClick" />
 
-				<TextBlock x:Name="DurationText" Grid.Column="3" Classes="time" />
+						<chroa:SVGIconButton x:Name="PauseButton"
+						                     Icon="/Icons/pause.svg"
+						                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
+						                     Click="OnPlayPauseClick" />
+					</StackPanel>
 
-				<chroa:SVGIconButton x:Name="VolumeButton" Grid.Column="4"
-				                     Icon="/Icons/volume-2.svg"
-				                     IsEnabled="{Binding HasAudioTrack}"
-				                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-				                     VerticalAlignment="Center"
-				                     Click="OnMuteClick" />
+					<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+						<chroa:SVGIconButton x:Name="VolumeButton"
+						                     Icon="/Icons/volume-2.svg"
+						                     IsEnabled="{Binding HasAudioTrack}"
+						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+						                     VerticalAlignment="Center"
+						                     Click="OnMuteClick" />
 
-				<chroa:SVGIconButton x:Name="MutedButton" Grid.Column="4"
-				                     Icon="/Icons/volume-x.svg"
-				                     IsEnabled="{Binding HasAudioTrack}"
-				                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-				                     VerticalAlignment="Center"
-				                     Click="OnMuteClick" />
+						<chroa:SVGIconButton x:Name="MutedButton"
+						                     Icon="/Icons/volume-x.svg"
+						                     IsEnabled="{Binding HasAudioTrack}"
+						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+						                     VerticalAlignment="Center"
+						                     Click="OnMuteClick" />
 
-				<chroa:DragBar x:Name="VolumeBar" Grid.Column="5" Width="90"
-				               Margin="12,0,0,0"
-				               IsEnabled="{Binding HasAudioTrack}" />
+						<chroa:DragBar x:Name="VolumeBar" Width="90"
+						               Margin="12,0,0,0"
+						               IsEnabled="{Binding HasAudioTrack}" />
+
+						<chroa:SVGIconButton x:Name="FullScreenButton"
+						                     Icon="/Icons/maximize.svg"
+						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+						                     Margin="12,0,0,0"
+						                     VerticalAlignment="Center"
+						                     Click="OnFullScreenClick" />
+					</StackPanel>
+				</Grid>
 			</Grid>
 		</Border>
 	</Grid>
