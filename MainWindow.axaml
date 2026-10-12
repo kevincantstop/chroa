@@ -46,11 +46,7 @@
 
 				<TextBlock Grid.Column="1" Classes="time" Text="{Binding PositionText}" />
 
-				<Border Grid.Column="2" x:Name="SeekArea" Classes="bar" Background="Transparent" Cursor="Hand">
-					<Border x:Name="SeekTrack" Classes="barTrack">
-						<Border x:Name="SeekFill" Classes="barFill" HorizontalAlignment="Left" />
-					</Border>
-				</Border>
+				<chroa:DragBar x:Name="SeekBar" Grid.Column="2" />
 
 				<TextBlock Grid.Column="3" Classes="time" Text="{Binding DurationText}" />
 
@@ -70,14 +66,9 @@
 				                     IsVisible="{Binding ShowMutedIcon}"
 				                     Click="OnMuteClick" />
 
-				<Border Grid.Column="5" x:Name="VolumeArea" Classes="bar" Width="90"
-				        Classes.disabled="{Binding !CanAdjustVolume}"
-				        Margin="12,0,0,0"
-				        Background="Transparent" Cursor="Hand">
-					<Border x:Name="VolumeTrack" Classes="barTrack">
-						<Border x:Name="VolumeFill" Classes="barFill" HorizontalAlignment="Left" />
-					</Border>
-				</Border>
+				<chroa:DragBar x:Name="VolumeBar" Grid.Column="5" Width="90"
+				               Margin="12,0,0,0"
+				               IsEnabled="{Binding CanAdjustVolume}" />
 			</Grid>
 		</Border>
 

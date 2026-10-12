@@ -32,7 +32,4 @@
 		<Setter Property="CornerRadius" Value="2" />
 		<Setter Property="Background" Value="#F0F0F0" />
 	</Style>
-	<Style Selector="Border.bar.disabled">
-		<Setter Property="Opacity" Value="0.35" />
-	</Style>
 </Styles>

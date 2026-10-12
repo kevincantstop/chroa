@@ -1,15 +1,12 @@
-using System;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using System;
 
 namespace ChroaVideoPlayer.Controls;
 
-internal sealed class DragBar
+public partial class DragBar : UserControl
 {
-    private readonly Border _area;
-    private readonly Border _track;
-    private readonly Border _fill;
-
     private IPointer? _pointer;
     private double _fraction;
 
@@ -21,21 +18,17 @@ internal sealed class DragBar
 
     public Func<bool>? CanDrag { get; set; }
 
-    public DragBar(Border area, Border track, Border fill)
+    public DragBar()
     {
-        _area = area;
-        _track = track;
-        _fill = fill;
+        InitializeComponent();
 
-        _area.PointerPressed += OnPointerPressed;
-        _area.PointerMoved += OnPointerMoved;
-        _area.PointerReleased += OnPointerReleased;
-        _area.PointerCaptureLost += OnPointerCaptureLost;
+        Area.PointerPressed += OnPointerPressed;
+        Area.PointerMoved += OnPointerMoved;
+        Area.PointerReleased += OnPointerReleased;
+        Area.PointerCaptureLost += OnPointerCaptureLost;
 
-        _track.SizeChanged += (_, _) => ApplyFill();
+        Track.SizeChanged += (_, _) => ApplyFill();
     }
-
-    public Control Area => _area;
 
     public void SetFraction(double fraction)
     {
@@ -46,11 +39,11 @@ internal sealed class DragBar
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (CanDrag is not null && !CanDrag()) return;
-        if (!e.GetCurrentPoint(_area).Properties.IsLeftButtonPressed) return;
+        if (!e.GetCurrentPoint(Area).Properties.IsLeftButtonPressed) return;
 
         e.Handled = true;
         _pointer = e.Pointer;
-        e.Pointer.Capture(_area);
+        e.Pointer.Capture(Area);
 
         Started?.Invoke();
         UpdateFromPointer(e);
@@ -86,16 +79,16 @@ internal sealed class DragBar
 
     private void UpdateFromPointer(PointerEventArgs e)
     {
-        var width = _area.Bounds.Width;
+        var width = Area.Bounds.Width;
         if (width <= 0) return;
 
-        SetFraction(e.GetPosition(_area).X / width);
+        SetFraction(e.GetPosition(Area).X / width);
         Dragged?.Invoke(_fraction);
     }
 
     private void ApplyFill()
     {
-        var trackWidth = _track.Bounds.Width;
-        _fill.Width = trackWidth <= 0 ? 0 : Math.Round(_fraction * trackWidth);
+        var trackWidth = Track.Bounds.Width;
+        Fill.Width = trackWidth <= 0 ? 0 : Math.Round(_fraction * trackWidth);
     }
 }

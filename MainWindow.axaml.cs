@@ -16,29 +16,20 @@ public partial class MainWindow : Window
 {
     private MainViewModel? _viewModel;
 
-    private readonly DragBar _seekBar;
-    private readonly DragBar _volumeBar;
-
     public MainWindow()
     {
         InitializeComponent();
 
-        _seekBar = new DragBar(SeekArea, SeekTrack, SeekFill)
-        {
-            CanDrag = () => _viewModel?.CanSeek == true,
-        };
-        _seekBar.Started += () => _viewModel?.BeginSeek();
-        _seekBar.Dragged += fraction => _viewModel?.UpdateSeekFraction(fraction);
-        _seekBar.Committed += _ => _viewModel?.CommitSeek();
+        SeekBar.CanDrag = () => _viewModel?.CanSeek == true;
+        SeekBar.Started += () => _viewModel?.BeginSeek();
+        SeekBar.Dragged += fraction => _viewModel?.UpdateSeekFraction(fraction);
+        SeekBar.Committed += _ => _viewModel?.CommitSeek();
 
-        _volumeBar = new DragBar(VolumeArea, VolumeTrack, VolumeFill)
-        {
-            CanDrag = () => _viewModel is { HasVideo: true, CanAdjustVolume: true },
-        };
-        _volumeBar.Dragged += fraction => _viewModel?.UpdateVolumeFraction(fraction);
+        VolumeBar.CanDrag = () => _viewModel is { HasVideo: true, CanAdjustVolume: true };
+        VolumeBar.Dragged += fraction => _viewModel?.UpdateVolumeFraction(fraction);
 
-        KeepChromeVisibleWhileDragging(_seekBar);
-        KeepChromeVisibleWhileDragging(_volumeBar);
+        KeepChromeVisibleWhileDragging(SeekBar);
+        KeepChromeVisibleWhileDragging(VolumeBar);
     }
 
 
@@ -102,8 +93,8 @@ public partial class MainWindow : Window
 
         if (e.Source is Visual source &&
             (source.FindAncestorOfType<Button>(true) is not null
-             || IsInside(source, _seekBar.Area)
-             || IsInside(source, _volumeBar.Area)))
+             || IsInside(source, SeekBar)
+             || IsInside(source, VolumeBar)))
         {
             return;
         }
@@ -127,8 +118,8 @@ public partial class MainWindow : Window
         {
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-            _seekBar.SetFraction(_viewModel.SeekFraction);
-            _volumeBar.SetFraction(_viewModel.VolumeFraction);
+            SeekBar.SetFraction(_viewModel.SeekFraction);
+            VolumeBar.SetFraction(_viewModel.VolumeFraction);
         }
     }
 
@@ -142,11 +133,11 @@ public partial class MainWindow : Window
         }
         else if (e.PropertyName == nameof(MainViewModel.SeekFraction))
         {
-            _seekBar.SetFraction(_viewModel.SeekFraction);
+            SeekBar.SetFraction(_viewModel.SeekFraction);
         }
         else if (e.PropertyName == nameof(MainViewModel.VolumeFraction))
         {
-            _volumeBar.SetFraction(_viewModel.VolumeFraction);
+            VolumeBar.SetFraction(_viewModel.VolumeFraction);
         }
     }
 

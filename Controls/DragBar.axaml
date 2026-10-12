@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ChroaVideoPlayer.Controls.DragBar">
+	<UserControl.Styles>
+		<Style Selector="UserControl:disabled Border.bar">
+			<Setter Property="Opacity" Value="0.35" />
+		</Style>
+	</UserControl.Styles>
+
+	<Border x:Name="Area" Classes="bar" Background="Transparent" Cursor="Hand">
+		<Border x:Name="Track" Classes="barTrack">
+			<Border x:Name="Fill" Classes="barFill" HorizontalAlignment="Left" />
+		</Border>
+	</Border>
+</UserControl>
