@@ -55,14 +55,14 @@
 						<chroa:SVGIconButton x:Name="FullScreenButton"
 						                     Icon="/Icons/maximize.svg"
 						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-						                     Margin="12,0,0,0"
+						                     Margin="12,0,-12,0"
 						                     VerticalAlignment="Center"
 						                     Click="OnFullScreenClick" />
 
 						<chroa:SVGIconButton x:Name="FullScreenExitButton"
 						                     Icon="/Icons/minimize.svg"
 						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-						                     Margin="12,0,0,0"
+						                     Margin="12,0,-12,0"
 						                     VerticalAlignment="Center"
 						                     Click="OnFullScreenClick" />
 					</StackPanel>
