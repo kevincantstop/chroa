@@ -13,42 +13,40 @@
 		        IsVisible="{Binding HasVideo}">
 			<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
 				<StackPanel Grid.Column="0" Orientation="Horizontal">
-					<chroa:SVGIconButton Icon="/Icons/play.svg"
+					<chroa:SVGIconButton x:Name="PlayButton"
+					                     Icon="/Icons/play.svg"
 					                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
-					                     IsVisible="{Binding ShowPlayIcon}"
 					                     Click="OnPlayPauseClick" />
 
-					<chroa:SVGIconButton Icon="/Icons/pause.svg"
+					<chroa:SVGIconButton x:Name="PauseButton"
+					                     Icon="/Icons/pause.svg"
 					                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
-					                     IsVisible="{Binding ShowPauseIcon}"
 					                     Click="OnPlayPauseClick" />
 				</StackPanel>
 
-				<TextBlock Grid.Column="1" Classes="time" Text="{Binding PositionText}" />
+				<TextBlock x:Name="PositionText" Grid.Column="1" Classes="time" />
 
 				<chroa:DragBar x:Name="SeekBar" Grid.Column="2" />
 
-				<TextBlock Grid.Column="3" Classes="time" Text="{Binding DurationText}" />
+				<TextBlock x:Name="DurationText" Grid.Column="3" Classes="time" />
 
-				<chroa:SVGIconButton Grid.Column="4"
+				<chroa:SVGIconButton x:Name="VolumeButton" Grid.Column="4"
 				                     Icon="/Icons/volume-2.svg"
-				                     IsEnabled="{Binding CanAdjustVolume}"
+				                     IsEnabled="{Binding HasAudioTrack}"
 				                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 				                     VerticalAlignment="Center"
-				                     IsVisible="{Binding ShowVolumeIcon}"
 				                     Click="OnMuteClick" />
 
-				<chroa:SVGIconButton Grid.Column="4"
+				<chroa:SVGIconButton x:Name="MutedButton" Grid.Column="4"
 				                     Icon="/Icons/volume-x.svg"
-				                     IsEnabled="{Binding CanAdjustVolume}"
+				                     IsEnabled="{Binding HasAudioTrack}"
 				                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 				                     VerticalAlignment="Center"
-				                     IsVisible="{Binding ShowMutedIcon}"
 				                     Click="OnMuteClick" />
 
 				<chroa:DragBar x:Name="VolumeBar" Grid.Column="5" Width="90"
 				               Margin="12,0,0,0"
-				               IsEnabled="{Binding CanAdjustVolume}" />
+				               IsEnabled="{Binding HasAudioTrack}" />
 			</Grid>
 		</Border>
 	</Grid>
