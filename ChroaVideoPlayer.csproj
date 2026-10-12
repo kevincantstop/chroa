@@ -27,9 +27,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controls\" />
-  </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Icons\**" />

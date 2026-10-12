@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ChroaVideoPlayer.Controls.WindowResizer">
+	<Grid>
+		<Border x:Name="TopLeft" Width="10" Height="10" Background="Transparent"
+		        HorizontalAlignment="Left" VerticalAlignment="Top"
+		        Cursor="TopLeftCorner" PointerPressed="OnGripPressed" />
+		<Border x:Name="TopRight" Width="10" Height="10" Background="Transparent"
+		        HorizontalAlignment="Right" VerticalAlignment="Top"
+		        Cursor="TopRightCorner" PointerPressed="OnGripPressed" />
+		<Border x:Name="BottomLeft" Width="10" Height="10" Background="Transparent"
+		        HorizontalAlignment="Left" VerticalAlignment="Bottom"
+		        Cursor="BottomLeftCorner" PointerPressed="OnGripPressed" />
+		<Border x:Name="BottomRight" Width="10" Height="10" Background="Transparent"
+		        HorizontalAlignment="Right" VerticalAlignment="Bottom"
+		        Cursor="BottomRightCorner" PointerPressed="OnGripPressed" />
+	</Grid>
+</UserControl>

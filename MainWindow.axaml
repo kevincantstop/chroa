@@ -24,16 +24,7 @@
 
 		<mpv:MpvView MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
 
-		<Button Classes="loadVideo"
-		        HorizontalAlignment="Center" VerticalAlignment="Center"
-		        Cursor="Hand"
-		        IsVisible="{Binding ShowLoadVideo}"
-		        Click="OnLoadVideoClick">
-			<StackPanel Orientation="Horizontal" Spacing="10">
-				<chroa:SvgIcon Icon="/Icons/film.svg" IconSize="20" VerticalAlignment="Center" />
-				<TextBlock Text="Load Video" VerticalAlignment="Center" />
-			</StackPanel>
-		</Button>
+		<chroa:LoadVideoButton IsVisible="{Binding ShowLoadVideo}" Player="{Binding Mpv}" />
 
 		<Border Classes="overlay top" VerticalAlignment="Top" Background="Transparent"
 		        DoubleTapped="OnChromeDoubleTapped">
@@ -111,17 +102,6 @@
 			</Grid>
 		</Border>
 
-		<Border x:Name="GripTopLeft" Width="10" Height="10" Background="Transparent"
-		        HorizontalAlignment="Left" VerticalAlignment="Top"
-		        Cursor="TopLeftCorner" PointerPressed="OnResizeGripPressed" />
-		<Border x:Name="GripTopRight" Width="10" Height="10" Background="Transparent"
-		        HorizontalAlignment="Right" VerticalAlignment="Top"
-		        Cursor="TopRightCorner" PointerPressed="OnResizeGripPressed" />
-		<Border x:Name="GripBottomLeft" Width="10" Height="10" Background="Transparent"
-		        HorizontalAlignment="Left" VerticalAlignment="Bottom"
-		        Cursor="BottomLeftCorner" PointerPressed="OnResizeGripPressed" />
-		<Border x:Name="GripBottomRight" Width="10" Height="10" Background="Transparent"
-		        HorizontalAlignment="Right" VerticalAlignment="Bottom"
-		        Cursor="BottomRightCorner" PointerPressed="OnResizeGripPressed" />
+		<chroa:WindowResizer />
 	</Grid>
 </Window>

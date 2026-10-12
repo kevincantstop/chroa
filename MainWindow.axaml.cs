@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -16,8 +14,6 @@ namespace ChroaVideoPlayer;
 
 public partial class MainWindow : Window
 {
-    private readonly Dictionary<object, WindowEdge> _gripEdges;
-
     private MainViewModel? _viewModel;
 
     private readonly DragBar _seekBar;
@@ -26,14 +22,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-
-        _gripEdges = new Dictionary<object, WindowEdge>
-        {
-            [GripTopLeft] = WindowEdge.NorthWest,
-            [GripTopRight] = WindowEdge.NorthEast,
-            [GripBottomLeft] = WindowEdge.SouthWest,
-            [GripBottomRight] = WindowEdge.SouthEast,
-        };
 
         _seekBar = new DragBar(SeekArea, SeekTrack, SeekFill)
         {
@@ -113,8 +101,7 @@ public partial class MainWindow : Window
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
 
         if (e.Source is Visual source &&
-            (_gripEdges.ContainsKey(source)
-             || source.FindAncestorOfType<Button>(true) is not null
+            (source.FindAncestorOfType<Button>(true) is not null
              || IsInside(source, _seekBar.Area)
              || IsInside(source, _volumeBar.Area)))
         {
@@ -124,15 +111,6 @@ public partial class MainWindow : Window
         BeginMoveDrag(e);
     }
 
-
-    private void OnResizeGripPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is null || !_gripEdges.TryGetValue(sender, out var edge)) return;
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
-
-        e.Handled = true;
-        BeginResizeDrag(edge, e);
-    }
 
     private void OnChromeDoubleTapped(object? sender, TappedEventArgs e)
     {
@@ -247,47 +225,6 @@ public partial class MainWindow : Window
         }
 
         return false;
-    }
-
-
-    private static readonly FilePickerFileType VideoFileType = new("Video Files")
-    {
-        Patterns = new[]
-        {
-            "*.mp4", "*.mkv", "*.mov", "*.m4v", "*.avi", "*.webm", "*.flv",
-            "*.wmv", "*.ts", "*.m2ts", "*.mpg", "*.mpeg", "*.rmvb", "*.3gp",
-        },
-        MimeTypes = new[] { "video/*" },
-        AppleUniformTypeIdentifiers = new[] { "public.movie" },
-    };
-
-    private static readonly FilePickerFileType AllFileType = new("All Files")
-    {
-        Patterns = new[] { "*.*" },
-    };
-
-    private async void OnLoadVideoClick(object? sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            {
-                Title = "Load Video",
-                AllowMultiple = false,
-                FileTypeFilter = [ VideoFileType, AllFileType ],
-            });
-
-            if (files.Count == 0) return;
-
-            var path = files[0].TryGetLocalPath();
-            if (string.IsNullOrEmpty(path)) return;
-
-            _viewModel?.Mpv.Play(path);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Open file picker failed: {ex}");
-        }
     }
 
 
