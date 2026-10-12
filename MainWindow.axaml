@@ -2,7 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:mpv="clr-namespace:HanumanInstitute.LibMpv.Avalonia;assembly=HanumanInstitute.LibMpv.Avalonia"
         xmlns:vm="clr-namespace:ChroaVideoPlayer.ViewModels"
         xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
         mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
@@ -22,55 +21,11 @@
 	      DragDrop.DragOver="OnDragOver"
 	      DragDrop.Drop="OnDrop">
 
-		<mpv:MpvView MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
+		<chroa:MpvVideoPlayer x:Name="VideoPlayer" />
 
 		<chroa:LoadVideoButton IsVisible="{Binding ShowLoadVideo}" Player="{Binding Mpv}" />
 
 		<chroa:WindowActionButtons />
-
-		<Border Classes="overlay bottom" VerticalAlignment="Bottom"
-		        Margin="24,0,24,28"
-		        IsVisible="{Binding HasVideo}">
-			<Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
-				<StackPanel Grid.Column="0" Orientation="Horizontal">
-					<chroa:SVGIconButton Icon="/Icons/play.svg"
-					                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
-					                     IsVisible="{Binding ShowPlayIcon}"
-					                     Click="OnPlayPauseClick" />
-
-					<chroa:SVGIconButton Icon="/Icons/pause.svg"
-					                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
-					                     IsVisible="{Binding ShowPauseIcon}"
-					                     Click="OnPlayPauseClick" />
-				</StackPanel>
-
-				<TextBlock Grid.Column="1" Classes="time" Text="{Binding PositionText}" />
-
-				<chroa:DragBar x:Name="SeekBar" Grid.Column="2" />
-
-				<TextBlock Grid.Column="3" Classes="time" Text="{Binding DurationText}" />
-
-				<chroa:SVGIconButton Grid.Column="4"
-				                     Icon="/Icons/volume-2.svg"
-				                     IsEnabled="{Binding CanAdjustVolume}"
-				                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-				                     VerticalAlignment="Center"
-				                     IsVisible="{Binding ShowVolumeIcon}"
-				                     Click="OnMuteClick" />
-
-				<chroa:SVGIconButton Grid.Column="4"
-				                     Icon="/Icons/volume-x.svg"
-				                     IsEnabled="{Binding CanAdjustVolume}"
-				                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-				                     VerticalAlignment="Center"
-				                     IsVisible="{Binding ShowMutedIcon}"
-				                     Click="OnMuteClick" />
-
-				<chroa:DragBar x:Name="VolumeBar" Grid.Column="5" Width="90"
-				               Margin="12,0,0,0"
-				               IsEnabled="{Binding CanAdjustVolume}" />
-			</Grid>
-		</Border>
 
 		<chroa:WindowResizer />
 	</Grid>

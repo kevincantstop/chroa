@@ -3,7 +3,6 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
 using ChroaVideoPlayer.Utils;
@@ -14,22 +13,13 @@ namespace ChroaVideoPlayer;
 
 public partial class MainWindow : Window
 {
-    private MainViewModel? _viewModel;
-
     public MainWindow()
     {
         InitializeComponent();
 
-        SeekBar.CanDrag = () => _viewModel?.CanSeek == true;
-        SeekBar.Started += () => _viewModel?.BeginSeek();
-        SeekBar.Dragged += fraction => _viewModel?.UpdateSeekFraction(fraction);
-        SeekBar.Committed += _ => _viewModel?.CommitSeek();
+        DataContext = new MainViewModel(VideoPlayer.ViewModel);
 
-        VolumeBar.CanDrag = () => _viewModel is { HasVideo: true, CanAdjustVolume: true };
-        VolumeBar.Dragged += fraction => _viewModel?.UpdateVolumeFraction(fraction);
-
-        KeepChromeVisibleWhileDragging(SeekBar);
-        KeepChromeVisibleWhileDragging(VolumeBar);
+        VideoPlayer.ViewModel.PropertyChanged += OnPlayerPropertyChanged;
     }
 
 
@@ -44,6 +34,18 @@ public partial class MainWindow : Window
         WindowUtils.RemoveSystemBorder(this);
 
         ClampToMaxWorkingArea();
+    }
+
+    private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(VideoPlayerViewModel.VideoAspect))
+        {
+            ApplyVideoAspect(VideoPlayer.ViewModel.VideoAspect);
+        }
+        else if (e.PropertyName == nameof(VideoPlayerViewModel.IsDragging))
+        {
+            RootGrid.Classes.Set("dragging", VideoPlayer.ViewModel.IsDragging);
+        }
     }
 
     private (double Width, double Height)? GetMaxWindowSize()
@@ -85,62 +87,6 @@ public partial class MainWindow : Window
         ApplyWindowSize(Width * scale, Height * scale);
     }
 
-
-    private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.Handled) return;
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
-
-        if (e.Source is Visual source &&
-            (source.FindAncestorOfType<Button>(true) is not null
-             || IsInside(source, SeekBar)
-             || IsInside(source, VolumeBar)))
-        {
-            return;
-        }
-
-        BeginMoveDrag(e);
-    }
-
-
-    protected override void OnDataContextChanged(EventArgs e)
-    {
-        base.OnDataContextChanged(e);
-
-        if (_viewModel is not null)
-        {
-            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-        }
-
-        _viewModel = DataContext as MainViewModel;
-
-        if (_viewModel is not null)
-        {
-            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-
-            SeekBar.SetFraction(_viewModel.SeekFraction);
-            VolumeBar.SetFraction(_viewModel.VolumeFraction);
-        }
-    }
-
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (_viewModel is null) return;
-
-        if (e.PropertyName == nameof(MainViewModel.VideoAspect))
-        {
-            ApplyVideoAspect(_viewModel.VideoAspect);
-        }
-        else if (e.PropertyName == nameof(MainViewModel.SeekFraction))
-        {
-            SeekBar.SetFraction(_viewModel.SeekFraction);
-        }
-        else if (e.PropertyName == nameof(MainViewModel.VolumeFraction))
-        {
-            VolumeBar.SetFraction(_viewModel.VolumeFraction);
-        }
-    }
-
     private void ApplyVideoAspect(double aspect)
     {
         if (aspect <= 0 || double.IsNaN(aspect) || double.IsInfinity(aspect)) return;
@@ -156,6 +102,23 @@ public partial class MainWindow : Window
         ApplyWindowSize(width * scale, height * scale);
     }
 
+
+    private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Handled) return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+
+        if (e.Source is Visual source &&
+            (source.FindAncestorOfType<Button>(true) is not null
+             || source.FindAncestorOfType<DragBar>(true) is not null))
+        {
+            return;
+        }
+
+        BeginMoveDrag(e);
+    }
+
+
     private void OnDragOver(object? sender, DragEventArgs e)
     {
         e.DragEffects = HasDroppedFile(e) ? DragDropEffects.Copy : DragDropEffects.None;
@@ -169,7 +132,7 @@ public partial class MainWindow : Window
         var path = GetFirstDroppedFilePath(e);
         if (path is null) return;
 
-        _viewModel?.Mpv.Play(path);
+        VideoPlayer.Play(path);
     }
 
     private static bool HasDroppedFile(DragEventArgs e)
@@ -193,26 +156,4 @@ public partial class MainWindow : Window
 
         return null;
     }
-
-
-    private void KeepChromeVisibleWhileDragging(DragBar bar)
-    {
-        bar.Started += () => RootGrid.Classes.Set("dragging", true);
-        bar.Committed += _ => RootGrid.Classes.Set("dragging", false);
-    }
-
-    private static bool IsInside(Visual source, Visual target)
-    {
-        for (Visual? v = source; v is not null; v = v.GetVisualParent())
-        {
-            if (ReferenceEquals(v, target)) return true;
-        }
-
-        return false;
-    }
-
-
-    private void OnPlayPauseClick(object? sender, RoutedEventArgs e) => _viewModel?.Mpv.TogglePause();
-
-    private void OnMuteClick(object? sender, RoutedEventArgs e) => _viewModel?.Mpv.ToggleMute();
 }

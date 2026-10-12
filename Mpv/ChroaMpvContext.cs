@@ -41,9 +41,11 @@ public sealed class ChroaMpvContext
         {
             if (ReferenceEquals(_context, value)) return;
 
-            Detach(_context);
+            var previous = _context;
             _context = value;
-            Attach(value);
+
+            TryDetach(previous);
+            TryAttach(value);
         }
     }
 
@@ -68,6 +70,7 @@ public sealed class ChroaMpvContext
         var context = _context;
         if (context is null)
         {
+            Debug.WriteLine($"mpv context not ready yet; queued until it attaches: {path}");
             _pendingFile = path;
             return;
         }
@@ -226,6 +229,34 @@ public sealed class ChroaMpvContext
         context.EndFile -= OnEndFile;
         context.EofReached.Changed -= OnEofReachedChanged;
         context.AudioReconfig -= OnAudioReconfig;
+    }
+
+    private void TryDetach(MpvContext? context)
+    {
+        if (context is null) return;
+
+        try
+        {
+            Detach(context);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Detach from mpv context failed (already disposed?); ignored: {ex.Message}");
+        }
+    }
+
+    private void TryAttach(MpvContext? context)
+    {
+        if (context is null) return;
+
+        try
+        {
+            Attach(context);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Attach to mpv context failed: {ex}");
+        }
     }
 
     private static void TryEnableHardwareDecoding(MpvContext context)
