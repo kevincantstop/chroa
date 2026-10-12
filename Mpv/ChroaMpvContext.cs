@@ -44,8 +44,8 @@ public sealed class ChroaMpvContext
             var previous = _context;
             _context = value;
 
-            TryDetach(previous);
-            TryAttach(value);
+            SafeRun(nameof(Detach), () => Detach(previous));
+            SafeRun(nameof(Attach), () => Attach(value));
         }
     }
 
@@ -89,14 +89,7 @@ public sealed class ChroaMpvContext
             return;
         }
 
-        try
-        {
-            context.Pause.Set(!(context.Pause.Get() ?? false));
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"TogglePause failed: {ex}");
-        }
+        SafeRun(nameof(TogglePause), () => context.Pause.Set(!(context.Pause.Get() ?? false)));
     }
 
     public void SeekTo(double seconds)
@@ -104,17 +97,13 @@ public sealed class ChroaMpvContext
         var context = _context;
         if (context is null || !double.IsFinite(seconds) || seconds < 0) return;
 
-        try
+        SafeRun(nameof(SeekTo), () =>
         {
             _position = seconds;
             PublishProgress(force: true);
 
             _ = context.Seek(seconds, SeekOption.Absolute).InvokeAsync();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Seek failed: {ex}");
-        }
+        });
     }
 
     public void SetVolume(double volume)
@@ -122,7 +111,7 @@ public sealed class ChroaMpvContext
         var context = _context;
         if (context is null || !double.IsFinite(volume) || volume < 0) return;
 
-        try
+        SafeRun(nameof(SetVolume), () =>
         {
             _volume = volume;
 
@@ -134,11 +123,7 @@ public sealed class ChroaMpvContext
 
             PublishVolume();
             context.Volume.Set(volume);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"SetVolume failed: {ex}");
-        }
+        });
     }
 
     public void ToggleMute()
@@ -146,16 +131,11 @@ public sealed class ChroaMpvContext
         var context = _context;
         if (context is null) return;
 
-        try
-        {
+        SafeRun("ToggleMute", () => {
             _muted = !(context.Mute.Get() ?? false);
             context.Mute.Set(_muted);
             PublishVolume();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"ToggleMute failed: {ex}");
-        }
+        });
     }
 
     private static async Task PlayAsync(MpvContext context, string path)
@@ -231,44 +211,11 @@ public sealed class ChroaMpvContext
         context.AudioReconfig -= OnAudioReconfig;
     }
 
-    private void TryDetach(MpvContext? context)
-    {
-        if (context is null) return;
-
-        try
-        {
-            Detach(context);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Detach from mpv context failed (already disposed?); ignored: {ex.Message}");
-        }
-    }
-
-    private void TryAttach(MpvContext? context)
-    {
-        if (context is null) return;
-
-        try
-        {
-            Attach(context);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Attach to mpv context failed: {ex}");
-        }
-    }
-
     private static void TryEnableHardwareDecoding(MpvContext context)
     {
-        try
-        {
+        SafeRun("TryEnableHardwareDecoding", () => {
             context.Option["hwdec"].Set(HardwareDecodingMode);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to set hwdec={HardwareDecodingMode}; falling back to software decoding: {ex.Message}");
-        }
+        });
     }
 
 
