@@ -112,13 +112,6 @@ public partial class MainWindow : Window
     }
 
 
-    private void OnChromeDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (!ReferenceEquals(e.Source, sender)) return;
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-    }
-
-
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
@@ -227,14 +220,6 @@ public partial class MainWindow : Window
         return false;
     }
 
-
-    private void OnMinimizeClick(object? sender, RoutedEventArgs e) =>
-        WindowState = WindowState.Minimized;
-
-    private void OnMaximizeClick(object? sender, RoutedEventArgs e) =>
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-
-    private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
     private void OnPlayPauseClick(object? sender, RoutedEventArgs e) => _viewModel?.Mpv.TogglePause();
 
