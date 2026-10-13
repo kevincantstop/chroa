@@ -17,6 +17,7 @@
         Background="#0A0A0B">
 	<Grid x:Name="RootGrid" Classes="root" Background="Transparent"
 	      PointerPressed="OnRootPointerPressed"
+	      PointerExited="OnRootPointerExited"
 	      DoubleTapped="OnRootDoubleTapped"
 	      DragDrop.AllowDrop="True"
 	      DragDrop.DragOver="OnDragOver"

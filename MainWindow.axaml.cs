@@ -214,6 +214,8 @@ public partial class MainWindow : Window
 
         _isChromeIdle = idle;
 
+        if (idle) VideoPlayer.ViewModel.CloseSubtitleMenu();
+
         RootGrid.Classes.Set("idle", idle);
         IdleLayer.IsVisible = idle;
     }
@@ -236,6 +238,9 @@ public partial class MainWindow : Window
 
         BeginMoveDrag(e);
     }
+
+    private void OnRootPointerExited(object? sender, PointerEventArgs e) =>
+        VideoPlayer.ViewModel.CloseSubtitleMenu();
 
     private void OnRootDoubleTapped(object? sender, TappedEventArgs e)
     {

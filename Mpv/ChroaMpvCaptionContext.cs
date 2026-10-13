@@ -119,19 +119,13 @@ public sealed partial class ChroaMpvContext
     private static string DescribeSubtitleTrack(MpvContext context, int index, int id)
     {
         var language = context.TrackListLanguage[index].Get();
-        var codec = context.TrackListCodec[index].Get();
-        var parts = new List<string>();
 
         if (!string.IsNullOrWhiteSpace(language) && !language.Equals("und", StringComparison.OrdinalIgnoreCase))
         {
-            parts.Add(LanguageLabel(language));
+            return LanguageLabel(language);
         }
 
-        if (context.TrackListIsExternal[index].Get() ?? false) parts.Add("External");
-        if (context.TrackListIsForced[index].Get() ?? false) parts.Add("Forced");
-        if (!string.IsNullOrWhiteSpace(codec)) parts.Add(codec);
-
-        return parts.Count > 0 ? string.Join(" · ", parts) : $"Track {id}";
+        return $"Track {id}";
     }
 
     private static string LanguageLabel(string code) => code.ToLowerInvariant() switch
