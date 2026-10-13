@@ -8,79 +8,81 @@
 	<Grid PointerPressed="OnPlayerPointerPressed">
 		<mpv:MpvView x:Name="MpvViewControl" MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
 
-		<Border Classes="overlay bottom" VerticalAlignment="Bottom"
-		        Background="#000000"
-				BoxShadow="0 -6 16 0 #80000000"
-		        Padding="24,18"
-		        IsVisible="{Binding HasVideo}">
-			<Grid RowDefinitions="Auto,Auto,Auto">
-				<chroa:VideoCaption Grid.Row="0"
-				                    Player="{Binding Mpv}"
-				                    IsVisible="{Binding IsSubtitleMenuOpen}" />
+		<Grid VerticalAlignment="Bottom" RowDefinitions="Auto,Auto">
+			<chroa:VideoCaption Grid.Row="0"
+			                    Player="{Binding Mpv}"
+			                    IsVisible="{Binding IsSubtitleMenuOpen}" />
 
-				<Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
-					<TextBlock x:Name="PositionText" Grid.Column="0" Classes="time" Margin="0,0,12,0" />
+			<Border Grid.Row="1" Classes="overlay bottom"
+			        Background="#000000"
+					BoxShadow="0 -6 16 0 #80000000"
+			        Padding="24,18"
+			        IsVisible="{Binding HasVideo}">
+				<Grid RowDefinitions="Auto,Auto">
+					<Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+						<TextBlock x:Name="PositionText" Grid.Column="0" Classes="time" Margin="0,0,12,0" />
 
-					<chroa:DragBar x:Name="SeekBar" Grid.Column="1" />
+						<chroa:DragBar x:Name="SeekBar" Grid.Column="1" />
 
-					<TextBlock x:Name="DurationText" Grid.Column="2" Classes="time" Margin="12,0,0,0" />
+						<TextBlock x:Name="DurationText" Grid.Column="2" Classes="time" Margin="12,0,0,0" />
+					</Grid>
+
+					<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
+						<StackPanel Grid.Column="1" Orientation="Horizontal">
+							<chroa:SVGIconButton x:Name="PlayButton"
+							                     Icon="/Icons/play.svg"
+							                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
+							                     Click="OnPlayPauseClick" />
+
+							<chroa:SVGIconButton x:Name="PauseButton"
+							                     Icon="/Icons/pause.svg"
+							                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
+							                     Click="OnPlayPauseClick" />
+						</StackPanel>
+
+						<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+							<chroa:SVGIconButton x:Name="VolumeButton"
+							                     Icon="/Icons/volume-2.svg"
+							                     IsEnabled="{Binding HasAudioTrack}"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     VerticalAlignment="Center"
+							                     Click="OnMuteClick" />
+
+							<chroa:SVGIconButton x:Name="MutedButton"
+							                     Icon="/Icons/volume-x.svg"
+							                     IsEnabled="{Binding HasAudioTrack}"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     VerticalAlignment="Center"
+							                     Click="OnMuteClick" />
+
+							<chroa:DragBar x:Name="VolumeBar" Width="90"
+							               Margin="12,0,0,0"
+							               IsEnabled="{Binding HasAudioTrack}" />
+
+							<chroa:SVGIconButton x:Name="SubtitleButton"
+							                     Icon="/Icons/closed-caption.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="12,0,0,0"
+							                     VerticalAlignment="Center"
+							                     Click="OnSubtitleClick" />
+
+							<chroa:SVGIconButton x:Name="FullScreenButton"
+							                     Icon="/Icons/maximize.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="12,0,-12,0"
+							                     VerticalAlignment="Center"
+							                     Click="OnFullScreenClick" />
+
+							<chroa:SVGIconButton x:Name="FullScreenExitButton"
+							                     Icon="/Icons/minimize.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="12,0,-12,0"
+							                     VerticalAlignment="Center"
+							                     Click="OnFullScreenClick" />
+						</StackPanel>
+					</Grid>
 				</Grid>
-
-				<Grid Grid.Row="2" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
-					<StackPanel Grid.Column="1" Orientation="Horizontal">
-						<chroa:SVGIconButton x:Name="PlayButton"
-						                     Icon="/Icons/play.svg"
-						                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
-						                     Click="OnPlayPauseClick" />
-
-						<chroa:SVGIconButton x:Name="PauseButton"
-						                     Icon="/Icons/pause.svg"
-						                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
-						                     Click="OnPlayPauseClick" />
-					</StackPanel>
-
-					<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-						<chroa:SVGIconButton x:Name="VolumeButton"
-						                     Icon="/Icons/volume-2.svg"
-						                     IsEnabled="{Binding HasAudioTrack}"
-						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-						                     VerticalAlignment="Center"
-						                     Click="OnMuteClick" />
-
-						<chroa:SVGIconButton x:Name="MutedButton"
-						                     Icon="/Icons/volume-x.svg"
-						                     IsEnabled="{Binding HasAudioTrack}"
-						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-						                     VerticalAlignment="Center"
-						                     Click="OnMuteClick" />
-
-						<chroa:DragBar x:Name="VolumeBar" Width="90"
-						               Margin="12,0,0,0"
-						               IsEnabled="{Binding HasAudioTrack}" />
-
-						<chroa:SVGIconButton x:Name="SubtitleButton"
-						                     Icon="/Icons/closed-caption.svg"
-						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-						                     Margin="12,0,0,0"
-						                     VerticalAlignment="Center"
-						                     Click="OnSubtitleClick" />
-
-						<chroa:SVGIconButton x:Name="FullScreenButton"
-						                     Icon="/Icons/maximize.svg"
-						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-						                     Margin="12,0,-12,0"
-						                     VerticalAlignment="Center"
-						                     Click="OnFullScreenClick" />
-
-						<chroa:SVGIconButton x:Name="FullScreenExitButton"
-						                     Icon="/Icons/minimize.svg"
-						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-						                     Margin="12,0,-12,0"
-						                     VerticalAlignment="Center"
-						                     Click="OnFullScreenClick" />
-					</StackPanel>
-				</Grid>
-			</Grid>
-		</Border>
+			</Border>
+		</Grid>
 	</Grid>
 </UserControl>
