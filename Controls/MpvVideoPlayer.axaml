@@ -29,6 +29,13 @@
 
 					<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
 						<StackPanel Grid.Column="1" Orientation="Horizontal">
+							<chroa:SVGIconButton x:Name="RewindButton"
+							                     Icon="/Icons/rewind.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="0,0,8,0"
+							                     VerticalAlignment="Center"
+							                     Click="OnRewindClick" />
+
 							<chroa:SVGIconButton x:Name="PlayButton"
 							                     Icon="/Icons/play.svg"
 							                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
@@ -38,6 +45,13 @@
 							                     Icon="/Icons/pause.svg"
 							                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
 							                     Click="OnPlayPauseClick" />
+
+							<chroa:SVGIconButton x:Name="ForwardButton"
+							                     Icon="/Icons/fast-forward.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="8,0,0,0"
+							                     VerticalAlignment="Center"
+							                     Click="OnForwardClick" />
 						</StackPanel>
 
 						<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">

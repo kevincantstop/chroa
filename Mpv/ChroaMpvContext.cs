@@ -95,6 +95,17 @@ public sealed partial class ChroaMpvContext
         });
     }
 
+    public void SeekBy(double seconds)
+    {
+        if (!double.IsFinite(seconds) || seconds == 0) return;
+
+        var target = _position + seconds;
+        if (target < 0) target = 0;
+        if (_duration > 0 && target > _duration) target = _duration;
+
+        SeekTo(target);
+    }
+
     private static async Task PlayAsync(MpvContext context, string path)
     {
         try

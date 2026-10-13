@@ -18,6 +18,8 @@ public partial class MpvVideoPlayer : UserControl
 
     public event Action? FullScreenToggleRequested;
 
+    private const double SkipSeconds = 5;
+
     public MpvVideoPlayer()
     {
         DataContext = ViewModel;
@@ -93,6 +95,11 @@ public partial class MpvVideoPlayer : UserControl
 
         FullScreenButton.IsVisible = !IsFullScreen;
         FullScreenExitButton.IsVisible = IsFullScreen;
+
+        var canSkip = ViewModel.Duration > 0;
+
+        RewindButton.IsEnabled = canSkip;
+        ForwardButton.IsEnabled = canSkip;
     }
 
     private double DurationMaximum => ViewModel.Duration > 0 ? ViewModel.Duration : 1;
@@ -116,6 +123,10 @@ public partial class MpvVideoPlayer : UserControl
     private void OnMuteClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.ToggleMute();
 
     private void OnSubtitleClick(object? sender, RoutedEventArgs e) => ViewModel.ToggleSubtitleMenu();
+
+    private void OnRewindClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.SeekBy(-SkipSeconds);
+
+    private void OnForwardClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.SeekBy(SkipSeconds);
 
     private void OnFullScreenClick(object? sender, RoutedEventArgs e) => FullScreenToggleRequested?.Invoke();
 }
