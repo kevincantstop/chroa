@@ -27,7 +27,7 @@ run `ChroaVideoPlayer.exe`.
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/screenshot_2-20261013.jpg" alt="The Chroa Video Player interface" width="100%">
+  <img src="screenshots/screenshot-2-20261014.jpg" alt="The Chroa Video Player interface" width="100%">
 </p>
 
 | **True frameless video player when playing** | **Before anything is loaded** |
