@@ -13,6 +13,7 @@
         WindowDecorations="BorderOnly"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="-1"
+		TransparencyLevelHint="AcrylicBlur"
         CanResize="True"
         Background="#0A0A0B">
 	<Grid x:Name="RootGrid" Classes="root" Background="Transparent"

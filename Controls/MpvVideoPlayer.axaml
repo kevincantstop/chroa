@@ -14,7 +14,7 @@
 			                    IsVisible="{Binding IsSubtitleMenuOpen}" />
 
 			<Border Grid.Row="1" Classes="overlay bottom"
-			        Background="#000000"
+			        Background="#99000000"
 					BoxShadow="0 -6 16 0 #80000000"
 			        Padding="24,18"
 			        IsVisible="{Binding HasVideo}">
