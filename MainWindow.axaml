@@ -8,14 +8,14 @@
         x:Class="ChroaVideoPlayer.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Chroa Video Player"
-        Width="1280" 
+        Width="1280"
 		Height="720"
         WindowDecorations="BorderOnly"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaTitleBarHeightHint="-1"
-		TransparencyLevelHint="AcrylicBlur"
+        TransparencyLevelHint="AcrylicBlur"
         CanResize="True"
-        Background="#0A0A0B">
+        Background="Transparent">
 	<Grid x:Name="RootGrid" Classes="root" Background="Transparent"
 	      PointerPressed="OnRootPointerPressed"
 	      PointerExited="OnRootPointerExited"
