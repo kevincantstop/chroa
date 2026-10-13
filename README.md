@@ -27,12 +27,12 @@ run `ChroaVideoPlayer.exe`.
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/screenshot_2.jpg" alt="The Chroa Video Player interface" width="100%">
+  <img src="screenshots/screenshot_2-20261013.jpg" alt="The Chroa Video Player interface" width="100%">
 </p>
 
 | **True frameless video player when playing** | **Before anything is loaded** |
 | :---: | :---: |
-| ![Chroa Video Player playing a video](screenshots/screenshot_1.jpg) | ![The main window before anything is loaded](screenshots/screenshot_3.jpg) |
+| ![Chroa Video Player playing a video](screenshots/screenshot_1.jpg) | ![The main window before anything is loaded](screenshots/screenshot_3-20261013.jpg) |
 
 ## Formats
 
