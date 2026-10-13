@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Assets/AppIcon@512.png" alt="Chroa Video Player" width="20%">
+  <img src="Assets/appicon-black@512.png" alt="Chroa Video Player" width="20%">
 </p>
 
 # Chroa Video Player

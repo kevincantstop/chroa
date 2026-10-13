@@ -5,7 +5,7 @@
     <Version>1.0.1</Version>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <ApplicationIcon Condition="Exists('Assets\appicon-black.ico')">Assets\appicon-black.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
