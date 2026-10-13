@@ -56,7 +56,7 @@
 							                     Click="OnMuteClick" />
 
 							<chroa:DragBar x:Name="VolumeBar" Width="90"
-							               Margin="12,0,0,0"
+							               Margin="3,0,0,0"
 							               IsEnabled="{Binding HasAudioTrack}" />
 
 							<chroa:SVGIconButton x:Name="SubtitleButton"
