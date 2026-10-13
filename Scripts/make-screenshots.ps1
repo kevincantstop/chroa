@@ -47,13 +47,17 @@ foreach ($png in $pngs) {
     $tmpPath = "$jpgPath.tmp"
     $previousLength = if (Test-Path -LiteralPath $jpgPath) { (Get-Item -LiteralPath $jpgPath).Length } else { 0 }
 
-    $source = [System.Drawing.Image]::FromFile($png.FullName)
+    $image = [System.Drawing.Image]::FromFile($png.FullName)
     try {
-        $outWidth = if ($source.Width -lt $Width) { $source.Width } else { $Width }
-        $outHeight = [int][Math]::Round($source.Height * $outWidth / $source.Width)
+        if ($image.Width -lt 1 -or $image.Height -lt 1) {
+            throw "The pixel size of $($png.Name) could not be read."
+        }
+
+        $outWidth = if ($image.Width -lt $Width) { $image.Width } else { $Width }
+        $outHeight = [int][Math]::Round($image.Height * $outWidth / $image.Width)
 
         if ($outWidth -lt $Width) {
-            Write-Host "    warning: the source is only $($source.Width) px wide, so $outWidth px was written instead (never upscaled)"
+            Write-Host "    warning: the source is only $($image.Width) px wide, so $outWidth px was written instead (never upscaled)"
         }
 
         $bitmap = [System.Drawing.Bitmap]::new($outWidth, $outHeight, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
@@ -64,7 +68,7 @@ foreach ($png in $pngs) {
                 $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
                 $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
                 $graphics.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
-                $graphics.DrawImage($source, 0, 0, $outWidth, $outHeight)
+                $graphics.DrawImage($image, 0, 0, $outWidth, $outHeight)
             }
             finally {
                 $graphics.Dispose()
@@ -78,7 +82,7 @@ foreach ($png in $pngs) {
         }
     }
     finally {
-        $source.Dispose()
+        $image.Dispose()
     }
 
     $verify = [System.Drawing.Image]::FromFile($tmpPath)
@@ -91,7 +95,7 @@ foreach ($png in $pngs) {
     }
 
     $tmpLength = (Get-Item -LiteralPath $tmpPath).Length
-    if ($actualWidth -ne $outWidth -or $actualHeight -ne $outHeight -or $tmpLength -lt 10000) {
+    if ($actualWidth -ne $outWidth -or $actualHeight -ne $outHeight -or $tmpLength -lt 1024) {
         Remove-Item -LiteralPath $tmpPath -Force
         throw "The conversion of $($png.Name) produced a bad file ($actualWidth x $actualHeight, $tmpLength bytes). No file was replaced."
     }
