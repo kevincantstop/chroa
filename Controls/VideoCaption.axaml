@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mpv="clr-namespace:ChroaVideoPlayer.Mpv"
+             x:Class="ChroaVideoPlayer.Controls.VideoCaption">
+	<Border Classes="subtitleMenu" HorizontalAlignment="Right">
+		<ScrollViewer MaxHeight="240">
+			<StackPanel>
+				<Button Classes="subtitleItem" Click="OnOffClick">
+					<Grid ColumnDefinitions="18,*">
+						<Border x:Name="OffMark" Grid.Column="0" Classes="subtitleDot" IsVisible="False" />
+						<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="Off" />
+					</Grid>
+				</Button>
+
+				<ItemsControl x:Name="TrackHost">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="mpv:SubtitleTrackInfo">
+							<Button Classes="subtitleItem" Click="OnTrackClick">
+								<Grid ColumnDefinitions="18,*">
+									<Border Grid.Column="0" Classes="subtitleDot" IsVisible="{Binding IsSelected}" />
+									<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="{Binding Label}" />
+								</Grid>
+							</Button>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+
+				<TextBlock x:Name="EmptyHint" Classes="subtitleHint" Text="No embedded subtitles" IsVisible="False" />
+
+				<Border Classes="subtitleSeparator" />
+
+				<Button Classes="subtitleItem" Click="OnLoadClick">
+					<Grid ColumnDefinitions="18,*">
+						<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="Load subtitle file…" />
+					</Grid>
+				</Button>
+			</StackPanel>
+		</ScrollViewer>
+	</Border>
+</UserControl>

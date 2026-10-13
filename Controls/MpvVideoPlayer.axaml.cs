@@ -2,7 +2,9 @@ using System;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using ChroaVideoPlayer.ViewModels;
 
 namespace ChroaVideoPlayer.Controls;
@@ -66,6 +68,15 @@ public partial class MpvVideoPlayer : UserControl
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) => ApplyState();
 
+    private void OnPlayerPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!ViewModel.IsSubtitleMenuOpen) return;
+
+        if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
+
+        ViewModel.CloseSubtitleMenu();
+    }
+
     private void ApplyState()
     {
         SeekBar.SetFraction(SeekFraction);
@@ -103,6 +114,8 @@ public partial class MpvVideoPlayer : UserControl
     private void OnPlayPauseClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.TogglePause();
 
     private void OnMuteClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.ToggleMute();
+
+    private void OnSubtitleClick(object? sender, RoutedEventArgs e) => ViewModel.ToggleSubtitleMenu();
 
     private void OnFullScreenClick(object? sender, RoutedEventArgs e) => FullScreenToggleRequested?.Invoke();
 }

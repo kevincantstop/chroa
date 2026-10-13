@@ -7,9 +7,7 @@ namespace ChroaVideoPlayer.Mpv;
 
 public readonly record struct PlaybackProgress(double Position, double Duration);
 
-public readonly record struct PlaybackVolume(double Volume, bool Muted);
-
-public sealed class ChroaMpvContext
+public sealed partial class ChroaMpvContext
 {
     private MpvContext? _context;
     private string? _pendingFile;
@@ -23,14 +21,9 @@ public sealed class ChroaMpvContext
     private double _position;
     private double _duration;
 
-    private double _volume = 100;
-    private bool _muted;
-
     private string? _currentFile;
 
     private bool _ended;
-
-    private bool _hasAudio = true;
 
     private const string HardwareDecodingMode = "auto-safe";
 
@@ -57,11 +50,7 @@ public sealed class ChroaMpvContext
 
     public event EventHandler<PlaybackProgress>? ProgressChanged;
 
-    public event EventHandler<PlaybackVolume>? VolumeChanged;
-
     public event EventHandler<bool>? EndedChanged;
-
-    public event EventHandler<bool>? AudioTrackChanged;
 
     public void Play(string path)
     {
@@ -103,38 +92,6 @@ public sealed class ChroaMpvContext
             PublishProgress(force: true);
 
             _ = context.Seek(seconds, SeekOption.Absolute).InvokeAsync();
-        });
-    }
-
-    public void SetVolume(double volume)
-    {
-        var context = _context;
-        if (context is null || !double.IsFinite(volume) || volume < 0) return;
-
-        SafeRun(nameof(SetVolume), () =>
-        {
-            _volume = volume;
-
-            if (_muted && volume > 0)
-            {
-                _muted = false;
-                context.Mute.Set(false);
-            }
-
-            PublishVolume();
-            context.Volume.Set(volume);
-        });
-    }
-
-    public void ToggleMute()
-    {
-        var context = _context;
-        if (context is null) return;
-
-        SafeRun("ToggleMute", () => {
-            _muted = !(context.Mute.Get() ?? false);
-            context.Mute.Set(_muted);
-            PublishVolume();
         });
     }
 
@@ -230,6 +187,8 @@ public sealed class ChroaMpvContext
             PublishProgress(force: true);
 
             SetEnded(false);
+
+            PublishSubtitles(NoSubtitles);
         });
 
     private void OnVideoReconfig(object? sender, EventArgs e) =>
@@ -245,6 +204,7 @@ public sealed class ChroaMpvContext
             TryPublishVolume();
 
             _ = RefreshAudioTrackAsync();
+            _ = RefreshSubtitlesAsync();
 
             MediaOpened?.Invoke(this, EventArgs.Empty);
 
@@ -325,87 +285,6 @@ public sealed class ChroaMpvContext
 
         _progressClock.Restart();
         ProgressChanged?.Invoke(this, new PlaybackProgress(_position, _duration));
-    }
-
-
-    private void OnVolumePropertyChanged(object? sender, MpvValueChangedEventArgs<double, double> e) =>
-        SafeRun(nameof(OnVolumePropertyChanged), () =>
-        {
-            if (e.NewValue is { } v && double.IsFinite(v)) _volume = v;
-            PublishVolume();
-        });
-
-    private void OnMutePropertyChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
-        SafeRun(nameof(OnMutePropertyChanged), () =>
-        {
-            _muted = e.NewValue ?? false;
-            PublishVolume();
-        });
-
-    private void PublishVolume() => VolumeChanged?.Invoke(this, new PlaybackVolume(_volume, _muted));
-
-    private void TryPublishVolume()
-    {
-        var context = _context;
-        if (context is null) return;
-
-        try
-        {
-            _volume = context.Volume.Get() ?? _volume;
-            _muted = context.Mute.Get() ?? _muted;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"volume/mute not ready yet ({ex.GetType().Name})");
-            return;
-        }
-
-        PublishVolume();
-    }
-
-
-    private void OnAudioReconfig(object? sender, EventArgs e) =>
-        SafeRun(nameof(OnAudioReconfig), () => SetHasAudio(true));
-
-    private async Task RefreshAudioTrackAsync()
-    {
-        for (var i = 0; i < 10; i++)
-        {
-            if (TryReadHasAudio(out var hasAudio))
-            {
-                SetHasAudio(hasAudio);
-                return;
-            }
-
-            await Task.Delay(100);
-        }
-    }
-
-    private bool TryReadHasAudio(out bool hasAudio)
-    {
-        hasAudio = true;
-
-        var context = _context;
-        if (context is null) return false;
-
-        try
-        {
-            hasAudio = context.AudioId.Get() is not null;
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"aid not ready yet ({ex.GetType().Name})");
-            return false;
-        }
-    }
-
-    private void SetHasAudio(bool hasAudio)
-    {
-        if (_hasAudio == hasAudio) return;
-
-        _hasAudio = hasAudio;
-        AudioTrackChanged?.Invoke(this, hasAudio);
     }
 
 

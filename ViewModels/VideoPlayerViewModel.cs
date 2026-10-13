@@ -44,6 +44,9 @@ namespace ChroaVideoPlayer.ViewModels
         [ObservableProperty]
         public partial bool HasAudioTrack { get; set; }
 
+        [ObservableProperty]
+        public partial bool IsSubtitleMenuOpen { get; set; }
+
         public VideoPlayerViewModel()
         {
             Mpv.VideoAspectDetected += OnVideoAspectDetected;
@@ -86,6 +89,10 @@ namespace ChroaVideoPlayer.ViewModels
             Volume = Math.Clamp(volume, 0, MaxVolume);
             Mpv.SetVolume(Volume);
         }
+
+        public void ToggleSubtitleMenu() => IsSubtitleMenuOpen = !IsSubtitleMenuOpen;
+
+        public void CloseSubtitleMenu() => IsSubtitleMenuOpen = false;
 
 
         private void OnVideoAspectDetected(object? sender, double aspect) =>

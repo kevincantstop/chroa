@@ -5,7 +5,7 @@
              xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
              x:Class="ChroaVideoPlayer.Controls.MpvVideoPlayer"
              x:DataType="vm:VideoPlayerViewModel">
-	<Grid>
+	<Grid PointerPressed="OnPlayerPointerPressed">
 		<mpv:MpvView x:Name="MpvViewControl" MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
 
 		<Border Classes="overlay bottom" VerticalAlignment="Bottom"
@@ -13,8 +13,12 @@
 				BoxShadow="0 -6 16 0 #80000000"
 		        Padding="24,18"
 		        IsVisible="{Binding HasVideo}">
-			<Grid RowDefinitions="Auto,Auto">
-				<Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+			<Grid RowDefinitions="Auto,Auto,Auto">
+				<chroa:VideoCaption Grid.Row="0"
+				                    Player="{Binding Mpv}"
+				                    IsVisible="{Binding IsSubtitleMenuOpen}" />
+
+				<Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
 					<TextBlock x:Name="PositionText" Grid.Column="0" Classes="time" Margin="0,0,12,0" />
 
 					<chroa:DragBar x:Name="SeekBar" Grid.Column="1" />
@@ -22,7 +26,7 @@
 					<TextBlock x:Name="DurationText" Grid.Column="2" Classes="time" Margin="12,0,0,0" />
 				</Grid>
 
-				<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
+				<Grid Grid.Row="2" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
 					<StackPanel Grid.Column="1" Orientation="Horizontal">
 						<chroa:SVGIconButton x:Name="PlayButton"
 						                     Icon="/Icons/play.svg"
@@ -53,6 +57,13 @@
 						<chroa:DragBar x:Name="VolumeBar" Width="90"
 						               Margin="12,0,0,0"
 						               IsEnabled="{Binding HasAudioTrack}" />
+
+						<chroa:SVGIconButton x:Name="SubtitleButton"
+						                     Icon="/Icons/closed-caption.svg"
+						                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+						                     Margin="12,0,0,0"
+						                     VerticalAlignment="Center"
+						                     Click="OnSubtitleClick" />
 
 						<chroa:SVGIconButton x:Name="FullScreenButton"
 						                     Icon="/Icons/maximize.svg"
