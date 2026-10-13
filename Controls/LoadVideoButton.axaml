@@ -3,15 +3,22 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
-             mc:Ignorable="d" d:DesignWidth="220" d:DesignHeight="72"
+             mc:Ignorable="d" d:DesignWidth="220" d:DesignHeight="96"
              x:Class="ChroaVideoPlayer.Controls.LoadVideoButton">
-	<Button Classes="loadVideo"
-	        HorizontalAlignment="Center" VerticalAlignment="Center"
-	        Cursor="Hand"
-	        Click="OnButtonClick">
-		<StackPanel Orientation="Horizontal" Spacing="10">
-			<chroa:SvgIcon x:Name="IconElement" Icon="/Icons/film.svg" IconSize="20" VerticalAlignment="Center" />
-			<TextBlock x:Name="LabelElement" Text="Load Video" VerticalAlignment="Center" />
-		</StackPanel>
-	</Button>
+	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
+		<Button Classes="loadVideo"
+		        HorizontalAlignment="Center"
+		        Cursor="Hand"
+		        Click="OnButtonClick">
+			<StackPanel Orientation="Horizontal" Spacing="10">
+				<chroa:SvgIcon x:Name="IconElement" Icon="/Icons/film.svg" IconSize="20" VerticalAlignment="Center" />
+				<TextBlock x:Name="LabelElement" Text="Load Video" VerticalAlignment="Center" />
+			</StackPanel>
+		</Button>
+		<TextBlock x:Name="HintElement"
+		           HorizontalAlignment="Center"
+		           FontSize="13"
+		           Foreground="#909090"
+		           Text="or drag and drop a video file here" />
+	</StackPanel>
 </UserControl>
