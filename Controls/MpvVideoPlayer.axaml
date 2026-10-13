@@ -9,7 +9,9 @@
 		<mpv:MpvView x:Name="MpvViewControl" MpvContext="{Binding Mpv.ViewContext}" Renderer="OpenGl" />
 
 		<Border Classes="overlay bottom" VerticalAlignment="Bottom"
-		        Margin="24,0,24,28"
+		        Background="#000000"
+				BoxShadow="0 -6 16 0 #80000000"
+		        Padding="24,18"
 		        IsVisible="{Binding HasVideo}">
 			<Grid RowDefinitions="Auto,Auto">
 				<Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
