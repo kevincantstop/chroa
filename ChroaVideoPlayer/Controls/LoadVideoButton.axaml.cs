@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using ChroaVideoPlayer.Mpv;
+using ChroaVideoPlayer.Core.Mpv;
 
 namespace ChroaVideoPlayer.Controls;
 

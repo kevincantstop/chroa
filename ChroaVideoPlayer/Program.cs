@@ -1,5 +1,5 @@
 using Avalonia;
-using ChroaVideoPlayer.Mpv;
+using ChroaVideoPlayer.Core.Mpv;
 using System;
 using System.Runtime.InteropServices;
 

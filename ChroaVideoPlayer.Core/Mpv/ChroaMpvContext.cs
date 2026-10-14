@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using HanumanInstitute.LibMpv;
 using HanumanInstitute.LibMpv.Core;
 
-namespace ChroaVideoPlayer.Mpv;
+namespace ChroaVideoPlayer.Core.Mpv;
 
 public readonly record struct PlaybackProgress(double Position, double Duration);
 

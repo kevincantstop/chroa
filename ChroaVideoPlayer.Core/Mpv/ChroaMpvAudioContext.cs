@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using HanumanInstitute.LibMpv;
 
-namespace ChroaVideoPlayer.Mpv;
+namespace ChroaVideoPlayer.Core.Mpv;
 
 public readonly record struct PlaybackVolume(double Volume, bool Muted);
 

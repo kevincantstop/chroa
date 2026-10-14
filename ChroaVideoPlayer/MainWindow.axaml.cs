@@ -6,7 +6,7 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
-using ChroaVideoPlayer.Utils;
+using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.ViewModels;
 using Avalonia.Platform.Storage;
 

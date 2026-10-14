@@ -9,7 +9,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Platform;
-using ChroaVideoPlayer.Utils;
+using ChroaVideoPlayer.Core.Utils;
 using HAlign = Avalonia.Layout.HorizontalAlignment;
 using VAlign = Avalonia.Layout.VerticalAlignment;
 

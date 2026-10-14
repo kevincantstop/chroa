@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using HanumanInstitute.LibMpv;
 
-namespace ChroaVideoPlayer.Mpv;
+namespace ChroaVideoPlayer.Core.Mpv;
 
 public sealed partial class ChroaMpvContext
 {

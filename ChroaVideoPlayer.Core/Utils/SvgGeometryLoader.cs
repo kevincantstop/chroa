@@ -7,7 +7,7 @@ using System.Text;
 using System.Xml.Linq;
 using Avalonia.Media;
 
-namespace ChroaVideoPlayer.Utils;
+namespace ChroaVideoPlayer.Core.Utils;
 
 public static class SvgGeometryLoader
 {

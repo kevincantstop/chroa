@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using ChroaVideoPlayer.Mpv;
+using ChroaVideoPlayer.Core.Mpv;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ChroaVideoPlayer.ViewModels

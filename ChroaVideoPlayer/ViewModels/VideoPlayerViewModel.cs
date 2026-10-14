@@ -1,6 +1,6 @@
 using System;
 using Avalonia.Threading;
-using ChroaVideoPlayer.Mpv;
+using ChroaVideoPlayer.Core.Mpv;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ChroaVideoPlayer.ViewModels

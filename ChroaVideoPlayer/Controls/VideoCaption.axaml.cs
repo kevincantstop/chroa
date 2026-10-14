@@ -5,7 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using ChroaVideoPlayer.Mpv;
+using ChroaVideoPlayer.Core.Mpv;
 using ChroaVideoPlayer.ViewModels;
 
 namespace ChroaVideoPlayer.Controls;

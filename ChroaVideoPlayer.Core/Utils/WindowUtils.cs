@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia.Controls;
 
-namespace ChroaVideoPlayer.Utils;
+namespace ChroaVideoPlayer.Core.Utils;
 
 public static class WindowUtils
 {

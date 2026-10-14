@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using HanumanInstitute.LibMpv;
 
-namespace ChroaVideoPlayer.Mpv;
+namespace ChroaVideoPlayer.Core.Mpv;
 
 public sealed partial class ChroaMpvContext
 {
