@@ -84,22 +84,24 @@ public sealed class TableRepository<T> where T : class, new()
 
     public IReadOnlyList<T> Query(SqliteConnection connection, string? search, string? orderBy, bool descending, int offset, int limit)
     {
-        using var command = connection.CreateCommand();
-
-        var where = BuildSearch(command, search);
-        var order = string.IsNullOrEmpty(orderBy)
-            ? string.Empty
-            : $" ORDER BY {SqliteSyntax.Quote(orderBy)} {(descending ? "DESC" : "ASC")}";
-
-        command.Parameters.AddWithValue("@limit", limit);
-        command.Parameters.AddWithValue("@offset", offset);
-        command.CommandText =
-            $"SELECT {SelectList} FROM {SqliteSyntax.Quote(_schema.Name)}{where}{order} LIMIT @limit OFFSET @offset";
+        using var command = CreateQuery(connection, SelectList, search, orderBy, descending, offset, limit);
 
         var result = new List<T>();
 
         using var reader = command.ExecuteReader();
         while (reader.Read()) result.Add(Materialize(reader));
+
+        return result;
+    }
+
+    public IReadOnlyList<string> Keys(SqliteConnection connection, string? search, string? orderBy, bool descending, int offset, int limit)
+    {
+        using var command = CreateQuery(connection, SqliteSyntax.Quote(TableSchema.KeyColumn), search, orderBy, descending, offset, limit);
+
+        var result = new List<string>();
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read()) result.Add(reader.GetString(0));
 
         return result;
     }
@@ -121,6 +123,23 @@ public sealed class TableRepository<T> where T : class, new()
         if (_schema.Columns.Any(c => string.Equals(c.Name, orderBy, StringComparison.OrdinalIgnoreCase))) return;
 
         throw new ArgumentException($"Unknown column '{orderBy}' on {_schema.Name}.", nameof(orderBy));
+    }
+
+    private SqliteCommand CreateQuery(SqliteConnection connection, string selectList, string? search, string? orderBy, bool descending, int offset, int limit)
+    {
+        var command = connection.CreateCommand();
+
+        var where = BuildSearch(command, search);
+        var order = string.IsNullOrEmpty(orderBy)
+            ? string.Empty
+            : $" ORDER BY {SqliteSyntax.Quote(orderBy)} {(descending ? "DESC" : "ASC")}";
+
+        command.Parameters.AddWithValue("@limit", limit);
+        command.Parameters.AddWithValue("@offset", offset);
+        command.CommandText =
+            $"SELECT {selectList} FROM {SqliteSyntax.Quote(_schema.Name)}{where}{order} LIMIT @limit OFFSET @offset";
+
+        return command;
     }
 
     private string SelectList => string.Join(", ", _schema.Columns.Select(c => SqliteSyntax.Quote(c.Name)));

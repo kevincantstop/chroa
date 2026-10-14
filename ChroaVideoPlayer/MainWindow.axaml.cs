@@ -35,7 +35,7 @@ public partial class MainWindow : Window
 
     private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(3) };
 
-    private readonly VideoPlayerSettings _settings = new();
+    private readonly VideoPlayerSettingsBinder _settings = new();
 
     private WindowState _stateBeforeFullScreen = WindowState.Normal;
 
@@ -93,7 +93,7 @@ public partial class MainWindow : Window
 
         if (path.Length == 0) return;
 
-        if (_settings.TryRestoreWindowSize(path)) return;
+        if (_settings.HasSettingsFor(path)) return;
 
         WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction);
     }

@@ -74,6 +74,18 @@ public sealed class LocalStore<T> where T : class, new()
             Array.Empty<T>());
     }
 
+    public IReadOnlyList<string> Keys(string? search = null, string? orderBy = null, bool descending = false, int offset = 0, int limit = 50)
+    {
+        _repository.ValidateOrderBy(orderBy);
+
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset));
+        if (limit < 1) throw new ArgumentOutOfRangeException(nameof(limit));
+
+        return Run<IReadOnlyList<string>>(nameof(Keys),
+            connection => _repository.Keys(connection, search, orderBy, descending, offset, limit),
+            Array.Empty<string>());
+    }
+
     public int Count(string? search = null) =>
         Run(nameof(Count), connection => _repository.Count(connection, search), 0);
 

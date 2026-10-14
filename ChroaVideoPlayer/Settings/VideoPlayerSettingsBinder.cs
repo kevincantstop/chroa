@@ -1,0 +1,160 @@
+using System;
+using System.ComponentModel;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Threading;
+using ChroaVideoPlayer.Core.Persistance;
+using ChroaVideoPlayer.Core.Utils;
+using ChroaVideoPlayer.ViewModels;
+
+namespace ChroaVideoPlayer.Settings;
+
+public sealed class VideoPlayerSettingsBinder
+{
+    public const int DefaultRecentVideoLimit = 30;
+
+    private readonly LocalStore<VideoPlayerSettings> _store = new();
+
+    private readonly LruLimiter<VideoPlayerSettings> _limiter;
+
+    private VideoPlayerSettings _row = new();
+
+    private Window? _window;
+
+    private VideoPlayerViewModel? _viewModel;
+
+    private string? _path;
+
+    private bool _isNew;
+
+    public VideoPlayerSettingsBinder(int recentVideoLimit = DefaultRecentVideoLimit)
+    {
+        RecentVideoLimit = recentVideoLimit;
+
+        _limiter = new LruLimiter<VideoPlayerSettings>(_store, nameof(VideoPlayerSettings.LastOpenedUtc));
+    }
+
+    public int RecentVideoLimit { get; }
+
+    public void Attach(Window window, VideoPlayerViewModel viewModel)
+    {
+        Detach();
+
+        _window = window;
+        _viewModel = viewModel;
+
+        window.PropertyChanged += OnWindowPropertyChanged;
+        viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        viewModel.Mpv.MediaOpened += OnMediaOpened;
+
+        _limiter.Trim(RecentVideoLimit);
+    }
+
+    public void Detach()
+    {
+        if (_window is not null) _window.PropertyChanged -= OnWindowPropertyChanged;
+        if (_viewModel is not null)
+        {
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _viewModel.Mpv.MediaOpened -= OnMediaOpened;
+        }
+
+        _window = null;
+        _viewModel = null;
+        _path = null;
+
+        _store.Flush();
+    }
+
+    public bool HasSettingsFor(string path) => _store.Contains(path);
+
+    private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == WindowBase.TopmostProperty ||
+            e.Property == Window.WidthProperty ||
+            e.Property == Window.HeightProperty)
+        {
+            SaveCurrent();
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(VideoPlayerViewModel.Volume)) return;
+
+        SaveCurrent();
+    }
+
+    private void OnMediaOpened(object? sender, EventArgs e) =>
+        Dispatcher.UIThread.Post(ApplyCurrentVideo);
+
+    private void ApplyCurrentVideo()
+    {
+        if (_window is null || _viewModel is null) return;
+
+        var path = _viewModel.Mpv.CurrentFile;
+        if (string.IsNullOrEmpty(path)) return;
+
+        Track(path);
+
+        if (_isNew) return;
+
+        _viewModel.SetVolume(_row.Volume);
+
+        _window.Topmost = _row.AlwaysOnTop;
+
+        if (_window.WindowState == WindowState.Normal)
+        {
+            WindowUtils.FitInsideWorkingArea(_window, _row.WindowWidth, _row.WindowHeight);
+        }
+
+        SaveCurrent();
+    }
+
+    private void SaveCurrent()
+    {
+        if (_window is null || _viewModel is null) return;
+
+        var path = _viewModel.Mpv.CurrentFile;
+        if (string.IsNullOrEmpty(path)) return;
+
+        Track(path);
+
+        _row.Volume = _viewModel.Volume;
+        _row.AlwaysOnTop = _window.Topmost;
+
+        if (_window.WindowState == WindowState.Normal)
+        {
+            _row.WindowWidth = _window.Width;
+            _row.WindowHeight = _window.Height;
+        }
+
+        _row.LastOpenedUtc = DateTime.UtcNow;
+
+        if (!_isNew)
+        {
+            _store.QueueSave(path, _row);
+
+            return;
+        }
+
+        _store.Save(path, _row);
+
+        _isNew = false;
+
+        _limiter.Trim(RecentVideoLimit);
+    }
+
+    private void Track(string path)
+    {
+        if (string.Equals(path, _path, StringComparison.Ordinal)) return;
+
+        _path = path;
+
+        var stored = _store.Get(path);
+
+        _isNew = stored is null;
+
+        _row = stored ?? new VideoPlayerSettings();
+    }
+}
