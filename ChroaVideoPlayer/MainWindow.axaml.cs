@@ -91,11 +91,11 @@ public partial class MainWindow : Window
     {
         var path = VideoPlayer.ViewModel.Mpv.CurrentFile ?? string.Empty;
 
-        if (!_settings.ShouldRefitFor(path)) return;
+        if (path.Length == 0) return;
 
-        if (!WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction)) return;
+        if (_settings.TryRestoreWindowSize(path)) return;
 
-        _settings.MarkFitted(path);
+        WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction);
     }
 
     private bool HandleFullScreenKey(KeyEventArgs e)

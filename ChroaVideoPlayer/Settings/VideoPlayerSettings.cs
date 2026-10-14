@@ -52,18 +52,15 @@ public sealed class VideoPlayerSettings
         _store.Flush();
     }
 
-    public bool ShouldRefitFor(string? path)
+    public bool TryRestoreWindowSize(string path)
     {
-        if (string.IsNullOrEmpty(path)) return false;
+        if (_window is null) return false;
 
-        return !string.Equals(path, LastVideoPath, StringComparison.OrdinalIgnoreCase);
-    }
+        if (!string.Equals(path, LastVideoPath, StringComparison.OrdinalIgnoreCase)) return false;
 
-    public void MarkFitted(string path)
-    {
-        LastVideoPath = path;
+        if (_window.WindowState != WindowState.Normal) return false;
 
-        QueueSave();
+        return WindowUtils.FitInsideWorkingArea(_window, WindowWidth, WindowHeight);
     }
 
     private void Restore()
@@ -75,8 +72,6 @@ public sealed class VideoPlayerSettings
         _viewModel.SetVolume(Volume);
 
         _window.Topmost = AlwaysOnTop;
-
-        WindowUtils.FitInsideWorkingArea(_window, WindowWidth, WindowHeight);
     }
 
     private void CopyFrom(VideoPlayerSettings source)
@@ -98,13 +93,23 @@ public sealed class VideoPlayerSettings
         }
         else if (e.Property == Window.WidthProperty || e.Property == Window.HeightProperty)
         {
-            if (_window!.WindowState != WindowState.Normal) return;
-
-            WindowWidth = _window.Width;
-            WindowHeight = _window.Height;
-
-            QueueSave();
+            SaveWindowSize();
         }
+    }
+
+    private void SaveWindowSize()
+    {
+        if (_window!.WindowState != WindowState.Normal) return;
+
+        var path = _viewModel!.Mpv.CurrentFile;
+        if (string.IsNullOrEmpty(path)) return;
+
+        LastVideoPath = path;
+
+        WindowWidth = _window.Width;
+        WindowHeight = _window.Height;
+
+        QueueSave();
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
