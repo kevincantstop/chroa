@@ -122,7 +122,6 @@
 							<chroa:SVGIconButton x:Name="FullScreenButton"
 							                     Icon="/Icons/maximize.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-							                     Margin="0,0,-12,0"
 							                     VerticalAlignment="Center"
 							                     ToolTip.Tip="Full screen"
 							                     Click="OnFullScreenClick" />
@@ -130,10 +129,26 @@
 							<chroa:SVGIconButton x:Name="FullScreenExitButton"
 							                     Icon="/Icons/minimize.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-							                     Margin="0,0,-12,0"
 							                     VerticalAlignment="Center"
 							                     ToolTip.Tip="Exit full screen"
 							                     Click="OnFullScreenClick" />
+
+							<chroa:SVGIconButton x:Name="TopMostButton"
+							                     Icon="/Icons/monitor-play.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="0,0,-12,0"
+							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Always on top"
+							                     Click="OnTopMostClick" />
+
+							<chroa:SVGIconButton x:Name="TopMostOnButton"
+							                     Icon="/Icons/monitor-check.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="0,0,-12,0"
+							                     VerticalAlignment="Center"
+							                     IsVisible="False"
+							                     ToolTip.Tip="Disable always on top"
+							                     Click="OnTopMostClick" />
 						</StackPanel>
 					</Grid>
 				</Grid>

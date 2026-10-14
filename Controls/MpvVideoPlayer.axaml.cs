@@ -20,9 +20,14 @@ public partial class MpvVideoPlayer : UserControl
     public static readonly StyledProperty<bool> IsFullScreenProperty =
         AvaloniaProperty.Register<MpvVideoPlayer, bool>(nameof(IsFullScreen));
 
+    public static readonly StyledProperty<bool> IsTopMostProperty =
+        AvaloniaProperty.Register<MpvVideoPlayer, bool>(nameof(IsTopMost));
+
     public VideoPlayerViewModel ViewModel { get; } = new();
 
     public event Action? FullScreenToggleRequested;
+
+    public event Action? TopMostToggleRequested;
 
     private const double SkipSeconds = 5;
 
@@ -60,6 +65,12 @@ public partial class MpvVideoPlayer : UserControl
         set => SetValue(IsFullScreenProperty, value);
     }
 
+    public bool IsTopMost
+    {
+        get => GetValue(IsTopMostProperty);
+        set => SetValue(IsTopMostProperty, value);
+    }
+
     public void Play(string path)
     {
         ViewModel.Mpv.ViewContext = MpvViewControl.MpvContext;
@@ -72,6 +83,7 @@ public partial class MpvVideoPlayer : UserControl
         base.OnPropertyChanged(change);
 
         if (change.Property == IsFullScreenProperty) ApplyState();
+        else if (change.Property == IsTopMostProperty) ApplyState();
     }
 
     private void OnBarDragStarted() => ViewModel.IsDragging = true;
@@ -105,6 +117,9 @@ public partial class MpvVideoPlayer : UserControl
 
         FullScreenButton.IsVisible = !IsFullScreen;
         FullScreenExitButton.IsVisible = IsFullScreen;
+
+        TopMostButton.IsVisible = !IsTopMost;
+        TopMostOnButton.IsVisible = IsTopMost;
 
         var canSkip = ViewModel.Duration > 0;
 
@@ -151,6 +166,8 @@ public partial class MpvVideoPlayer : UserControl
     private void OnForwardClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.SeekBy(SkipSeconds);
 
     private void OnFullScreenClick(object? sender, RoutedEventArgs e) => FullScreenToggleRequested?.Invoke();
+
+    private void OnTopMostClick(object? sender, RoutedEventArgs e) => TopMostToggleRequested?.Invoke();
 
     private async void OnCopyFrameClick(object? sender, RoutedEventArgs e)
     {

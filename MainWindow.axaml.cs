@@ -22,6 +22,7 @@ public partial class MainWindow : Window
 
         VideoPlayer.ViewModel.PropertyChanged += OnPlayerPropertyChanged;
         VideoPlayer.FullScreenToggleRequested += ToggleFullScreen;
+        VideoPlayer.TopMostToggleRequested += ToggleTopMost;
 
         _idleTimer.Tick += OnIdleTimerTick;
 
@@ -157,6 +158,13 @@ public partial class MainWindow : Window
     }
 
     private void ToggleFullScreen() => SetFullScreen(WindowState != WindowState.FullScreen);
+
+    private void ToggleTopMost()
+    {
+        Topmost = !Topmost;
+
+        VideoPlayer.IsTopMost = Topmost;
+    }
 
     private void SetFullScreen(bool fullScreen)
     {
