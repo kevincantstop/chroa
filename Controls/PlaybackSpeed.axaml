@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ChroaVideoPlayer.Controls.PlaybackSpeed">
+	<Border Classes="overlay subtitleMenu" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="24,0,0,10">
+		<StackPanel>
+			<Button Classes="subtitleItem" Click="OnNormalClick">
+				<Grid ColumnDefinitions="18,*">
+					<Border x:Name="NormalMark" Grid.Column="0" Classes="subtitleDot" IsVisible="False" />
+					<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="Normal" />
+				</Grid>
+			</Button>
+
+			<Button Classes="subtitleItem" Click="OnSlowClick">
+				<Grid ColumnDefinitions="18,*">
+					<Border x:Name="SlowMark" Grid.Column="0" Classes="subtitleDot" IsVisible="False" />
+					<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="1.2×" />
+				</Grid>
+			</Button>
+
+			<Button Classes="subtitleItem" Click="OnMediumClick">
+				<Grid ColumnDefinitions="18,*">
+					<Border x:Name="MediumMark" Grid.Column="0" Classes="subtitleDot" IsVisible="False" />
+					<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="1.5×" />
+				</Grid>
+			</Button>
+
+			<Button Classes="subtitleItem" Click="OnFastClick">
+				<Grid ColumnDefinitions="18,*">
+					<Border x:Name="FastMark" Grid.Column="0" Classes="subtitleDot" IsVisible="False" />
+					<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="2×" />
+				</Grid>
+			</Button>
+
+			<Button Classes="subtitleItem" Click="OnFastestClick">
+				<Grid ColumnDefinitions="18,*">
+					<Border x:Name="FastestMark" Grid.Column="0" Classes="subtitleDot" IsVisible="False" />
+					<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="3×" />
+				</Grid>
+			</Button>
+		</StackPanel>
+	</Border>
+</UserControl>

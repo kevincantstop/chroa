@@ -214,7 +214,7 @@ public partial class MainWindow : Window
 
         _isChromeIdle = idle;
 
-        if (idle) VideoPlayer.ViewModel.CloseSubtitleMenu();
+        if (idle) VideoPlayer.ViewModel.CloseMenus();
 
         RootGrid.Classes.Set("idle", idle);
         IdleLayer.IsVisible = idle;
@@ -240,7 +240,7 @@ public partial class MainWindow : Window
     }
 
     private void OnRootPointerExited(object? sender, PointerEventArgs e) =>
-        VideoPlayer.ViewModel.CloseSubtitleMenu();
+        VideoPlayer.ViewModel.CloseMenus();
 
     private void OnRootDoubleTapped(object? sender, TappedEventArgs e)
     {

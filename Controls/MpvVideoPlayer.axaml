@@ -13,6 +13,9 @@
 			                    Player="{Binding Mpv}"
 			                    IsVisible="{Binding IsSubtitleMenuOpen}" />
 
+			<chroa:PlaybackSpeed x:Name="SpeedMenu" Grid.Row="0"
+			                     IsVisible="{Binding IsSpeedMenuOpen}" />
+
 			<Border Grid.Row="1" Classes="overlay bottom"
 			        Background="#99000000"
 					BoxShadow="0 -6 16 0 #80000000"
@@ -28,6 +31,16 @@
 					</Grid>
 
 					<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
+						<chroa:SVGIconButton x:Name="SpeedButton"
+						                     Grid.Column="0"
+						                     Icon="/Icons/gauge.svg"
+						                     ButtonShape="Circle" ButtonSize="30" IconSize="20"
+						                     Margin="-5,0,0,0"
+						                     HorizontalAlignment="Left"
+						                     VerticalAlignment="Center"
+						                     ToolTip.Tip="Playback speed"
+						                     Click="OnSpeedClick" />
+
 						<StackPanel Grid.Column="1" Orientation="Horizontal">
 							<chroa:SVGIconButton x:Name="RewindButton"
 							                     Icon="/Icons/rewind.svg"

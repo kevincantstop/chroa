@@ -45,7 +45,13 @@ namespace ChroaVideoPlayer.ViewModels
         public partial bool HasAudioTrack { get; set; }
 
         [ObservableProperty]
+        public partial double Speed { get; set; }
+
+        [ObservableProperty]
         public partial bool IsSubtitleMenuOpen { get; set; }
+
+        [ObservableProperty]
+        public partial bool IsSpeedMenuOpen { get; set; }
 
         public VideoPlayerViewModel()
         {
@@ -56,6 +62,9 @@ namespace ChroaVideoPlayer.ViewModels
             Mpv.VolumeChanged += OnVolumeChanged;
             Mpv.EndedChanged += OnEndedChanged;
             Mpv.AudioTrackChanged += OnAudioTrackChanged;
+            Mpv.SpeedChanged += OnSpeedChanged;
+
+            Speed = 1;
 
             Volume = MaxVolume;
 
@@ -90,9 +99,31 @@ namespace ChroaVideoPlayer.ViewModels
             Mpv.SetVolume(Volume);
         }
 
-        public void ToggleSubtitleMenu() => IsSubtitleMenuOpen = !IsSubtitleMenuOpen;
+        public void SetSpeed(double speed) => Mpv.SetSpeed(speed);
+
+        public void ToggleSubtitleMenu()
+        {
+            IsSubtitleMenuOpen = !IsSubtitleMenuOpen;
+
+            if (IsSubtitleMenuOpen) IsSpeedMenuOpen = false;
+        }
+
+        public void ToggleSpeedMenu()
+        {
+            IsSpeedMenuOpen = !IsSpeedMenuOpen;
+
+            if (IsSpeedMenuOpen) IsSubtitleMenuOpen = false;
+        }
 
         public void CloseSubtitleMenu() => IsSubtitleMenuOpen = false;
+
+        public void CloseSpeedMenu() => IsSpeedMenuOpen = false;
+
+        public void CloseMenus()
+        {
+            IsSubtitleMenuOpen = false;
+            IsSpeedMenuOpen = false;
+        }
 
 
         private void OnVideoAspectDetected(object? sender, double aspect) =>
@@ -125,5 +156,8 @@ namespace ChroaVideoPlayer.ViewModels
 
         private void OnAudioTrackChanged(object? sender, bool hasAudio) =>
             Dispatcher.UIThread.Post(() => HasAudioTrack = hasAudio);
+
+        private void OnSpeedChanged(object? sender, double speed) =>
+            Dispatcher.UIThread.Post(() => Speed = speed);
     }
 }

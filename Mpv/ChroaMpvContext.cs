@@ -147,6 +147,7 @@ public sealed partial class ChroaMpvContext
         context.SeekRaised += OnSeekRaised;
         context.Volume.Changed += OnVolumePropertyChanged;
         context.Mute.Changed += OnMutePropertyChanged;
+        context.Speed.Changed += OnSpeedPropertyChanged;
         context.EndFile += OnEndFile;
         context.EofReached.Changed += OnEofReachedChanged;
         context.AudioReconfig += OnAudioReconfig;
@@ -159,6 +160,7 @@ public sealed partial class ChroaMpvContext
         }
 
         TryPublishVolume();
+        TryPublishSpeed();
     }
 
     private void Detach(MpvContext? context)
@@ -174,6 +176,7 @@ public sealed partial class ChroaMpvContext
         context.SeekRaised -= OnSeekRaised;
         context.Volume.Changed -= OnVolumePropertyChanged;
         context.Mute.Changed -= OnMutePropertyChanged;
+        context.Speed.Changed -= OnSpeedPropertyChanged;
         context.EndFile -= OnEndFile;
         context.EofReached.Changed -= OnEofReachedChanged;
         context.AudioReconfig -= OnAudioReconfig;

@@ -72,11 +72,11 @@ public partial class MpvVideoPlayer : UserControl
 
     private void OnPlayerPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!ViewModel.IsSubtitleMenuOpen) return;
+        if (!ViewModel.IsSubtitleMenuOpen && !ViewModel.IsSpeedMenuOpen) return;
 
         if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
 
-        ViewModel.CloseSubtitleMenu();
+        ViewModel.CloseMenus();
     }
 
     private void ApplyState()
@@ -100,6 +100,8 @@ public partial class MpvVideoPlayer : UserControl
 
         RewindButton.IsEnabled = canSkip;
         ForwardButton.IsEnabled = canSkip;
+
+        SpeedMenu.ApplyState(ViewModel.Speed);
     }
 
     private double DurationMaximum => ViewModel.Duration > 0 ? ViewModel.Duration : 1;
@@ -123,6 +125,8 @@ public partial class MpvVideoPlayer : UserControl
     private void OnMuteClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.ToggleMute();
 
     private void OnSubtitleClick(object? sender, RoutedEventArgs e) => ViewModel.ToggleSubtitleMenu();
+
+    private void OnSpeedClick(object? sender, RoutedEventArgs e) => ViewModel.ToggleSpeedMenu();
 
     private void OnRewindClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.SeekBy(-SkipSeconds);
 
