@@ -1,7 +1,6 @@
 using Avalonia;
-using HanumanInstitute.LibMpv.Core;
+using ChroaVideoPlayer.Mpv;
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
 
 namespace ChroaVideoPlayer;
@@ -11,7 +10,7 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        MpvApi.RootPath = Path.Combine(AppContext.BaseDirectory, "native");
+        ChroaMpvContext.ConfigureNativeLibrary(AppContext.BaseDirectory);
 
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }

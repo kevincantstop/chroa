@@ -5,7 +5,7 @@ using Avalonia.Controls;
 
 namespace ChroaVideoPlayer.Utils;
 
-internal static class WindowUtils
+public static class WindowUtils
 {
     private const int DwmwaBorderColor = 34;
     private const int DwmwaColorNone = unchecked((int)0xFFFFFFFE);

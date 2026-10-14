@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mpv="clr-namespace:ChroaVideoPlayer.Mpv"
+             xmlns:mpv="clr-namespace:ChroaVideoPlayer.Mpv;assembly=ChroaVideoPlayer.Core"
              x:Class="ChroaVideoPlayer.Controls.VideoCaption">
 	<Border Classes="overlay subtitleMenu" HorizontalAlignment="Right">
 		<ScrollViewer MaxHeight="240">

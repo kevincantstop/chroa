@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer", "ChroaVideoPlayer\ChroaVideoPlayer.csproj", "{B03D054A-2FA1-4E79-A656-4BFC24C55434}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer.Core", "ChroaVideoPlayer.Core\ChroaVideoPlayer.Core.csproj", "{4694E122-22EE-4229-8776-A46230EEAAC0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{B03D054A-2FA1-4E79-A656-4BFC24C55434}.Release|x64.Build.0 = Release|Any CPU
 		{B03D054A-2FA1-4E79-A656-4BFC24C55434}.Release|x86.ActiveCfg = Release|Any CPU
 		{B03D054A-2FA1-4E79-A656-4BFC24C55434}.Release|x86.Build.0 = Release|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Debug|x64.Build.0 = Debug|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Debug|x86.Build.0 = Debug|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|x64.ActiveCfg = Release|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|x64.Build.0 = Release|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|x86.ActiveCfg = Release|Any CPU
+		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

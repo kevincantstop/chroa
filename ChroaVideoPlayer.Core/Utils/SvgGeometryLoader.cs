@@ -9,7 +9,7 @@ using Avalonia.Media;
 
 namespace ChroaVideoPlayer.Utils;
 
-internal static class SvgGeometryLoader
+public static class SvgGeometryLoader
 {
     public static Geometry? Parse(string svgText)
     {

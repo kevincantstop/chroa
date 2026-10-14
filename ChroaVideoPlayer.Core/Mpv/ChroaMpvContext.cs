@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using HanumanInstitute.LibMpv;
+using HanumanInstitute.LibMpv.Core;
 
 namespace ChroaVideoPlayer.Mpv;
 
@@ -26,6 +27,11 @@ public sealed partial class ChroaMpvContext
     private bool _ended;
 
     private const string HardwareDecodingMode = "auto-safe";
+
+    private const string NativeLibraryFolder = "native";
+
+    public static void ConfigureNativeLibrary(string baseDirectory) =>
+        MpvApi.RootPath = System.IO.Path.Combine(baseDirectory, NativeLibraryFolder);
 
     public MpvContext? ViewContext
     {
