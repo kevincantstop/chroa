@@ -27,6 +27,8 @@ public sealed class VideoPlayerSettingsBinder
 
     private bool _isNew;
 
+    private bool _isApplying;
+
     public VideoPlayerSettingsBinder(int recentVideoLimit = DefaultRecentVideoLimit)
     {
         RecentVideoLimit = recentVideoLimit;
@@ -99,13 +101,27 @@ public sealed class VideoPlayerSettingsBinder
 
         if (_isNew) return;
 
-        _viewModel.SetVolume(_row.Volume);
+        var volume = _row.Volume;
+        var alwaysOnTop = _row.AlwaysOnTop;
+        var width = _row.WindowWidth;
+        var height = _row.WindowHeight;
 
-        _window.Topmost = _row.AlwaysOnTop;
+        _isApplying = true;
 
-        if (_window.WindowState == WindowState.Normal)
+        try
         {
-            WindowUtils.FitInsideWorkingArea(_window, _row.WindowWidth, _row.WindowHeight);
+            _viewModel.SetVolume(volume);
+
+            _window.Topmost = alwaysOnTop;
+
+            if (_window.WindowState == WindowState.Normal)
+            {
+                WindowUtils.FitInsideWorkingArea(_window, width, height);
+            }
+        }
+        finally
+        {
+            _isApplying = false;
         }
 
         SaveCurrent();
@@ -113,6 +129,8 @@ public sealed class VideoPlayerSettingsBinder
 
     private void SaveCurrent()
     {
+        if (_isApplying) return;
+
         if (_window is null || _viewModel is null) return;
 
         var path = _viewModel.Mpv.CurrentFile;
