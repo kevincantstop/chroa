@@ -31,15 +31,18 @@
 					</Grid>
 
 					<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
-						<chroa:SVGIconButton x:Name="SpeedButton"
-						                     Grid.Column="0"
-						                     Icon="/Icons/gauge.svg"
-						                     ButtonShape="Circle" ButtonSize="30" IconSize="20"
-						                     Margin="-5,0,0,0"
-						                     HorizontalAlignment="Left"
-						                     VerticalAlignment="Center"
-						                     ToolTip.Tip="Playback speed"
-						                     Click="OnSpeedClick" />
+						<StackPanel Grid.Column="0" Orientation="Horizontal"
+						            HorizontalAlignment="Left" VerticalAlignment="Center">
+							<chroa:SVGIconButton x:Name="SpeedButton"
+							                     Icon="/Icons/gauge.svg"
+							                     ButtonShape="Circle" ButtonSize="30" IconSize="20"
+							                     Margin="-5,0,0,0"
+							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Playback speed"
+							                     Click="OnSpeedClick" />
+
+							<TextBlock x:Name="SpeedText" Classes="speedLabel" IsVisible="False" />
+						</StackPanel>
 
 						<StackPanel Grid.Column="1" Orientation="Horizontal">
 							<chroa:SVGIconButton x:Name="RewindButton"

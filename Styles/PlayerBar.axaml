@@ -7,6 +7,13 @@
 		<Setter Property="Foreground" Value="#C8C8C8" />
 	</Style>
 
+	<Style Selector="TextBlock.speedLabel">
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Margin" Value="4,0,0,0" />
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="Foreground" Value="#F0F0F0" />
+	</Style>
+
 	<Style Selector="Border.bar">
 		<Setter Property="Height" Value="20" />
 		<Setter Property="VerticalAlignment" Value="Center" />

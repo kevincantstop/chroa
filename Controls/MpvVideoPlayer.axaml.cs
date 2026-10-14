@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -102,6 +103,11 @@ public partial class MpvVideoPlayer : UserControl
         ForwardButton.IsEnabled = canSkip;
 
         SpeedMenu.ApplyState(ViewModel.Speed);
+
+        var speedLabel = FormatSpeed(ViewModel.Speed);
+
+        SpeedText.Text = speedLabel;
+        SpeedText.IsVisible = speedLabel.Length > 0;
     }
 
     private double DurationMaximum => ViewModel.Duration > 0 ? ViewModel.Duration : 1;
@@ -119,6 +125,9 @@ public partial class MpvVideoPlayer : UserControl
             ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}"
             : $"{t.Minutes:00}:{t.Seconds:00}";
     }
+
+    private static string FormatSpeed(double speed) =>
+        Math.Abs(speed - 1) < 0.001 ? string.Empty : speed.ToString("0.#", CultureInfo.InvariantCulture) + "×";
 
     private void OnPlayPauseClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.TogglePause();
 
