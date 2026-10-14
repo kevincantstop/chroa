@@ -12,8 +12,16 @@ public sealed partial class ChroaMpvContext
 
     public void SetSpeed(double speed)
     {
+        if (!double.IsFinite(speed) || speed <= 0) return;
+
         var context = _context;
-        if (context is null || !double.IsFinite(speed) || speed <= 0) return;
+
+        if (context is null)
+        {
+            _speed = speed;
+            PublishSpeed();
+            return;
+        }
 
         SafeRun(nameof(SetSpeed), () =>
         {

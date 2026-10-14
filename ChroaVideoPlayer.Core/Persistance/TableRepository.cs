@@ -12,23 +12,43 @@ public sealed class TableRepository<T> where T : class, new()
 
     public TableRepository(TableSchema schema) => _schema = schema;
 
-    public bool Save(SqliteConnection connection, string key, T value)
+    public bool Save(SqliteConnection connection, string key, T value) =>
+        SaveValues(connection, key, CaptureValues(value));
+
+    public IReadOnlyList<object?> CaptureValues(T value)
     {
+        var values = new object?[_schema.Columns.Count];
+
+        for (var i = 0; i < _schema.Columns.Count; i++)
+        {
+            values[i] = SqliteTypeMap.ToDb(_schema.Columns[i].Property.GetValue(value));
+        }
+
+        return values;
+    }
+
+    public bool SaveValues(SqliteConnection connection, string key, IReadOnlyList<object?> values)
+    {
+        if (values.Count != _schema.Columns.Count)
+        {
+            throw new ArgumentException($"Expected {_schema.Columns.Count} values for {_schema.Name}.", nameof(values));
+        }
+
         using var command = connection.CreateCommand();
         command.Parameters.AddWithValue("@key", key);
 
         var names = string.Join(", ", _schema.Columns.Select(c => SqliteSyntax.Quote(c.Name)));
-        var values = string.Join(", ", _schema.Columns.Select((_, i) => "@v" + i));
+        var placeholders = string.Join(", ", _schema.Columns.Select((_, i) => "@v" + i));
         var updates = string.Join(", ", _schema.Columns.Select(c => $"{SqliteSyntax.Quote(c.Name)} = excluded.{SqliteSyntax.Quote(c.Name)}"));
 
         for (var i = 0; i < _schema.Columns.Count; i++)
         {
-            command.Parameters.AddWithValue("@v" + i, SqliteTypeMap.ToDb(_schema.Columns[i].Property.GetValue(value)));
+            command.Parameters.AddWithValue("@v" + i, values[i] ?? DBNull.Value);
         }
 
         command.CommandText =
             $"INSERT INTO {SqliteSyntax.Quote(_schema.Name)} ({SqliteSyntax.Quote(TableSchema.KeyColumn)}, {names}) " +
-            $"VALUES (@key, {values}) " +
+            $"VALUES (@key, {placeholders}) " +
             $"ON CONFLICT({SqliteSyntax.Quote(TableSchema.KeyColumn)}) DO UPDATE SET {updates}";
 
         return command.ExecuteNonQuery() > 0;

@@ -20,8 +20,16 @@ public sealed partial class ChroaMpvContext
 
     public void SetVolume(double volume)
     {
+        if (!double.IsFinite(volume) || volume < 0) return;
+
         var context = _context;
-        if (context is null || !double.IsFinite(volume) || volume < 0) return;
+
+        if (context is null)
+        {
+            _volume = volume;
+            PublishVolume();
+            return;
+        }
 
         SafeRun(nameof(SetVolume), () =>
         {

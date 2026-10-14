@@ -8,12 +8,15 @@ namespace ChroaVideoPlayer.Core.Persistance;
 
 public sealed class LocalStore<T> where T : class, new()
 {
+    private static readonly TimeSpan DefaultSaveDelay = TimeSpan.FromSeconds(1);
+
     private readonly TableSchema _schema;
     private readonly TableRepository<T> _repository;
+    private readonly DeferredSaveQueue _queue;
     private readonly string _databasePath;
     private readonly string _connectionString;
 
-    public LocalStore(string? databasePath = null)
+    public LocalStore(string? databasePath = null, TimeSpan? saveDelay = null)
     {
         _schema = TableSchema.For<T>();
         _repository = new TableRepository<T>(_schema);
@@ -24,6 +27,8 @@ public sealed class LocalStore<T> where T : class, new()
             DataSource = _databasePath,
             Mode = SqliteOpenMode.ReadWriteCreate,
         }.ToString();
+
+        _queue = new DeferredSaveQueue(saveDelay ?? DefaultSaveDelay, WritePendingValues);
     }
 
     public string TableName => _schema.Name;
@@ -72,6 +77,16 @@ public sealed class LocalStore<T> where T : class, new()
     public int Count(string? search = null) =>
         Run(nameof(Count), connection => _repository.Count(connection, search), 0);
 
+    public void QueueSave(string key, T value)
+    {
+        RequireKey(key);
+        if (value is null) throw new ArgumentNullException(nameof(value));
+
+        _queue.Queue(key, _repository.CaptureValues(value));
+    }
+
+    public void Flush() => _queue.Flush();
+
     private TResult Run<TResult>(string operation, Func<SqliteConnection, TResult> action, TResult fallback)
     {
         try
@@ -97,6 +112,9 @@ public sealed class LocalStore<T> where T : class, new()
         connection.Open();
         return connection;
     }
+
+    private void WritePendingValues(string key, IReadOnlyList<object?> values) =>
+        _ = Run(nameof(WritePendingValues), connection => _repository.SaveValues(connection, key, values), false);
 
     private static void RequireKey(string key)
     {

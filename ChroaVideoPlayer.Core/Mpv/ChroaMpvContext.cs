@@ -33,6 +33,8 @@ public sealed partial class ChroaMpvContext
     public static void ConfigureNativeLibrary(string baseDirectory) =>
         MpvApi.RootPath = System.IO.Path.Combine(baseDirectory, NativeLibraryFolder);
 
+    public string? CurrentFile => _currentFile;
+
     public MpvContext? ViewContext
     {
         get => _context;
@@ -165,6 +167,8 @@ public sealed partial class ChroaMpvContext
             _ = PlayAsync(context, pending);
         }
 
+        TryApplyStoredOptions(context);
+
         TryPublishVolume();
         TryPublishSpeed();
     }
@@ -194,6 +198,12 @@ public sealed partial class ChroaMpvContext
             context.Option["hwdec"].Set(HardwareDecodingMode);
         });
     }
+
+    private void TryApplyStoredOptions(MpvContext context) =>
+        SafeRun(nameof(TryApplyStoredOptions), () => {
+            context.Volume.Set(_volume);
+            context.Speed.Set(_speed);
+        });
 
 
     private void OnStartFile(object? sender, MpvStartFileEventArgs e) =>

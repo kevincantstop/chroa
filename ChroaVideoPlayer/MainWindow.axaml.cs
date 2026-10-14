@@ -6,7 +6,9 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
+using ChroaVideoPlayer.Core.Persistance;
 using ChroaVideoPlayer.Core.Utils;
+using ChroaVideoPlayer.Settings;
 using ChroaVideoPlayer.ViewModels;
 using Avalonia.Platform.Storage;
 
@@ -30,15 +32,21 @@ public partial class MainWindow : Window
     }
 
 
+    private const string SettingsKey = "default";
+
     private const double MaxWorkingAreaFraction = 0.8;
 
     private const int FrameSlackPixels = 8;
 
     private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(3) };
 
+    private readonly LocalStore<VideoPlayerSettings> _settingsStore = new();
+
     private WindowState _stateBeforeFullScreen = WindowState.Normal;
 
     private bool _isChromeIdle;
+
+    private VideoPlayerSettings _settings = new();
 
     protected override void OnOpened(EventArgs e)
     {
@@ -47,6 +55,8 @@ public partial class MainWindow : Window
         WindowUtils.RemoveSystemBorder(this);
 
         ClampToMaxWorkingArea();
+
+        LoadSettings();
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -69,11 +79,15 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(VideoPlayerViewModel.VideoAspect))
         {
-            ApplyVideoAspect(VideoPlayer.ViewModel.VideoAspect);
+            ApplyVideoAspectForCurrentFile(VideoPlayer.ViewModel.VideoAspect);
         }
         else if (e.PropertyName == nameof(VideoPlayerViewModel.IsDragging))
         {
             RootGrid.Classes.Set("dragging", VideoPlayer.ViewModel.IsDragging);
+        }
+        else if (e.PropertyName == nameof(VideoPlayerViewModel.Volume))
+        {
+            QueueSettingsSave();
         }
     }
 
@@ -116,19 +130,38 @@ public partial class MainWindow : Window
         ApplyWindowSize(Width * scale, Height * scale);
     }
 
-    private void ApplyVideoAspect(double aspect)
+    private bool ApplyVideoAspect(double aspect)
     {
-        if (aspect <= 0 || double.IsNaN(aspect) || double.IsInfinity(aspect)) return;
+        if (aspect <= 0 || double.IsNaN(aspect) || double.IsInfinity(aspect)) return false;
 
-        if (WindowState != WindowState.Normal) return;
+        if (WindowState != WindowState.Normal) return false;
 
-        if (GetMaxWindowSize() is not { } max) return;
+        if (GetMaxWindowSize() is not { } max) return false;
 
         var width = Width;
         var height = width / aspect;
         var scale = Math.Min(1.0, Math.Min(max.Width / width, max.Height / height));
 
         ApplyWindowSize(width * scale, height * scale);
+
+        return true;
+    }
+
+    private void ApplyVideoAspectForCurrentFile(double aspect)
+    {
+        var path = VideoPlayer.ViewModel.Mpv.CurrentFile ?? string.Empty;
+
+        if (path.Length > 0 &&
+            string.Equals(path, _settings.LastVideoPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (!ApplyVideoAspect(aspect)) return;
+
+        _settings.LastVideoPath = path;
+
+        QueueSettingsSave();
     }
 
     private bool HandleFullScreenKey(KeyEventArgs e)
@@ -155,6 +188,7 @@ public partial class MainWindow : Window
     private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
         if (e.Property == WindowStateProperty) ApplyFullScreenState();
+        else if (e.Property == WidthProperty || e.Property == HeightProperty) QueueSettingsSave();
     }
 
     private void ToggleFullScreen() => SetFullScreen(WindowState != WindowState.FullScreen);
@@ -164,6 +198,8 @@ public partial class MainWindow : Window
         Topmost = !Topmost;
 
         VideoPlayer.IsTopMost = Topmost;
+
+        QueueSettingsSave();
     }
 
     private void SetFullScreen(bool fullScreen)
@@ -301,5 +337,58 @@ public partial class MainWindow : Window
         }
 
         return null;
+    }
+
+
+    private void LoadSettings()
+    {
+        _settings = _settingsStore.Get(SettingsKey) ?? new VideoPlayerSettings();
+
+        VideoPlayer.ViewModel.SetVolume(_settings.Volume);
+
+        Topmost = _settings.AlwaysOnTop;
+        VideoPlayer.IsTopMost = Topmost;
+
+        ApplySavedWindowSize();
+    }
+
+    private void ApplySavedWindowSize()
+    {
+        if (_settings.WindowWidth <= 0 || _settings.WindowHeight <= 0) return;
+
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (screen is null) return;
+
+        var scaling = screen.Scaling > 0 ? screen.Scaling : 1.0;
+        var maxWidth = screen.WorkingArea.Width / scaling;
+        var maxHeight = screen.WorkingArea.Height / scaling;
+        var scale = Math.Min(1.0, Math.Min(maxWidth / _settings.WindowWidth, maxHeight / _settings.WindowHeight));
+
+        ApplyWindowSize(_settings.WindowWidth * scale, _settings.WindowHeight * scale);
+    }
+
+    private void QueueSettingsSave()
+    {
+        UpdateSettingsFromUi();
+
+        _settingsStore.QueueSave(SettingsKey, _settings);
+    }
+
+    private void UpdateSettingsFromUi()
+    {
+        _settings.Volume = VideoPlayer.ViewModel.Volume;
+        _settings.AlwaysOnTop = Topmost;
+
+        if (WindowState != WindowState.Normal) return;
+
+        _settings.WindowWidth = Width;
+        _settings.WindowHeight = Height;
+    }
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        _settingsStore.Flush();
+
+        base.OnClosing(e);
     }
 }

@@ -35,4 +35,8 @@
     <AvaloniaResource Include="Icons\**" />
     <AvaloniaResource Include="Assets\**" Exclude="Assets\*.ico" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Settings\" />
+  </ItemGroup>
 </Project>

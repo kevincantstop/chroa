@@ -1,0 +1,14 @@
+namespace ChroaVideoPlayer.Settings;
+
+public sealed class VideoPlayerSettings
+{
+    public double Volume { get; set; } = 100;
+
+    public bool AlwaysOnTop { get; set; }
+
+    public double WindowWidth { get; set; }
+
+    public double WindowHeight { get; set; }
+
+    public string LastVideoPath { get; set; } = string.Empty;
+}
