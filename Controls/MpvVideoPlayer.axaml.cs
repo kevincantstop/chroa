@@ -1,10 +1,15 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.ViewModels;
 
@@ -20,6 +25,8 @@ public partial class MpvVideoPlayer : UserControl
     public event Action? FullScreenToggleRequested;
 
     private const double SkipSeconds = 5;
+
+    private readonly DispatcherTimer _copyFeedbackTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     public MpvVideoPlayer()
     {
@@ -41,6 +48,8 @@ public partial class MpvVideoPlayer : UserControl
         VolumeBar.Committed += OnBarDragCommitted;
 
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        _copyFeedbackTimer.Tick += OnCopyFeedbackTick;
 
         ApplyState();
     }
@@ -142,4 +151,46 @@ public partial class MpvVideoPlayer : UserControl
     private void OnForwardClick(object? sender, RoutedEventArgs e) => ViewModel.Mpv.SeekBy(SkipSeconds);
 
     private void OnFullScreenClick(object? sender, RoutedEventArgs e) => FullScreenToggleRequested?.Invoke();
+
+    private async void OnCopyFrameClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard is null) return;
+
+            var bytes = await ViewModel.Mpv.CaptureFrameAsync();
+            if (bytes is null || bytes.Length == 0) return;
+
+            using var stream = new MemoryStream(bytes);
+            var bitmap = new Bitmap(stream);
+
+            await clipboard.SetBitmapAsync(bitmap);
+
+            await clipboard.FlushAsync();
+
+            StartCopyFeedback();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Copy frame failed: {ex}");
+        }
+    }
+
+    private void StartCopyFeedback()
+    {
+        CopyFrameButton.IsVisible = false;
+        CopiedButton.IsVisible = true;
+
+        _copyFeedbackTimer.Stop();
+        _copyFeedbackTimer.Start();
+    }
+
+    private void OnCopyFeedbackTick(object? sender, EventArgs e)
+    {
+        _copyFeedbackTimer.Stop();
+
+        CopyFrameButton.IsVisible = true;
+        CopiedButton.IsVisible = false;
+    }
 }

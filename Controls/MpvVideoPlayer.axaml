@@ -33,10 +33,26 @@
 					<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
 						<StackPanel Grid.Column="0" Orientation="Horizontal"
 						            HorizontalAlignment="Left" VerticalAlignment="Center">
+							<chroa:SVGIconButton x:Name="CopyFrameButton"
+							                     Icon="/Icons/camera.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="-11,0,8,0"
+							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Copy frame to clipboard"
+							                     Click="OnCopyFrameClick" />
+
+							<chroa:SVGIconButton x:Name="CopiedButton"
+							                     Icon="/Icons/check.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="-11,0,8,0"
+							                     VerticalAlignment="Center"
+							                     IsVisible="False"
+							                     ToolTip.Tip="Copy frame"
+							                     Click="OnCopyFrameClick" />
+
 							<chroa:SVGIconButton x:Name="SpeedButton"
 							                     Icon="/Icons/gauge.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-							                     Margin="-5,0,0,0"
 							                     VerticalAlignment="Center"
 							                     ToolTip.Tip="Playback speed"
 							                     Click="OnSpeedClick" />
