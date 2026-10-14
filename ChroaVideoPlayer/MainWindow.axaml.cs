@@ -6,7 +6,6 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
-using ChroaVideoPlayer.Core.Persistance;
 using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Settings;
 using ChroaVideoPlayer.ViewModels;
@@ -32,23 +31,15 @@ public partial class MainWindow : Window
     }
 
 
-    private const string SettingsKey = "default";
-
     private const double MaxWorkingAreaFraction = 0.8;
-
-    private const int FrameSlackPixels = 8;
 
     private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(3) };
 
-    private readonly LocalStore<VideoPlayerSettings> _settingsStore = new();
+    private readonly VideoPlayerSettings _settings = new();
 
     private WindowState _stateBeforeFullScreen = WindowState.Normal;
 
     private bool _isChromeIdle;
-
-    private bool _isLoadingSettings;
-
-    private VideoPlayerSettings _settings = new();
 
     protected override void OnOpened(EventArgs e)
     {
@@ -56,18 +47,16 @@ public partial class MainWindow : Window
 
         WindowUtils.RemoveSystemBorder(this);
 
-        _isLoadingSettings = true;
+        WindowUtils.ClampToWorkingArea(this, MaxWorkingAreaFraction);
 
-        try
-        {
-            ClampToMaxWorkingArea();
+        _settings.Attach(this, VideoPlayer.ViewModel);
+    }
 
-            LoadSettings();
-        }
-        finally
-        {
-            _isLoadingSettings = false;
-        }
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        _settings.Detach();
+
+        base.OnClosing(e);
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -96,83 +85,17 @@ public partial class MainWindow : Window
         {
             RootGrid.Classes.Set("dragging", VideoPlayer.ViewModel.IsDragging);
         }
-        else if (e.PropertyName == nameof(VideoPlayerViewModel.Volume))
-        {
-            QueueSettingsSave();
-        }
-    }
-
-    private (double Width, double Height)? GetMaxWindowSize()
-    {
-        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
-        if (screen is null) return null;
-
-        var scaling = screen.Scaling > 0 ? screen.Scaling : 1.0;
-        return (screen.WorkingArea.Width / scaling * MaxWorkingAreaFraction,
-                screen.WorkingArea.Height / scaling * MaxWorkingAreaFraction);
-    }
-
-    private void ApplyWindowSize(double width, double height)
-    {
-        Width = Math.Round(width);
-        Height = Math.Round(height);
-
-        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
-        if (screen is null) return;
-
-        var scaling = screen.Scaling > 0 ? screen.Scaling : 1.0;
-        var work = screen.WorkingArea;
-        var pixelWidth = (int)Math.Round(Width * scaling) + FrameSlackPixels;
-        var pixelHeight = (int)Math.Round(Height * scaling) + FrameSlackPixels;
-        var pos = Position;
-
-        var x = Math.Clamp(pos.X, work.X, Math.Max(work.X, work.Right - pixelWidth));
-        var y = Math.Clamp(pos.Y, work.Y, Math.Max(work.Y, work.Bottom - pixelHeight));
-        if (x != pos.X || y != pos.Y) Position = new PixelPoint(x, y);
-    }
-
-    private void ClampToMaxWorkingArea()
-    {
-        if (GetMaxWindowSize() is not { } max) return;
-
-        var scale = Math.Min(1.0, Math.Min(max.Width / Width, max.Height / Height));
-        if (scale >= 1.0) return;
-
-        ApplyWindowSize(Width * scale, Height * scale);
-    }
-
-    private bool ApplyVideoAspect(double aspect)
-    {
-        if (aspect <= 0 || double.IsNaN(aspect) || double.IsInfinity(aspect)) return false;
-
-        if (WindowState != WindowState.Normal) return false;
-
-        if (GetMaxWindowSize() is not { } max) return false;
-
-        var width = Width;
-        var height = width / aspect;
-        var scale = Math.Min(1.0, Math.Min(max.Width / width, max.Height / height));
-
-        ApplyWindowSize(width * scale, height * scale);
-
-        return true;
     }
 
     private void ApplyVideoAspectForCurrentFile(double aspect)
     {
         var path = VideoPlayer.ViewModel.Mpv.CurrentFile ?? string.Empty;
 
-        if (path.Length > 0 &&
-            string.Equals(path, _settings.LastVideoPath, StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
+        if (!_settings.ShouldRefitFor(path)) return;
 
-        if (!ApplyVideoAspect(aspect)) return;
+        if (!WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction)) return;
 
-        _settings.LastVideoPath = path;
-
-        QueueSettingsSave();
+        _settings.MarkFitted(path);
     }
 
     private bool HandleFullScreenKey(KeyEventArgs e)
@@ -199,19 +122,12 @@ public partial class MainWindow : Window
     private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
         if (e.Property == WindowStateProperty) ApplyFullScreenState();
-        else if (e.Property == WidthProperty || e.Property == HeightProperty) QueueSettingsSave();
+        else if (e.Property == WindowBase.TopmostProperty) VideoPlayer.IsTopMost = Topmost;
     }
 
     private void ToggleFullScreen() => SetFullScreen(WindowState != WindowState.FullScreen);
 
-    private void ToggleTopMost()
-    {
-        Topmost = !Topmost;
-
-        VideoPlayer.IsTopMost = Topmost;
-
-        QueueSettingsSave();
-    }
+    private void ToggleTopMost() => Topmost = !Topmost;
 
     private void SetFullScreen(bool fullScreen)
     {
@@ -348,60 +264,5 @@ public partial class MainWindow : Window
         }
 
         return null;
-    }
-
-
-    private void LoadSettings()
-    {
-        _settings = _settingsStore.Get(SettingsKey) ?? new VideoPlayerSettings();
-
-        VideoPlayer.ViewModel.SetVolume(_settings.Volume);
-
-        Topmost = _settings.AlwaysOnTop;
-        VideoPlayer.IsTopMost = Topmost;
-
-        ApplySavedWindowSize();
-    }
-
-    private void ApplySavedWindowSize()
-    {
-        if (_settings.WindowWidth <= 0 || _settings.WindowHeight <= 0) return;
-
-        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
-        if (screen is null) return;
-
-        var scaling = screen.Scaling > 0 ? screen.Scaling : 1.0;
-        var maxWidth = screen.WorkingArea.Width / scaling;
-        var maxHeight = screen.WorkingArea.Height / scaling;
-        var scale = Math.Min(1.0, Math.Min(maxWidth / _settings.WindowWidth, maxHeight / _settings.WindowHeight));
-
-        ApplyWindowSize(_settings.WindowWidth * scale, _settings.WindowHeight * scale);
-    }
-
-    private void QueueSettingsSave()
-    {
-        if (_isLoadingSettings) return;
-
-        UpdateSettingsFromUi();
-
-        _settingsStore.QueueSave(SettingsKey, _settings);
-    }
-
-    private void UpdateSettingsFromUi()
-    {
-        _settings.Volume = VideoPlayer.ViewModel.Volume;
-        _settings.AlwaysOnTop = Topmost;
-
-        if (WindowState != WindowState.Normal) return;
-
-        _settings.WindowWidth = Width;
-        _settings.WindowHeight = Height;
-    }
-
-    protected override void OnClosing(WindowClosingEventArgs e)
-    {
-        _settingsStore.Flush();
-
-        base.OnClosing(e);
     }
 }
