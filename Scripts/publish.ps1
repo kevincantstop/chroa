@@ -27,9 +27,10 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$csproj = Join-Path $repoRoot 'ChroaVideoPlayer.csproj'
-$releaseDir = Join-Path $repoRoot (Join-Path 'bin' $Configuration)
-$nativeLib = Join-Path $repoRoot 'native\libmpv-2.dll'
+$appDir = Join-Path $repoRoot 'ChroaVideoPlayer'
+$csproj = Join-Path $appDir 'ChroaVideoPlayer.csproj'
+$releaseDir = Join-Path $appDir (Join-Path 'bin' $Configuration)
+$nativeLib = Join-Path $appDir 'native\libmpv-2.dll'
 $ridMap = @{ x64 = 'win-x64'; x86 = 'win-x86'; arm64 = 'win-arm64' }
 $requiredNatives = @('av_libglesv2.dll', 'libSkiaSharp.dll', 'libHarfBuzzSharp.dll')
 

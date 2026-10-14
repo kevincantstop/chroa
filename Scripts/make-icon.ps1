@@ -21,6 +21,12 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$appDir = Join-Path $repoRoot 'ChroaVideoPlayer'
+
+$Svg = if ([IO.Path]::IsPathRooted($Svg)) { $Svg } else { Join-Path $appDir $Svg }
+$Ico = if ([IO.Path]::IsPathRooted($Ico)) { $Ico } else { Join-Path $appDir $Ico }
+
 Add-Type -AssemblyName System.Drawing
 
 $canvasSize = 64.0

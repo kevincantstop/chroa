@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Assets/appicon-black@512.png" alt="Chroa Video Player" width="20%">
+  <img src="ChroaVideoPlayer/Assets/appicon-black@512.png" alt="Chroa Video Player" width="20%">
 </p>
 
 # Chroa Video Player
@@ -65,12 +65,12 @@ To run a released build nothing else is needed. To build from source you need th
 
 This repository ships **no third-party binaries** — the folder the player loads its native library from
 is excluded from version control. A fresh clone therefore builds but cannot play anything until an
-[mpv](https://mpv.io/) build is placed at `native\libmpv-2.dll`.
+[mpv](https://mpv.io/) build is placed at `ChroaVideoPlayer\native\libmpv-2.dll`.
 
 ```powershell
 git clone https://github.com/kevincantstop/chroa-video-player.git
 cd chroa-video-player
-dotnet run
+dotnet run --project ChroaVideoPlayer
 ```
 
 ## Credits
