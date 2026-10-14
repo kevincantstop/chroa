@@ -46,6 +46,8 @@ public partial class MainWindow : Window
 
     private bool _isChromeIdle;
 
+    private bool _isLoadingSettings;
+
     private VideoPlayerSettings _settings = new();
 
     protected override void OnOpened(EventArgs e)
@@ -54,9 +56,18 @@ public partial class MainWindow : Window
 
         WindowUtils.RemoveSystemBorder(this);
 
-        ClampToMaxWorkingArea();
+        _isLoadingSettings = true;
 
-        LoadSettings();
+        try
+        {
+            ClampToMaxWorkingArea();
+
+            LoadSettings();
+        }
+        finally
+        {
+            _isLoadingSettings = false;
+        }
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -369,6 +380,8 @@ public partial class MainWindow : Window
 
     private void QueueSettingsSave()
     {
+        if (_isLoadingSettings) return;
+
         UpdateSettingsFromUi();
 
         _settingsStore.QueueSave(SettingsKey, _settings);
