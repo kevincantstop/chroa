@@ -35,7 +35,7 @@
 						            HorizontalAlignment="Left" VerticalAlignment="Center">
 							<chroa:SVGIconButton x:Name="SpeedButton"
 							                     Icon="/Icons/gauge.svg"
-							                     ButtonShape="Circle" ButtonSize="30" IconSize="20"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="-5,0,0,0"
 							                     VerticalAlignment="Center"
 							                     ToolTip.Tip="Playback speed"
@@ -50,16 +50,19 @@
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="0,0,8,0"
 							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Back 5 seconds"
 							                     Click="OnRewindClick" />
 
 							<chroa:SVGIconButton x:Name="PlayButton"
 							                     Icon="/Icons/play.svg"
 							                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
+							                     ToolTip.Tip="Play"
 							                     Click="OnPlayPauseClick" />
 
 							<chroa:SVGIconButton x:Name="PauseButton"
 							                     Icon="/Icons/pause.svg"
 							                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
+							                     ToolTip.Tip="Pause"
 							                     Click="OnPlayPauseClick" />
 
 							<chroa:SVGIconButton x:Name="ForwardButton"
@@ -67,6 +70,7 @@
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="8,0,0,0"
 							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Forward 5 seconds"
 							                     Click="OnForwardClick" />
 						</StackPanel>
 
@@ -76,6 +80,7 @@
 							                     IsEnabled="{Binding HasAudioTrack}"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Mute"
 							                     Click="OnMuteClick" />
 
 							<chroa:SVGIconButton x:Name="MutedButton"
@@ -83,6 +88,7 @@
 							                     IsEnabled="{Binding HasAudioTrack}"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Unmute"
 							                     Click="OnMuteClick" />
 
 							<chroa:DragBar x:Name="VolumeBar" Width="90"
@@ -94,6 +100,7 @@
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="12,0,0,0"
 							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Subtitles"
 							                     Click="OnSubtitleClick" />
 
 							<chroa:SVGIconButton x:Name="FullScreenButton"
@@ -101,6 +108,7 @@
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="0,0,-12,0"
 							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Full screen"
 							                     Click="OnFullScreenClick" />
 
 							<chroa:SVGIconButton x:Name="FullScreenExitButton"
@@ -108,6 +116,7 @@
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="0,0,-12,0"
 							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Exit full screen"
 							                     Click="OnFullScreenClick" />
 						</StackPanel>
 					</Grid>
