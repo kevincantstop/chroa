@@ -23,15 +23,10 @@
 	      DragDrop.AllowDrop="True"
 	      DragDrop.DragOver="OnDragOver"
 	      DragDrop.Drop="OnDrop">
-
 		<chroa:MpvVideoPlayer x:Name="VideoPlayer" />
-
 		<chroa:LoadVideoButton IsVisible="{Binding ShowLoadVideo}" Player="{Binding Mpv}" />
-
 		<chroa:WindowActionButtons x:Name="WindowButtons" />
-
 		<chroa:WindowResizer x:Name="Resizer" />
-
 		<Border x:Name="IdleLayer" Background="Transparent" Cursor="None" IsVisible="False" />
 	</Grid>
 </Window>
