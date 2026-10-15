@@ -13,6 +13,8 @@ public class PluginWindow : Window
     public static readonly StyledProperty<DockSide> InitialDockSideProperty =
         AvaloniaProperty.Register<PluginWindow, DockSide>(nameof(InitialDockSide));
 
+    private const double MinimumPanelSide = 120;
+
     private const double MinimumVisible = 24;
 
     private const double ShadowMargin = 24;
@@ -20,6 +22,8 @@ public class PluginWindow : Window
     private readonly Border _panel;
 
     private readonly WindowMover _mover;
+
+    private readonly PluginWindowResizer _resizer;
 
     private Window? _host;
 
@@ -53,7 +57,14 @@ public class PluginWindow : Window
 
         _mover = new WindowMover(this, _panel) { Adjust = AdjustPosition };
 
-        _mover.Ended += OnMoveEnded;
+        _resizer = new PluginWindowResizer(this, _panel)
+        {
+            MinimumSide = MinimumPanelSide + (ShadowMargin * 2),
+            DockedPosition = DockedWindowPosition,
+        };
+
+        _mover.Ended += OnInteractionEnded;
+        _resizer.Ended += OnInteractionEnded;
 
         _panel.PointerPressed += OnPointerPressed;
     }
@@ -67,6 +78,12 @@ public class PluginWindow : Window
     public double SnapDistance { get; set; } = 12;
 
     public double DetachDistance { get; set; } = 24;
+
+    public bool IsResizable
+    {
+        get => _resizer.IsEnabled;
+        set => _resizer.IsEnabled = value;
+    }
 
     public DockSide InitialDockSide
     {
@@ -124,10 +141,12 @@ public class PluginWindow : Window
         if (e.Handled) return;
         if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
 
+        if (_resizer.TryStart(e)) return;
+
         _mover.TryStart(e);
     }
 
-    private void OnMoveEnded()
+    private void OnInteractionEnded()
     {
         if (_side != DockSide.None)
         {
@@ -137,6 +156,18 @@ public class PluginWindow : Window
         }
 
         WindowUtils.KeepInsideWorkingArea(this);
+    }
+
+    private PixelPoint? DockedWindowPosition(PixelSize clientSize)
+    {
+        if (_side == DockSide.None || _host is not { } host) return null;
+
+        var inset = Inset * 2;
+        var panelSize = new PixelSize(
+            Math.Max(1, clientSize.Width - inset),
+            Math.Max(1, clientSize.Height - inset));
+
+        return ToWindowPosition(DockedPosition(_side, WindowUtils.GetClientBounds(host), panelSize, _offset));
     }
 
     private PixelPoint AdjustPosition(PixelPoint proposed)
