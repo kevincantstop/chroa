@@ -56,6 +56,16 @@ public static class WindowUtils
     public static bool FitInsideWorkingArea(Window window, double width, double height) =>
         FitSize(window, width, height, 1.0);
 
+    public static PixelRect GetClientBounds(Window window)
+    {
+        var scaling = window.RenderScaling > 0 ? window.RenderScaling : 1;
+        var size = window.ClientSize;
+
+        return new PixelRect(window.Position, new PixelSize(
+            Math.Max(1, (int)Math.Round(size.Width * scaling)),
+            Math.Max(1, (int)Math.Round(size.Height * scaling))));
+    }
+
     private static bool FitSize(Window window, double width, double height, double fraction)
     {
         if (width <= 0 || height <= 0) return false;
@@ -86,7 +96,7 @@ public static class WindowUtils
         return new Size(screen.WorkingArea.Width / scaling, screen.WorkingArea.Height / scaling);
     }
 
-    private static void KeepInsideWorkingArea(Window window)
+    public static void KeepInsideWorkingArea(Window window)
     {
         var screen = window.Screens.ScreenFromWindow(window) ?? window.Screens.Primary;
         if (screen is null) return;
