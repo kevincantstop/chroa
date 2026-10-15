@@ -139,6 +139,10 @@ Rules and knobs:
   fill is the blue accent, so restyle the template parts `Border#NormalRectangle` and `Path#CheckGlyph`
   (and set `MinHeight="0"`, since the default 32 px box otherwise dictates the row height — fill the box for
   `:indeterminate` too, or its glyph lands dark-on-black).
+- A plugin window opens its own file picker through the player's storage provider —
+  `TopLevel.GetTopLevel(this)?.StorageProvider` — and passes `FileTypeFilter = VideoFileTypes.Filter` from
+  `ChroaVideoPlayer.Core.Utils` so the dialog offers exactly the types the player's own dialogs offer. Hand the
+  chosen paths to the plugin over an event instead of acting on them inside the window.
 
 ## 5. Visual conventions
 

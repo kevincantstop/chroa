@@ -44,6 +44,8 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
         window.PlayRequested += OnPlayRequested;
 
+        window.AddRequested += OnAddRequested;
+
         return window;
     }
 
@@ -62,24 +64,40 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
     {
         EnsureLoaded();
 
-        var existing = _entries.FirstOrDefault(entry => entry.Path == message.Path);
+        foreach (var entry in _entries) entry.MarkPlaying(false);
+
+        Insert(message.Path, message.Duration).MarkPlaying(true);
+    }
+
+    private void OnAddRequested(IReadOnlyList<string> paths)
+    {
+        EnsureLoaded();
+
+        var playing = _entries.FirstOrDefault(entry => entry.IsPlaying)?.Path;
+
+        foreach (var path in paths) Insert(path, TimeSpan.Zero);
+
+        _entries.FirstOrDefault(entry => entry.Path == playing)?.MarkPlaying(true);
+    }
+
+    private PlaylistEntry Insert(string path, TimeSpan duration)
+    {
+        var existing = _entries.FirstOrDefault(entry => entry.Path == path);
 
         if (existing is not null) _entries.Remove(existing);
 
         var record = new PlaylistEntry
         {
-            Path = message.Path,
-            Duration = message.Duration,
+            Path = path,
+            Duration = duration,
             LastPlayedUtc = DateTime.UtcNow,
         };
-
-        foreach (var entry in _entries) entry.MarkPlaying(false);
-
-        record.MarkPlaying(true);
 
         _entries.Insert(0, record);
 
         Store.Save(record);
+
+        return record;
     }
 
     private void OnDeleteRequested(IReadOnlyList<PlaylistEntry> entries)

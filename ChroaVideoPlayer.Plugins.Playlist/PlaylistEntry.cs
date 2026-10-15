@@ -23,9 +23,11 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     public string Title => System.IO.Path.GetFileName(Path);
 
-    public string DurationText => Duration >= TimeSpan.FromHours(1)
-        ? Duration.ToString(@"h\:mm\:ss")
-        : Duration.ToString(@"m\:ss");
+    public string DurationText => Duration <= TimeSpan.Zero
+        ? "--:--"
+        : Duration >= TimeSpan.FromHours(1)
+            ? Duration.ToString(@"h\:mm\:ss")
+            : Duration.ToString(@"m\:ss");
 
     public void MarkPlaying(bool playing) => SetFlag(ref _isPlaying, playing, nameof(IsPlaying));
 

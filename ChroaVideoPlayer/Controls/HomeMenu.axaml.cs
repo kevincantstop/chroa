@@ -5,28 +5,13 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using ChroaVideoPlayer.Core.Plugin;
+using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.ViewModels;
 
 namespace ChroaVideoPlayer.Controls;
 
 public partial class HomeMenu : UserControl
 {
-    private static readonly FilePickerFileType VideoFileType = new("Video Files")
-    {
-        Patterns = new[]
-        {
-            "*.mp4", "*.mkv", "*.mov", "*.m4v", "*.avi", "*.webm", "*.flv",
-            "*.wmv", "*.ts", "*.m2ts", "*.mpg", "*.mpeg", "*.rmvb", "*.3gp",
-        },
-        MimeTypes = new[] { "video/*" },
-        AppleUniformTypeIdentifiers = new[] { "public.movie" },
-    };
-
-    private static readonly FilePickerFileType AllFileType = new("All Files")
-    {
-        Patterns = new[] { "*.*" },
-    };
-
     private PluginWindowManager? _windows;
 
     public HomeMenu()
@@ -65,7 +50,7 @@ public partial class HomeMenu : UserControl
             {
                 Title = "Load Video",
                 AllowMultiple = false,
-                FileTypeFilter = [VideoFileType, AllFileType],
+                FileTypeFilter = VideoFileTypes.Filter,
             });
 
             if (files.Count == 0) return;

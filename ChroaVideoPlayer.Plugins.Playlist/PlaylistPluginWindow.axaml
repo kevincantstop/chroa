@@ -30,6 +30,14 @@
 		</Grid>
 
 		<Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,10">
+			<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/plus.svg"
+			                    ButtonSize="28"
+			                    IconSize="14"
+			                    HorizontalAlignment="Left"
+			                    VerticalAlignment="Center"
+			                    Click="OnAddClick"
+			                    ToolTip.Tip="Add to playlist" />
+
 			<core:SVGIconButton Grid.Column="1"
 			                    x:Name="DeleteSelectedButton"
 			                    Classes="remove"

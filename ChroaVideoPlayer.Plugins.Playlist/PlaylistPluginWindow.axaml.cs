@@ -9,8 +9,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Core.Plugin.UI;
+using ChroaVideoPlayer.Core.Utils;
 
 namespace ChroaVideoPlayer.Plugins.Playlist;
 
@@ -27,6 +29,8 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     public event Action<PlaylistEntry>? PlayRequested;
 
+    public event Action<IReadOnlyList<string>>? AddRequested;
+
     public void ShowEntries(ObservableCollection<PlaylistEntry> entries)
     {
         if (_entries is not null) _entries.CollectionChanged -= OnEntriesChanged;
@@ -41,6 +45,36 @@ public partial class PlaylistPluginWindow : PluginWindow
     }
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
+
+    private async void OnAddClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var storage = TopLevel.GetTopLevel(this)?.StorageProvider;
+            if (storage is null) return;
+
+            var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Add to Playlist",
+                AllowMultiple = true,
+                FileTypeFilter = VideoFileTypes.Filter,
+            });
+
+            var paths = files
+                .Select(file => file.TryGetLocalPath())
+                .Where(path => !string.IsNullOrEmpty(path))
+                .Select(path => path!)
+                .ToList();
+
+            if (paths.Count == 0) return;
+
+            AddRequested?.Invoke(paths);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Add to playlist picker failed: {ex}");
+        }
+    }
 
     private void OnRevealClick(object? sender, RoutedEventArgs e)
     {
