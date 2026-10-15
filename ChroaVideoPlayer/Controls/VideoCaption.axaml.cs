@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using ChroaVideoPlayer.Core.Mpv;
+using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.ViewModels;
 
 namespace ChroaVideoPlayer.Controls;
@@ -14,18 +15,6 @@ public partial class VideoCaption : UserControl
 {
     public static readonly StyledProperty<ChroaMpvContext?> PlayerProperty =
         AvaloniaProperty.Register<VideoCaption, ChroaMpvContext?>(nameof(Player));
-
-    private static readonly FilePickerFileType SubtitleFileType = new("Subtitle Files")
-    {
-        Patterns = new[] { "*.srt", "*.ass", "*.ssa", "*.sub", "*.vtt", "*.sup", "*.idx", "*.lrc" },
-        MimeTypes = new[] { "text/*" },
-        AppleUniformTypeIdentifiers = new[] { "public.text" },
-    };
-
-    private static readonly FilePickerFileType AllFileType = new("All Files")
-    {
-        Patterns = new[] { "*.*" },
-    };
 
     private ChroaMpvContext? _attached;
 
@@ -100,7 +89,7 @@ public partial class VideoCaption : UserControl
             {
                 Title = "Load Subtitle",
                 AllowMultiple = false,
-                FileTypeFilter = [SubtitleFileType, AllFileType],
+                FileTypeFilter = SubtitleFileTypes.Filter,
             });
 
             if (files.Count == 0) return;

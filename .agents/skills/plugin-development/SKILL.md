@@ -141,7 +141,8 @@ Rules and knobs:
   `:indeterminate` too, or its glyph lands dark-on-black).
 - A plugin window opens its own file picker through the player's storage provider —
   `TopLevel.GetTopLevel(this)?.StorageProvider` — and passes `FileTypeFilter = VideoFileTypes.Filter` from
-  `ChroaVideoPlayer.Core.Utils` so the dialog offers exactly the types the player's own dialogs offer. Hand the
+  `ChroaVideoPlayer.Core.Utils` so the dialog offers exactly the types the player's own dialogs offer
+  (`VideoFileTypes.Filter` for videos, `SubtitleFileTypes.Filter` for subtitles). Hand the
   chosen paths to the plugin over an event instead of acting on them inside the window.
 
 ## 5. Visual conventions
