@@ -58,7 +58,7 @@ namespace ChroaVideoPlayer.ViewModels
         public partial bool IsFreeResize { get; set; }
 
         [ObservableProperty]
-        public partial bool IsPluginMenuOpen { get; set; }
+        public partial bool IsHomeMenuOpen { get; set; }
 
         public ObservableCollection<PluginItem> Plugins { get; } = new();
 
@@ -119,7 +119,7 @@ namespace ChroaVideoPlayer.ViewModels
             if (!IsSubtitleMenuOpen) return;
 
             IsSpeedMenuOpen = false;
-            IsPluginMenuOpen = false;
+            IsHomeMenuOpen = false;
         }
 
         public void ToggleSpeedMenu()
@@ -129,14 +129,14 @@ namespace ChroaVideoPlayer.ViewModels
             if (!IsSpeedMenuOpen) return;
 
             IsSubtitleMenuOpen = false;
-            IsPluginMenuOpen = false;
+            IsHomeMenuOpen = false;
         }
 
-        public void TogglePluginMenu()
+        public void ToggleHomeMenu()
         {
-            IsPluginMenuOpen = !IsPluginMenuOpen;
+            IsHomeMenuOpen = !IsHomeMenuOpen;
 
-            if (!IsPluginMenuOpen) return;
+            if (!IsHomeMenuOpen) return;
 
             IsSubtitleMenuOpen = false;
             IsSpeedMenuOpen = false;
@@ -146,13 +146,13 @@ namespace ChroaVideoPlayer.ViewModels
 
         public void CloseSpeedMenu() => IsSpeedMenuOpen = false;
 
-        public void ClosePluginMenu() => IsPluginMenuOpen = false;
+        public void CloseHomeMenu() => IsHomeMenuOpen = false;
 
         public void CloseMenus()
         {
             IsSubtitleMenuOpen = false;
             IsSpeedMenuOpen = false;
-            IsPluginMenuOpen = false;
+            IsHomeMenuOpen = false;
         }
 
 

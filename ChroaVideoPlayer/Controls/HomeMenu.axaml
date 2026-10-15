@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:ChroaVideoPlayer.ViewModels"
              xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
-             x:Class="ChroaVideoPlayer.Controls.PluginMenu"
+             x:Class="ChroaVideoPlayer.Controls.HomeMenu"
              x:DataType="vm:MainViewModel">
 	<Grid>
 		<Border Classes="overlay"
@@ -19,24 +19,33 @@
 		        HorizontalAlignment="Left"
 		        VerticalAlignment="Top"
 		        Margin="12,52,0,0"
-		        IsVisible="{Binding Player.IsPluginMenuOpen}">
+		        IsVisible="{Binding Player.IsHomeMenuOpen}">
 			<StackPanel>
-				<TextBlock Classes="subtitleHint"
-				           Text="No plugins"
-				           IsVisible="{Binding !Player.HasPlugins}" />
+				<Button Classes="subtitleItem" Click="OnLoadVideoClick">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<chroa:SvgIcon Icon="/Icons/film.svg"
+						               IconSize="16"
+						               Foreground="#E0E0E0"
+						               VerticalAlignment="Center" />
+						<TextBlock Classes="subtitleLabel" Text="Load Video" />
+					</StackPanel>
+				</Button>
+
+				<Border Classes="subtitleSeparator" />
 
 				<ItemsControl ItemsSource="{Binding Player.Plugins}">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate x:DataType="vm:PluginItem">
 							<Button Classes="subtitleItem" Click="OnPluginClick">
-								<Grid ColumnDefinitions="18,*,14">
-									<chroa:SvgIcon Grid.Column="0"
-									               Icon="{Binding Icon}"
-									               IconSize="16"
-									               Foreground="#E0E0E0"
-									               VerticalAlignment="Center" />
-									<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="{Binding Label}" />
-									<Border Grid.Column="2" Classes="subtitleDot" IsVisible="{Binding IsOpen}" />
+								<Grid ColumnDefinitions="*,14">
+									<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+										<chroa:SvgIcon Icon="{Binding Icon}"
+										               IconSize="16"
+										               Foreground="#E0E0E0"
+										               VerticalAlignment="Center" />
+										<TextBlock Classes="subtitleLabel" Text="{Binding Label}" />
+									</StackPanel>
+									<Border Grid.Column="1" Classes="subtitleDot" IsVisible="{Binding IsOpen}" />
 								</Grid>
 							</Button>
 						</DataTemplate>

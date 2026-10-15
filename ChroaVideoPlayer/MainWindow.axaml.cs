@@ -25,7 +25,7 @@ public partial class MainWindow : Window
 
         _pluginWindows = new PluginWindowManager(this);
 
-        PluginMenu.Initialize(_pluginWindows, VideoPlayer.ViewModel, PluginScanner.Load());
+        HomeMenu.Initialize(_pluginWindows, VideoPlayer.ViewModel, PluginScanner.Load());
 
         VideoPlayer.ViewModel.PropertyChanged += OnPlayerPropertyChanged;
         VideoPlayer.FullScreenToggleRequested += ToggleFullScreen;
@@ -206,9 +206,9 @@ public partial class MainWindow : Window
 
     private void OnWindowPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (e.Source is Visual source && source.FindAncestorOfType<PluginMenu>(true) is not null) return;
+        if (e.Source is Visual source && source.FindAncestorOfType<HomeMenu>(true) is not null) return;
 
-        VideoPlayer.ViewModel.ClosePluginMenu();
+        VideoPlayer.ViewModel.CloseHomeMenu();
     }
 
     private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
