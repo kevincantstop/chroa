@@ -15,13 +15,13 @@ public partial class WindowResizer : UserControl
 
     private const double AxisThreshold = 3;
 
-    private readonly Dictionary<object, ResizeCorner> _corners;
+    private readonly Dictionary<object, ResizeEdge> _edges;
 
     private IPointer? _pointer;
 
     private Window? _window;
 
-    private ResizeCorner _corner;
+    private ResizeEdge _edge;
 
     private Point _startPointer;
 
@@ -39,12 +39,16 @@ public partial class WindowResizer : UserControl
     {
         InitializeComponent();
 
-        _corners = new Dictionary<object, ResizeCorner>
+        _edges = new Dictionary<object, ResizeEdge>
         {
-            [TopLeft] = ResizeCorner.TopLeft,
-            [TopRight] = ResizeCorner.TopRight,
-            [BottomLeft] = ResizeCorner.BottomLeft,
-            [BottomRight] = ResizeCorner.BottomRight,
+            [LeftEdge] = ResizeEdge.Left,
+            [RightEdge] = ResizeEdge.Right,
+            [TopEdge] = ResizeEdge.Top,
+            [BottomEdge] = ResizeEdge.Bottom,
+            [TopLeft] = ResizeEdge.TopLeft,
+            [TopRight] = ResizeEdge.TopRight,
+            [BottomLeft] = ResizeEdge.BottomLeft,
+            [BottomRight] = ResizeEdge.BottomRight,
         };
     }
 
@@ -57,7 +61,7 @@ public partial class WindowResizer : UserControl
     private void OnGripPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not IInputElement grip) return;
-        if (!_corners.TryGetValue(grip, out var corner)) return;
+        if (!_edges.TryGetValue(grip, out var edge)) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
 
         e.Handled = true;
@@ -67,13 +71,18 @@ public partial class WindowResizer : UserControl
 
         _pointer = e.Pointer;
         _window = window;
-        _corner = corner;
+        _edge = edge;
         _startPointer = e.GetPosition(window);
         _startSize = window.ClientSize;
         _startPosition = window.Position;
         _appliedPosition = _startPosition;
         _scaling = window.RenderScaling > 0 ? window.RenderScaling : 1;
-        _widthDrives = null;
+        _widthDrives = edge switch
+        {
+            ResizeEdge.Left or ResizeEdge.Right => true,
+            ResizeEdge.Top or ResizeEdge.Bottom => false,
+            _ => null,
+        };
 
         e.Pointer.Capture(grip);
     }
@@ -94,8 +103,8 @@ public partial class WindowResizer : UserControl
             _widthDrives = Math.Abs(movedX) >= Math.Abs(movedY);
         }
 
-        var left = _corner is ResizeCorner.TopLeft or ResizeCorner.BottomLeft;
-        var top = _corner is ResizeCorner.TopLeft or ResizeCorner.TopRight;
+        var left = _edge is ResizeEdge.Left or ResizeEdge.TopLeft or ResizeEdge.BottomLeft;
+        var top = _edge is ResizeEdge.Top or ResizeEdge.TopLeft or ResizeEdge.TopRight;
 
         var width = _startSize.Width + (left ? -movedX : movedX);
         var height = _startSize.Height + (top ? -movedY : movedY);
@@ -159,8 +168,12 @@ public partial class WindowResizer : UserControl
         return new Size(drivenWidth, Math.Round(drivenWidth / aspect));
     }
 
-    private enum ResizeCorner
+    private enum ResizeEdge
     {
+        Left,
+        Right,
+        Top,
+        Bottom,
         TopLeft,
         TopRight,
         BottomLeft,

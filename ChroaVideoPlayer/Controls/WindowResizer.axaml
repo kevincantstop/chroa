@@ -2,6 +2,38 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ChroaVideoPlayer.Controls.WindowResizer">
 	<Grid>
+		<Border x:Name="LeftEdge" Width="6" Background="Transparent"
+		        HorizontalAlignment="Left" VerticalAlignment="Stretch"
+		        Margin="0,10,0,10"
+		        Cursor="LeftSide"
+		        PointerPressed="OnGripPressed"
+		        PointerMoved="OnGripMoved"
+		        PointerReleased="OnGripReleased"
+		        PointerCaptureLost="OnPointerCaptureLost" />
+		<Border x:Name="RightEdge" Width="6" Background="Transparent"
+		        HorizontalAlignment="Right" VerticalAlignment="Stretch"
+		        Margin="0,10,0,10"
+		        Cursor="RightSide"
+		        PointerPressed="OnGripPressed"
+		        PointerMoved="OnGripMoved"
+		        PointerReleased="OnGripReleased"
+		        PointerCaptureLost="OnPointerCaptureLost" />
+		<Border x:Name="TopEdge" Height="6" Background="Transparent"
+		        HorizontalAlignment="Stretch" VerticalAlignment="Top"
+		        Margin="10,0,10,0"
+		        Cursor="TopSide"
+		        PointerPressed="OnGripPressed"
+		        PointerMoved="OnGripMoved"
+		        PointerReleased="OnGripReleased"
+		        PointerCaptureLost="OnPointerCaptureLost" />
+		<Border x:Name="BottomEdge" Height="6" Background="Transparent"
+		        HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+		        Margin="10,0,10,0"
+		        Cursor="BottomSide"
+		        PointerPressed="OnGripPressed"
+		        PointerMoved="OnGripMoved"
+		        PointerReleased="OnGripReleased"
+		        PointerCaptureLost="OnPointerCaptureLost" />
 		<Border x:Name="TopLeft" Width="10" Height="10" Background="Transparent"
 		        HorizontalAlignment="Left" VerticalAlignment="Top"
 		        Cursor="TopLeftCorner"
