@@ -164,7 +164,7 @@ public class PluginWindow : Window
         }
         else
         {
-            _offset = AlongOffset(_side, bounds, hostBounds, size);
+            _offset = AlongOffset(_side, bounds, hostBounds, size, VisiblePixels);
         }
 
         return ToWindowPosition(DockedPosition(_side, hostBounds, size, _offset));
@@ -190,7 +190,7 @@ public class PluginWindow : Window
         var requested = DockedPosition(InitialDockSide, hostBounds, size, (int)Math.Round(InitialDockOffset * Scale));
 
         _side = InitialDockSide;
-        _offset = AlongOffset(_side, new PixelRect(requested, size), hostBounds, size);
+        _offset = AlongOffset(_side, new PixelRect(requested, size), hostBounds, size, VisiblePixels);
 
         SyncToHost();
     }
@@ -218,8 +218,9 @@ public class PluginWindow : Window
     {
         var side = DockSide.None;
         var best = threshold;
+        var visible = VisiblePixels;
 
-        if (OverlapsVertically(bounds, host))
+        if (OverlapsVertically(bounds, host, visible))
         {
             var right = Math.Abs(bounds.X - host.Right);
             var left = Math.Abs(host.X - bounds.Right);
@@ -239,7 +240,7 @@ public class PluginWindow : Window
             }
         }
 
-        if (OverlapsHorizontally(bounds, host))
+        if (OverlapsHorizontally(bounds, host, visible))
         {
             var bottom = Math.Abs(bounds.Y - host.Bottom);
             var top = Math.Abs(host.Y - bounds.Bottom);
@@ -259,27 +260,27 @@ public class PluginWindow : Window
             }
         }
 
-        offset = side == DockSide.None ? 0 : AlongOffset(side, bounds, host, bounds.Size);
+        offset = side == DockSide.None ? 0 : AlongOffset(side, bounds, host, bounds.Size, visible);
 
         return side;
     }
 
-    private static bool OverlapsVertically(PixelRect bounds, PixelRect host) =>
-        Math.Min(bounds.Bottom, host.Bottom) - Math.Max(bounds.Y, host.Y) >= MinimumVisible;
+    private static bool OverlapsVertically(PixelRect bounds, PixelRect host, int visible) =>
+        Math.Min(bounds.Bottom, host.Bottom) - Math.Max(bounds.Y, host.Y) >= visible;
 
-    private static bool OverlapsHorizontally(PixelRect bounds, PixelRect host) =>
-        Math.Min(bounds.Right, host.Right) - Math.Max(bounds.X, host.X) >= MinimumVisible;
+    private static bool OverlapsHorizontally(PixelRect bounds, PixelRect host, int visible) =>
+        Math.Min(bounds.Right, host.Right) - Math.Max(bounds.X, host.X) >= visible;
 
-    private static int AlongOffset(DockSide side, PixelRect bounds, PixelRect host, PixelSize size)
+    private static int AlongOffset(DockSide side, PixelRect bounds, PixelRect host, PixelSize size, int visible)
     {
         var vertical = side is DockSide.Left or DockSide.Right;
         var start = vertical ? bounds.Y - host.Y : bounds.X - host.X;
         var extent = vertical ? host.Height : host.Width;
         var own = vertical ? size.Height : size.Width;
-        var visible = Math.Min(MinimumVisible, own);
-        var lowest = -(own - visible);
+        var keep = Math.Min(visible, own);
+        var lowest = -(own - keep);
 
-        return (int)Math.Clamp(start, lowest, Math.Max(lowest, extent - visible));
+        return (int)Math.Clamp(start, lowest, Math.Max(lowest, extent - keep));
     }
 
     private static int PerpendicularGap(DockSide side, PixelRect bounds, PixelRect host) => side switch
@@ -356,4 +357,6 @@ public class PluginWindow : Window
     private void OnHostClosed(object? sender, EventArgs e) => Close();
 
     private double Scale => RenderScaling > 0 ? RenderScaling : 1;
+
+    private int VisiblePixels => (int)Math.Round(MinimumVisible * Scale);
 }

@@ -62,8 +62,6 @@ namespace ChroaVideoPlayer.ViewModels
 
         public ObservableCollection<PluginItem> Plugins { get; } = new();
 
-        public bool HasPlugins => Plugins.Count > 0;
-
         public VideoPlayerViewModel()
         {
             Mpv.VideoAspectDetected += OnVideoAspectDetected;

@@ -7,8 +7,8 @@
                     Height="320"
                     InitialDockSide="Left">
 	<StackPanel Margin="12" Spacing="8">
-		<TextBlock Text="Sample plugin" FontSize="16" Foreground="White" />
-		<TextBlock Text="Loaded from its own assembly by scanning the Plugins folder."
+		<TextBlock Text="Sample" FontSize="16" Foreground="White" />
+		<TextBlock Text="A minimal window provided as a starting point."
 		           TextWrapping="Wrap"
 		           Foreground="#AAFFFFFF" />
 		<Button Content="Close"

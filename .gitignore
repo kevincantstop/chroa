@@ -5,3 +5,5 @@ Diagnostics
 .vs
 docs
 
+.verify/
+.verify-out/
