@@ -10,6 +10,7 @@ using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
 using ChroaVideoPlayer.Core.EventBus;
 using ChroaVideoPlayer.Core.Plugin;
+using ChroaVideoPlayer.Core.Plugin.Context;
 using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Settings;
 using ChroaVideoPlayer.ViewModels;
@@ -29,9 +30,13 @@ public partial class MainWindow : Window
 
         _eventBus = new UIEventBus(new EventBus());
 
+        _application = new ChroaApplicationContext(VideoPlayer.ViewModel.Mpv);
+
         VideoPlayer.Events = _eventBus;
 
         var plugins = PluginScanner.Load().Where(plugin => plugin.Enabled).ToList();
+
+        foreach (var plugin in plugins) plugin.Context = _application;
 
         foreach (var plugin in plugins) (plugin as IChroaPluginEvents)?.SubscribeEvents(_eventBus);
 
@@ -58,6 +63,8 @@ public partial class MainWindow : Window
     private readonly PluginWindowManager _pluginWindows;
 
     private readonly IEventBus _eventBus;
+
+    private readonly ChroaApplicationContext _application;
 
     private WindowState _stateBeforeFullScreen = WindowState.Normal;
 

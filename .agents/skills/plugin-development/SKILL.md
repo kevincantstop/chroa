@@ -1,6 +1,6 @@
 ---
 name: plugin-development
-description: This skill should be used when writing, reviewing or debugging a Chroa Video Player plugin — scaffolding a plugin project, implementing IChroaPlugin, listening to player events, building a PluginWindow, or wiring the plugin into the solution and build. Covers the assembly-scanning contract, the window and magnetic-docking API, icon resource URIs, UI wording rules, and the known deployment traps.
+description: This skill should be used when writing, reviewing or debugging a Chroa Video Player plugin — scaffolding a plugin project, implementing IChroaPlugin, listening to player events, driving playback through the application context, building a PluginWindow, or wiring the plugin into the solution and build. Covers the assembly-scanning contract, the window and magnetic-docking API, the interactive-content rule, icon resource URIs, UI wording rules, and the known deployment traps.
 ---
 
 # Writing a plugin for Chroa Video Player
@@ -51,17 +51,34 @@ once. There is no registration code to write anywhere.
 ```csharp
 public interface IChroaPlugin
 {
-    string Name { get; }             // stable id, developer facing ("playlist")
-    string Label { get; }            // the text in the menu, user facing ("Playlist")
-    string Icon { get; }             // avares:// URI of an SVG resource
-    PluginLocation Location { get; } // entry point; MainMenu is the only one today
-    bool Enabled { get; }            // false = discovered but never registered
-    PluginWindow CreateWindow();     // called every time the user opens the plugin
+    string Name { get; }                           // stable id, developer facing ("playlist")
+    string Label { get; }                          // the text in the menu, user facing ("Playlist")
+    string Icon { get; }                           // avares:// URI of an SVG resource
+    PluginLocation Location { get; }               // entry point; MainMenu is the only one today
+    bool Enabled { get; }                          // false = discovered but never registered
+    ChroaApplicationContext? Context { get; set; } // assigned by the player
+    PluginWindow CreateWindow();                   // called every time the user opens the plugin
 }
 ```
 
 `Enabled = false` still **scans** the plugin (so assembly discovery stays verifiable) but never registers
 it: no menu entry, and `SubscribeEvents` is not called. It is completely inert.
+
+`Context` is filled in by the player before the plugin is registered and before `SubscribeEvents` runs, so it
+is `null` until then — never demand it from a constructor. Through it a plugin drives the player:
+
+```csharp
+public ChroaApplicationContext? Context { get; set; }
+
+Context?.Mpv.Play(path);        // the same ChroaMpvContext the player itself plays through
+Context?.Mpv.TogglePause();
+Context?.Mpv.SeekTo(seconds);
+Context?.Mpv.SeekBy(seconds);
+```
+
+The `ChroaMpvContext` inside is the player's own instance and lives for the whole session — hold on to it
+freely, and start playback by calling `Play` even when no video has been opened yet. The mpv context *behind*
+it is replaced when the player's video surface is created; a plugin never sees that swap.
 
 ## 3. Player events
 
@@ -80,8 +97,8 @@ public sealed class MyPlugin : IChroaPlugin, IChroaPluginEvents
 - **Handlers always run on the UI thread**, so a handler may touch its window directly. The bus marshals
   for you (`UIEventBus`), which matters because the player's playback events originate on mpv's thread.
 - `Subscribe` returns an `IDisposable` — keep it if the subscription needs to end later.
-- The bus is one-way (player → plugin). Making a plugin *control* playback needs the `ApplicationContext`
-  bridge, which does not exist yet.
+- The bus is one-way (player → plugin). To *control* playback a plugin does not use the bus at all — it calls
+  `Context.Mpv` (see §2).
 
 ## 4. The window
 
@@ -112,6 +129,10 @@ Rules and knobs:
   currently sits.
 - A docked window follows the player when it moves or resizes, and hides while the player is maximized or
   full-screen.
+- **Mark anything that handles pointer input of its own with `Classes="interactive"`** — a clickable list row,
+  a canvas, a drag handle that is not a `Button`. Pressing anywhere else in the panel starts a *window drag*,
+  and that drag captures the pointer, so your element never receives the release: clicks and double clicks
+  aimed at it simply never arrive. `Button` is exempt already; `interactive` is how a non-button opts out.
 
 ## 5. Icons
 
@@ -184,6 +205,8 @@ On machines without network access the Avalonia telemetry task can fail (`MSB401
 - [ ] Registered in `ChroaVideoPlayer.csproj` with `IsPlugin="true"`
 - [ ] `IChroaPlugin` implemented; `Label` free of implementation terms
 - [ ] `Enabled` set honestly (`false` = scanned but hidden)
+- [ ] `Context` declared as an auto-property for the player to fill in
+- [ ] Interactive rows/canvases marked `Classes="interactive"`
 - [ ] Icon uses a full `avares://` URI and a `0 0 24 24` viewBox
 - [ ] Window derives from `PluginWindow` with a public parameterless constructor
 - [ ] Event handlers assumed to run on the UI thread

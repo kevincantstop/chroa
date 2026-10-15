@@ -1,5 +1,6 @@
 using ChroaVideoPlayer.Core.EventBus;
 using ChroaVideoPlayer.Core.Plugin;
+using ChroaVideoPlayer.Core.Plugin.Context;
 using ChroaVideoPlayer.Core.Plugin.UI;
 
 namespace ChroaVideoPlayer.Plugins.Sample;
@@ -19,6 +20,8 @@ public sealed class SamplePlugin : IChroaPlugin, IChroaPluginEvents
     public PluginLocation Location => PluginLocation.MainMenu;
 
     public bool Enabled => false;
+
+    public ChroaApplicationContext? Context { get; set; }
 
     public void SubscribeEvents(IEventSubscriber events) =>
         events.Subscribe<VideoPlayed>(message =>

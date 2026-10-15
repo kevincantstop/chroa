@@ -2,8 +2,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using ChroaVideoPlayer.Core.Plugin.UI;
 
 namespace ChroaVideoPlayer.Plugins.Playlist;
@@ -16,6 +19,8 @@ public partial class PlaylistPluginWindow : PluginWindow
     }
 
     public event Action<PlaylistEntry>? DeleteRequested;
+
+    public event Action<PlaylistEntry>? PlayRequested;
 
     public void ShowEntries(ObservableCollection<PlaylistEntry> entries) => ItemHost.ItemsSource = entries;
 
@@ -33,6 +38,14 @@ public partial class PlaylistPluginWindow : PluginWindow
         if (sender is not Button { DataContext: PlaylistEntry entry }) return;
 
         DeleteRequested?.Invoke(entry);
+    }
+
+    private void OnRowDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
+        if (sender is not Grid { DataContext: PlaylistEntry entry }) return;
+
+        PlayRequested?.Invoke(entry);
     }
 
     private static void Reveal(string path)

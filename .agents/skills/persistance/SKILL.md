@@ -71,6 +71,10 @@ store.Flush();
 - **Delete rows, not the database file.** The file stays locked for as long as the process lives (SQLite
   pools its connections), so a "clear this history" feature must call `LocalStore.Delete` per row instead
   of deleting or truncating the file.
+- **Keep UI-only state out of the model by making it get-only.** A `public bool IsPlaying { get; set; }`
+  added to drive a "now playing" highlight is a get+set property, so it becomes a real column — and the flag
+  then comes back from disk as `true` on the next launch. Declare it get-only and mutate it through a method,
+  exactly like the computed display properties.
 - Store UTC (`DateTime.UtcNow`) in any timestamp you intend to order or cap on.
 
 ## Worked example

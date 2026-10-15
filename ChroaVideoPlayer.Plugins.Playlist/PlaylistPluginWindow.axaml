@@ -54,7 +54,11 @@
 				<ItemsControl Grid.Row="1" x:Name="ItemHost">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate x:DataType="playlist:PlaylistEntry">
-							<Grid Classes="row" Height="28">
+							<Grid Classes="row interactive"
+							      Height="28"
+							      Classes.playing="{Binding IsPlaying}"
+							      ToolTip.Tip="Double click to play"
+							      DoubleTapped="OnRowDoubleTapped">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="80" SharedSizeGroup="Duration" />
 									<ColumnDefinition Width="6" />
@@ -64,6 +68,12 @@
 									<ColumnDefinition Width="6" />
 									<ColumnDefinition Width="60" />
 								</Grid.ColumnDefinitions>
+
+								<Border Grid.ColumnSpan="7"
+								        Width="2"
+								        HorizontalAlignment="Left"
+								        Background="#E0E0E0"
+								        IsVisible="{Binding IsPlaying}" />
 
 								<TextBlock Grid.Column="0" Classes="cell" Text="{Binding DurationText}" />
 								<TextBlock Grid.Column="2" Classes="cell" Text="{Binding Title}" />

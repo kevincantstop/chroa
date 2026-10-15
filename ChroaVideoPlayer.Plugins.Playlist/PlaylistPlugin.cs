@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using ChroaVideoPlayer.Core.EventBus;
 using ChroaVideoPlayer.Core.Plugin;
+using ChroaVideoPlayer.Core.Plugin.Context;
 using ChroaVideoPlayer.Core.Plugin.UI;
 using ChroaVideoPlayer.Plugins.Playlist.Persistance;
 
@@ -26,6 +27,8 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
     public bool Enabled => true;
 
+    public ChroaApplicationContext? Context { get; set; }
+
     public void SubscribeEvents(IEventSubscriber events) => events.Subscribe<VideoPlayed>(OnVideoPlayed);
 
     public PluginWindow CreateWindow()
@@ -37,6 +40,8 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         window.ShowEntries(_entries);
 
         window.DeleteRequested += OnDeleteRequested;
+
+        window.PlayRequested += OnPlayRequested;
 
         return window;
     }
@@ -67,6 +72,10 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
             LastPlayedUtc = DateTime.UtcNow,
         };
 
+        foreach (var entry in _entries) entry.MarkPlaying(false);
+
+        record.MarkPlaying(true);
+
         _entries.Insert(0, record);
 
         Store.Save(record);
@@ -78,4 +87,6 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
         Store.Delete(entry.Path);
     }
+
+    private void OnPlayRequested(PlaylistEntry entry) => Context?.Mpv.Play(entry.Path);
 }

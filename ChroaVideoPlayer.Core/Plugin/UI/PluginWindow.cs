@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -18,6 +19,8 @@ public class PluginWindow : Window
     private const double MinimumVisible = 24;
 
     private const double ShadowMargin = 24;
+
+    private const string InteractiveClass = "interactive";
 
     private readonly Border _panel;
 
@@ -139,12 +142,16 @@ public class PluginWindow : Window
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.Handled) return;
-        if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
+        if (e.Source is Visual source && IsInteractive(source)) return;
 
         if (_resizer.TryStart(e)) return;
 
         _mover.TryStart(e);
     }
+
+    private static bool IsInteractive(Visual source) =>
+        source.FindAncestorOfType<Button>(true) is not null
+        || source.GetSelfAndVisualAncestors().OfType<Control>().Any(control => control.Classes.Contains(InteractiveClass));
 
     private void OnInteractionEnded()
     {

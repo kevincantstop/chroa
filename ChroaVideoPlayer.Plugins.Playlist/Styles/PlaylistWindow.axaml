@@ -24,6 +24,14 @@
 		<Setter Property="Background" Value="#1AFFFFFF" />
 	</Style>
 
+	<Style Selector="Grid.row.playing">
+		<Setter Property="Background" Value="#33FFFFFF" />
+	</Style>
+
+	<Style Selector="Grid.row.playing:pointerover">
+		<Setter Property="Background" Value="#40FFFFFF" />
+	</Style>
+
 	<Style Selector="Button.action">
 		<Setter Property="Background" Value="Transparent" />
 		<Setter Property="BorderThickness" Value="0" />
