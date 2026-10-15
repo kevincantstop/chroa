@@ -1,28 +1,28 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="clr-namespace:ChroaVideoPlayer.Controls">
+        xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core">
 
-	<Style Selector="controls|SVGIconButton">
+	<Style Selector="core|SVGIconButton">
 		<Setter Property="Background" Value="Transparent" />
 		<Setter Property="BorderThickness" Value="0" />
 		<Setter Property="Foreground" Value="#E0E0E0" />
 		<Setter Property="VerticalAlignment" Value="Top" />
 	</Style>
 
-	<Style Selector="controls|SVGIconButton:pointerover">
+	<Style Selector="core|SVGIconButton:pointerover">
 		<Setter Property="Background" Value="#40FFFFFF" />
 	</Style>
-	<Style Selector="controls|SVGIconButton:pointerover /template/ ContentPresenter">
+	<Style Selector="core|SVGIconButton:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="#40FFFFFF" />
 	</Style>
 
-	<Style Selector="controls|SVGIconButton:pressed">
+	<Style Selector="core|SVGIconButton:pressed">
 		<Setter Property="Background" Value="#66FFFFFF" />
 	</Style>
-	<Style Selector="controls|SVGIconButton:pressed /template/ ContentPresenter">
+	<Style Selector="core|SVGIconButton:pressed /template/ ContentPresenter">
 		<Setter Property="Background" Value="#66FFFFFF" />
 	</Style>
-	<Style Selector="controls|SVGIconButton:disabled">
+	<Style Selector="core|SVGIconButton:disabled">
 		<Setter Property="Foreground" Value="#55FFFFFF" />
 	</Style>
 </Styles>

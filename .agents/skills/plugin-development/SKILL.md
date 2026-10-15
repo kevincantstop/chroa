@@ -152,13 +152,14 @@ a row of their own between the title and the content, right-aligned, so the clos
 | --- | --- |
 | Window title | `FontSize="16"`, `Foreground="White"` |
 | Body text — list cells, table headers, counters, button labels | `FontSize="14"` |
-| Icon buttons in the content (per-row actions, a contextual delete) | 28×28, `CornerRadius="14"`, icon 14 px |
-| The close button in the title bar | 32×32, `CornerRadius="16"`, icon 16 px |
+| Icon buttons in the content (per-row actions, a contextual delete) | `ButtonSize="28"`, `IconSize="14"` |
+| The close button in the title bar | `ButtonSize="32"`, `IconSize="16"` |
 | List rows | `Height="32"` |
 
-One rule behind those numbers: **the icon takes about half the button's side and the rest is padding**, which
-is what the player's own `SVGIconButton` does (`ButtonSize` 32, `IconSize` 16, `ButtonShape = Circle` →
-`CornerRadius = min(width, height) / 2`). Copy its state colours too:
+One rule behind those numbers: **the icon takes about half the button's side and the rest is padding**. That is
+how the player sizes its own buttons — the control bar is 40/20 (`ButtonSize="40" IconSize="20"`, 48/24 for
+play/pause) and the window chrome is 48/24 — and `SVGIconButton` turns any of those into a circle with
+`CornerRadius = min(width, height) / 2`. Its state colours are the ones to copy:
 
 | State | Neutral | Destructive |
 | --- | --- | --- |
@@ -167,11 +168,34 @@ is what the player's own `SVGIconButton` does (`ButtonSize` 32, `IconSize` 16, `
 | Pressed | `#66FFFFFF` | `#55FF6B6B` |
 | Icon | `#E0E0E0` | `#FF6B6B` |
 
-- Give every button your own class with `Padding="0"`, `BorderThickness="0"` and `Cursor="Hand"` — the stock
-  Fluent `Button` look does not belong on the black panel.
+- **Build icon buttons from `core:SVGIconButton`, never a bare `Button` with a `Path` inside.** It owns the
+  size, the circle, the hand cursor, the icon-only hit area and a centred icon — the icon goes through
+  `SvgIcon`, whose `Viewbox` scales and centres it, while a hand-rolled `Path` with `Stretch` lands off-centre.
+  The player's app-wide style then supplies the hover, pressed and disabled colours for free:
+
+  ```xml
+  <core:SVGIconButton Icon="avares://MyPlugin/Icons/folder.svg"
+                      ButtonSize="28"
+                      IconSize="14"
+                      VerticalAlignment="Center"
+                      Click="OnRevealClick"
+                      ToolTip.Tip="Show in folder" />
+  ```
+
+- **Pass `VerticalAlignment="Center"` yourself.** That app-wide style pins the button to `Top` for the player's
+  title bar, so a plugin window without an explicit value gets its buttons pushed to the top of the row.
 - **An icon-only button must carry a `ToolTip.Tip`** — that tooltip is its label.
-- Set the pressed state as well as the hover one. A neutral `:pressed` rule also matches your destructive
-  buttons, so give those their own `:pressed` colour or they flash white.
+- A destructive button keeps its colour by overriding both states for its own class — one neutral rule matches
+  its buttons too, and they would otherwise flash white on hover:
+
+  ```xml
+  <Style Selector="core|SVGIconButton.remove:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#33FF6B6B" />
+  </Style>
+  <Style Selector="core|SVGIconButton.remove:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#55FF6B6B" />
+  </Style>
+  ```
 - **Size a column that holds icon buttons to fit them**: two 28 px circles plus a 6 px gap need 68 px, and the
   row that carries them has to be a few pixels taller than the buttons.
 - Colour is monochrome by design: white and black at various alphas (`#XXFFFFFF`, `#XX000000`) plus `#E0E0E0`
@@ -257,8 +281,8 @@ On machines without network access the Avalonia telemetry task can fail (`MSB401
 - [ ] `Context` declared as an auto-property for the player to fill in
 - [ ] Interactive rows/canvases marked `Classes="interactive"`
 - [ ] Title bar carries only the title and the close button
-- [ ] Icon buttons are round and follow the player's proportions (content 28×28 / radius 14 / icon 14,
-      close 32×32 / radius 16 / icon 16) with its hover, pressed and red-destructive colours
+- [ ] Icon buttons built from `core:SVGIconButton` with `VerticalAlignment="Center"` (content 28/14,
+      close 32/16) and the player's hover, pressed and red-destructive colours
 - [ ] Body text 14, window title 16, no accent colour introduced
 - [ ] Icon uses a full `avares://` URI and a `0 0 24 24` viewBox
 - [ ] Window derives from `PluginWindow` with a public parameterless constructor

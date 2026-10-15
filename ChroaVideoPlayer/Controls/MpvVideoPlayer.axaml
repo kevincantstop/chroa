@@ -3,6 +3,7 @@
              xmlns:mpv="clr-namespace:HanumanInstitute.LibMpv.Avalonia;assembly=HanumanInstitute.LibMpv.Avalonia"
              xmlns:vm="clr-namespace:ChroaVideoPlayer.ViewModels"
              xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
+             xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
              x:Class="ChroaVideoPlayer.Controls.MpvVideoPlayer"
              x:DataType="vm:VideoPlayerViewModel">
 	<Grid PointerPressed="OnPlayerPointerPressed">
@@ -33,7 +34,7 @@
 					<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
 						<StackPanel Grid.Column="0" Orientation="Horizontal"
 						            HorizontalAlignment="Left" VerticalAlignment="Center">
-							<chroa:SVGIconButton x:Name="AspectResizeButton"
+							<core:SVGIconButton x:Name="AspectResizeButton"
 							                     Icon="/Icons/scaling.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="-11,0,8,0"
@@ -41,7 +42,7 @@
 							                     ToolTip.Tip="Free resize"
 							                     Click="OnResizeModeClick" />
 
-							<chroa:SVGIconButton x:Name="FreeResizeButton"
+							<core:SVGIconButton x:Name="FreeResizeButton"
 							                     Icon="/Icons/square-dimensions.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="-11,0,8,0"
@@ -50,7 +51,7 @@
 							                     ToolTip.Tip="Scale to the video ratio"
 							                     Click="OnResizeModeClick" />
 
-							<chroa:SVGIconButton x:Name="CopyFrameButton"
+							<core:SVGIconButton x:Name="CopyFrameButton"
 							                     Icon="/Icons/camera.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="0,0,8,0"
@@ -58,7 +59,7 @@
 							                     ToolTip.Tip="Copy frame to clipboard"
 							                     Click="OnCopyFrameClick" />
 
-							<chroa:SVGIconButton x:Name="CopiedButton"
+							<core:SVGIconButton x:Name="CopiedButton"
 							                     Icon="/Icons/check.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="0,0,8,0"
@@ -67,7 +68,7 @@
 							                     ToolTip.Tip="Copy frame"
 							                     Click="OnCopyFrameClick" />
 
-							<chroa:SVGIconButton x:Name="SpeedButton"
+							<core:SVGIconButton x:Name="SpeedButton"
 							                     Icon="/Icons/gauge.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     VerticalAlignment="Center"
@@ -78,7 +79,7 @@
 						</StackPanel>
 
 						<StackPanel Grid.Column="1" Orientation="Horizontal">
-							<chroa:SVGIconButton x:Name="RewindButton"
+							<core:SVGIconButton x:Name="RewindButton"
 							                     Icon="/Icons/rewind.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="0,0,8,0"
@@ -86,19 +87,19 @@
 							                     ToolTip.Tip="Back 5 seconds"
 							                     Click="OnRewindClick" />
 
-							<chroa:SVGIconButton x:Name="PlayButton"
+							<core:SVGIconButton x:Name="PlayButton"
 							                     Icon="/Icons/play.svg"
 							                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
 							                     ToolTip.Tip="Play"
 							                     Click="OnPlayPauseClick" />
 
-							<chroa:SVGIconButton x:Name="PauseButton"
+							<core:SVGIconButton x:Name="PauseButton"
 							                     Icon="/Icons/pause.svg"
 							                     ButtonShape="Circle" ButtonSize="48" IconSize="24"
 							                     ToolTip.Tip="Pause"
 							                     Click="OnPlayPauseClick" />
 
-							<chroa:SVGIconButton x:Name="ForwardButton"
+							<core:SVGIconButton x:Name="ForwardButton"
 							                     Icon="/Icons/fast-forward.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="8,0,0,0"
@@ -108,7 +109,7 @@
 						</StackPanel>
 
 						<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-							<chroa:SVGIconButton x:Name="VolumeButton"
+							<core:SVGIconButton x:Name="VolumeButton"
 							                     Icon="/Icons/volume-2.svg"
 							                     IsEnabled="{Binding HasAudioTrack}"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
@@ -116,7 +117,7 @@
 							                     ToolTip.Tip="Mute"
 							                     Click="OnMuteClick" />
 
-							<chroa:SVGIconButton x:Name="MutedButton"
+							<core:SVGIconButton x:Name="MutedButton"
 							                     Icon="/Icons/volume-x.svg"
 							                     IsEnabled="{Binding HasAudioTrack}"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
@@ -128,7 +129,7 @@
 							               Margin="3,0,0,0"
 							               IsEnabled="{Binding HasAudioTrack}" />
 
-							<chroa:SVGIconButton x:Name="SubtitleButton"
+							<core:SVGIconButton x:Name="SubtitleButton"
 							                     Icon="/Icons/closed-caption.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="12,0,0,0"
@@ -136,21 +137,21 @@
 							                     ToolTip.Tip="Subtitles"
 							                     Click="OnSubtitleClick" />
 
-							<chroa:SVGIconButton x:Name="FullScreenButton"
+							<core:SVGIconButton x:Name="FullScreenButton"
 							                     Icon="/Icons/maximize.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     VerticalAlignment="Center"
 							                     ToolTip.Tip="Full screen"
 							                     Click="OnFullScreenClick" />
 
-							<chroa:SVGIconButton x:Name="FullScreenExitButton"
+							<core:SVGIconButton x:Name="FullScreenExitButton"
 							                     Icon="/Icons/minimize.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     VerticalAlignment="Center"
 							                     ToolTip.Tip="Exit full screen"
 							                     Click="OnFullScreenClick" />
 
-							<chroa:SVGIconButton x:Name="TopMostButton"
+							<core:SVGIconButton x:Name="TopMostButton"
 							                     Icon="/Icons/monitor-play.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="0,0,-12,0"
@@ -158,7 +159,7 @@
 							                     ToolTip.Tip="Always on top"
 							                     Click="OnTopMostClick" />
 
-							<chroa:SVGIconButton x:Name="TopMostOnButton"
+							<core:SVGIconButton x:Name="TopMostOnButton"
 							                     Icon="/Icons/monitor-check.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
 							                     Margin="0,0,-12,0"

@@ -1,4 +1,5 @@
-<Styles xmlns="https://github.com/avaloniaui">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core">
 
 	<Style Selector="TextBlock.head">
 		<Setter Property="Foreground" Value="#B0FFFFFF" />
@@ -32,37 +33,11 @@
 		<Setter Property="Background" Value="#40FFFFFF" />
 	</Style>
 
-	<Style Selector="Button.action">
-		<Setter Property="Background" Value="Transparent" />
-		<Setter Property="BorderThickness" Value="0" />
-		<Setter Property="Padding" Value="0" />
-		<Setter Property="Width" Value="28" />
-		<Setter Property="Height" Value="28" />
-		<Setter Property="CornerRadius" Value="14" />
-		<Setter Property="Cursor" Value="Hand" />
-		<Setter Property="HorizontalContentAlignment" Value="Center" />
-		<Setter Property="VerticalContentAlignment" Value="Center" />
-	</Style>
-
-	<Style Selector="Button.action.close">
-		<Setter Property="Width" Value="32" />
-		<Setter Property="Height" Value="32" />
-		<Setter Property="CornerRadius" Value="16" />
-	</Style>
-
-	<Style Selector="Button.action:pointerover /template/ ContentPresenter">
-		<Setter Property="Background" Value="#40FFFFFF" />
-	</Style>
-
-	<Style Selector="Button.action:pressed /template/ ContentPresenter">
-		<Setter Property="Background" Value="#66FFFFFF" />
-	</Style>
-
-	<Style Selector="Button.remove:pointerover /template/ ContentPresenter">
+	<Style Selector="core|SVGIconButton.remove:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="#33FF6B6B" />
 	</Style>
 
-	<Style Selector="Button.remove:pressed /template/ ContentPresenter">
+	<Style Selector="core|SVGIconButton.remove:pressed /template/ ContentPresenter">
 		<Setter Property="Background" Value="#55FF6B6B" />
 	</Style>
 
@@ -71,27 +46,6 @@
 		<Setter Property="FontSize" Value="14" />
 		<Setter Property="VerticalAlignment" Value="Center" />
 		<Setter Property="Margin" Value="16,0,0,0" />
-	</Style>
-
-	<Style Selector="Button.batch">
-		<Setter Property="Background" Value="Transparent" />
-		<Setter Property="BorderThickness" Value="0" />
-		<Setter Property="Padding" Value="0" />
-		<Setter Property="Width" Value="28" />
-		<Setter Property="Height" Value="28" />
-		<Setter Property="CornerRadius" Value="14" />
-		<Setter Property="Cursor" Value="Hand" />
-		<Setter Property="VerticalAlignment" Value="Center" />
-		<Setter Property="HorizontalContentAlignment" Value="Center" />
-		<Setter Property="VerticalContentAlignment" Value="Center" />
-	</Style>
-
-	<Style Selector="Button.batch:pointerover /template/ ContentPresenter">
-		<Setter Property="Background" Value="#33FF6B6B" />
-	</Style>
-
-	<Style Selector="Button.batch:pressed /template/ ContentPresenter">
-		<Setter Property="Background" Value="#55FF6B6B" />
 	</Style>
 
 	<Style Selector="CheckBox.check">

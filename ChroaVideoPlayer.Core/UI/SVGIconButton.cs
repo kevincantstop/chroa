@@ -4,11 +4,10 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
-using ChroaVideoPlayer.Core.UI;
 using HAlign = Avalonia.Layout.HorizontalAlignment;
 using VAlign = Avalonia.Layout.VerticalAlignment;
 
-namespace ChroaVideoPlayer.Controls;
+namespace ChroaVideoPlayer.Core.UI;
 
 public enum SVGIconButtonShape
 {

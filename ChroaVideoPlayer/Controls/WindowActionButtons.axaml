@@ -1,27 +1,27 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
+             xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
              x:Class="ChroaVideoPlayer.Controls.WindowActionButtons">
 	<Border Classes="overlay top" VerticalAlignment="Top" Background="Transparent"
 	        DoubleTapped="OnBarDoubleTapped">
 		<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-			<chroa:SVGIconButton Icon="/Icons/minus.svg"
-			                     ButtonShape="Square"
-			                     ButtonSize="48"
-			                     IconSize="24"
-			                     Click="OnMinimizeClick" />
+			<core:SVGIconButton Icon="/Icons/minus.svg"
+			                    ButtonShape="Square"
+			                    ButtonSize="48"
+			                    IconSize="24"
+			                    Click="OnMinimizeClick" />
 
-			<chroa:SVGIconButton Icon="/Icons/square.svg"
-			                     ButtonSize="48"
-			                     IconSize="24"
-			                     ButtonShape="Square"
-			                     Click="OnMaximizeClick" />
+			<core:SVGIconButton Icon="/Icons/square.svg"
+			                    ButtonSize="48"
+			                    IconSize="24"
+			                    ButtonShape="Square"
+			                    Click="OnMaximizeClick" />
 
-			<chroa:SVGIconButton Icon="/Icons/x.svg"
-			                     ButtonSize="48"
-			                     IconSize="24"
-			                     ButtonShape="Square"
-			                     Click="OnCloseClick" />
+			<core:SVGIconButton Icon="/Icons/x.svg"
+			                    ButtonSize="48"
+			                    IconSize="24"
+			                    ButtonShape="Square"
+			                    Click="OnCloseClick" />
 		</StackPanel>
 	</Border>
 </UserControl>

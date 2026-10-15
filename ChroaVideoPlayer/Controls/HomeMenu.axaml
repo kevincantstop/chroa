@@ -9,7 +9,7 @@
 		<Border Classes="overlay"
 		        HorizontalAlignment="Left"
 		        VerticalAlignment="Top">
-			<chroa:SVGIconButton Icon="/Icons/house.svg"
+			<core:SVGIconButton Icon="/Icons/house.svg"
 			                     ButtonShape="Square"
 			                     ButtonSize="48"
 			                     IconSize="24"
