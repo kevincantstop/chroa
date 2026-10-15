@@ -36,6 +36,8 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
         window.ShowEntries(_entries);
 
+        window.DeleteRequested += OnDeleteRequested;
+
         return window;
     }
 
@@ -68,5 +70,12 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         _entries.Insert(0, record);
 
         Store.Save(record);
+    }
+
+    private void OnDeleteRequested(PlaylistEntry entry)
+    {
+        _entries.Remove(entry);
+
+        Store.Delete(entry.Path);
     }
 }

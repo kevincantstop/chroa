@@ -4,24 +4,11 @@
                     xmlns:playlist="clr-namespace:ChroaVideoPlayer.Plugins.Playlist"
                     x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistPluginWindow"
                     Title="Playlist"
-                    Width="420"
+                    Width="460"
                     Height="380"
                     InitialDockSide="Left">
 	<chroa:PluginWindow.Styles>
-		<Style Selector="TextBlock.head">
-			<Setter Property="Foreground" Value="#B0FFFFFF" />
-			<Setter Property="FontSize" Value="12" />
-			<Setter Property="VerticalAlignment" Value="Center" />
-			<Setter Property="Margin" Value="8,0,0,0" />
-			<Setter Property="TextTrimming" Value="CharacterEllipsis" />
-		</Style>
-		<Style Selector="TextBlock.cell">
-			<Setter Property="Foreground" Value="#E0E0E0" />
-			<Setter Property="FontSize" Value="12" />
-			<Setter Property="VerticalAlignment" Value="Center" />
-			<Setter Property="Margin" Value="8,0,0,0" />
-			<Setter Property="TextTrimming" Value="CharacterEllipsis" />
-		</Style>
+		<StyleInclude Source="avares://ChroaVideoPlayer.Plugins.Playlist/Styles/PlaylistWindow.axaml" />
 	</chroa:PluginWindow.Styles>
 
 	<Grid Margin="12" RowDefinitions="Auto,*">
@@ -46,6 +33,8 @@
 						<ColumnDefinition Width="180" SharedSizeGroup="Name" />
 						<ColumnDefinition Width="6" />
 						<ColumnDefinition Width="260" SharedSizeGroup="Path" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="60" />
 					</Grid.ColumnDefinitions>
 
 					<TextBlock Grid.Column="0" Classes="head" Text="Duration" />
@@ -58,18 +47,51 @@
 				<ItemsControl Grid.Row="1" x:Name="ItemHost">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate x:DataType="playlist:PlaylistEntry">
-							<Grid Height="26">
+							<Grid Classes="row" Height="28">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="80" SharedSizeGroup="Duration" />
 									<ColumnDefinition Width="6" />
 									<ColumnDefinition Width="180" SharedSizeGroup="Name" />
 									<ColumnDefinition Width="6" />
 									<ColumnDefinition Width="260" SharedSizeGroup="Path" />
+									<ColumnDefinition Width="6" />
+									<ColumnDefinition Width="60" />
 								</Grid.ColumnDefinitions>
 
 								<TextBlock Grid.Column="0" Classes="cell" Text="{Binding DurationText}" />
 								<TextBlock Grid.Column="2" Classes="cell" Text="{Binding Title}" />
 								<TextBlock Grid.Column="4" Classes="cell" Text="{Binding Path}" ToolTip.Tip="{Binding Path}" />
+
+								<StackPanel Grid.Column="6"
+								            Orientation="Horizontal"
+								            Spacing="6"
+								            VerticalAlignment="Center">
+									<Button Classes="action"
+									        Click="OnRevealClick"
+									        ToolTip.Tip="Show in folder">
+										<Path Data="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+										      Stroke="#E0E0E0"
+										      StrokeThickness="2"
+										      StrokeLineCap="Round"
+										      StrokeJoin="Round"
+										      Stretch="Uniform"
+										      Width="14"
+										      Height="14" />
+									</Button>
+
+									<Button Classes="action remove"
+									        Click="OnDeleteClick"
+									        ToolTip.Tip="Remove from playlist">
+										<Path Data="M10 11v6 M14 11v6 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6 M3 6h18 M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+										      Stroke="#FF6B6B"
+										      StrokeThickness="2"
+										      StrokeLineCap="Round"
+										      StrokeJoin="Round"
+										      Stretch="Uniform"
+										      Width="14"
+										      Height="14" />
+									</Button>
+								</StackPanel>
 							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>

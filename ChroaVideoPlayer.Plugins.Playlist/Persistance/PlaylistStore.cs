@@ -28,4 +28,6 @@ public sealed class PlaylistStore
         _store.Query(orderBy: nameof(PlaylistEntry.LastPlayedUtc), descending: true, limit: MaxEntries);
 
     public void Save(PlaylistEntry entry) => _store.Save(entry.Path, entry);
+
+    public void Delete(string path) => _store.Delete(path);
 }

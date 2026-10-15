@@ -18,5 +18,6 @@
 
   <ItemGroup>
     <Folder Include="Persistance\" />
+    <Folder Include="Styles\" />
   </ItemGroup>
 </Project>
