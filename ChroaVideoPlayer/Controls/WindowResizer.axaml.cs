@@ -11,6 +11,9 @@ public partial class WindowResizer : UserControl
     public static readonly StyledProperty<double> AspectProperty =
         AvaloniaProperty.Register<WindowResizer, double>(nameof(Aspect));
 
+    public static readonly StyledProperty<bool> IsFreeResizeProperty =
+        AvaloniaProperty.Register<WindowResizer, bool>(nameof(IsFreeResize));
+
     private const double MinimumSide = 120;
 
     private const double AxisThreshold = 3;
@@ -56,6 +59,12 @@ public partial class WindowResizer : UserControl
     {
         get => GetValue(AspectProperty);
         set => SetValue(AspectProperty, value);
+    }
+
+    public bool IsFreeResize
+    {
+        get => GetValue(IsFreeResizeProperty);
+        set => SetValue(IsFreeResizeProperty, value);
     }
 
     private void OnGripPressed(object? sender, PointerPressedEventArgs e)
@@ -151,7 +160,7 @@ public partial class WindowResizer : UserControl
     {
         var aspect = Aspect;
 
-        if (aspect <= 0 || double.IsNaN(aspect) || double.IsInfinity(aspect))
+        if (IsFreeResize || aspect <= 0 || double.IsNaN(aspect) || double.IsInfinity(aspect))
         {
             return new Size(Math.Max(Math.Round(width), MinimumSide), Math.Max(Math.Round(height), MinimumSide));
         }

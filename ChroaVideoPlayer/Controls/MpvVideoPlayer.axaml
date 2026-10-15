@@ -33,10 +33,27 @@
 					<Grid Grid.Row="1" ColumnDefinitions="*,Auto,*" Margin="0,4,0,0">
 						<StackPanel Grid.Column="0" Orientation="Horizontal"
 						            HorizontalAlignment="Left" VerticalAlignment="Center">
+							<chroa:SVGIconButton x:Name="AspectResizeButton"
+							                     Icon="/Icons/scaling.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="-11,0,8,0"
+							                     VerticalAlignment="Center"
+							                     ToolTip.Tip="Free resize"
+							                     Click="OnResizeModeClick" />
+
+							<chroa:SVGIconButton x:Name="FreeResizeButton"
+							                     Icon="/Icons/square-dimensions.svg"
+							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
+							                     Margin="-11,0,8,0"
+							                     VerticalAlignment="Center"
+							                     IsVisible="False"
+							                     ToolTip.Tip="Scale to the video ratio"
+							                     Click="OnResizeModeClick" />
+
 							<chroa:SVGIconButton x:Name="CopyFrameButton"
 							                     Icon="/Icons/camera.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-							                     Margin="-11,0,8,0"
+							                     Margin="0,0,8,0"
 							                     VerticalAlignment="Center"
 							                     ToolTip.Tip="Copy frame to clipboard"
 							                     Click="OnCopyFrameClick" />
@@ -44,7 +61,7 @@
 							<chroa:SVGIconButton x:Name="CopiedButton"
 							                     Icon="/Icons/check.svg"
 							                     ButtonShape="Circle" ButtonSize="40" IconSize="20"
-							                     Margin="-11,0,8,0"
+							                     Margin="0,0,8,0"
 							                     VerticalAlignment="Center"
 							                     IsVisible="False"
 							                     ToolTip.Tip="Copy frame"

@@ -26,7 +26,9 @@
 		<chroa:MpvVideoPlayer x:Name="VideoPlayer" />
 		<chroa:LoadVideoButton IsVisible="{Binding ShowLoadVideo}" Player="{Binding Mpv}" />
 		<chroa:WindowActionButtons x:Name="WindowButtons" />
-		<chroa:WindowResizer x:Name="Resizer" Aspect="{Binding Player.VideoAspect}" />
+		<chroa:WindowResizer x:Name="Resizer"
+		                     Aspect="{Binding Player.VideoAspect}"
+		                     IsFreeResize="{Binding Player.IsFreeResize}" />
 		<Border x:Name="IdleLayer" Background="Transparent" Cursor="None" IsVisible="False" />
 	</Grid>
 </Window>

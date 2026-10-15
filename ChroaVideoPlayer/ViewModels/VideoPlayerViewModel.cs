@@ -53,6 +53,9 @@ namespace ChroaVideoPlayer.ViewModels
         [ObservableProperty]
         public partial bool IsSpeedMenuOpen { get; set; }
 
+        [ObservableProperty]
+        public partial bool IsFreeResize { get; set; }
+
         public VideoPlayerViewModel()
         {
             Mpv.VideoAspectDetected += OnVideoAspectDetected;

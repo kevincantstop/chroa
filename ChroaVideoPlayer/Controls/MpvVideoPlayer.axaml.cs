@@ -121,6 +121,9 @@ public partial class MpvVideoPlayer : UserControl
         TopMostButton.IsVisible = !IsTopMost;
         TopMostOnButton.IsVisible = IsTopMost;
 
+        AspectResizeButton.IsVisible = !ViewModel.IsFreeResize;
+        FreeResizeButton.IsVisible = ViewModel.IsFreeResize;
+
         var canSkip = ViewModel.Duration > 0;
 
         RewindButton.IsEnabled = canSkip;
@@ -168,6 +171,8 @@ public partial class MpvVideoPlayer : UserControl
     private void OnFullScreenClick(object? sender, RoutedEventArgs e) => FullScreenToggleRequested?.Invoke();
 
     private void OnTopMostClick(object? sender, RoutedEventArgs e) => TopMostToggleRequested?.Invoke();
+
+    private void OnResizeModeClick(object? sender, RoutedEventArgs e) => ViewModel.IsFreeResize = !ViewModel.IsFreeResize;
 
     private async void OnCopyFrameClick(object? sender, RoutedEventArgs e)
     {
