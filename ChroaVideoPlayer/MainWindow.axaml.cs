@@ -3,6 +3,7 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
@@ -33,6 +34,8 @@ public partial class MainWindow : Window
         _idleTimer.Tick += OnIdleTimerTick;
 
         PropertyChanged += OnWindowPropertyChanged;
+
+        AddHandler(PointerPressedEvent, OnWindowPointerPressed, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
 
@@ -200,6 +203,13 @@ public partial class MainWindow : Window
         IdleLayer.IsVisible = idle;
     }
 
+
+    private void OnWindowPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is Visual source && source.FindAncestorOfType<PluginMenu>(true) is not null) return;
+
+        VideoPlayer.ViewModel.ClosePluginMenu();
+    }
 
     private void OnRootPointerPressed(object? sender, PointerPressedEventArgs e)
     {
