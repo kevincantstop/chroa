@@ -4,15 +4,31 @@
 	<Grid>
 		<Border x:Name="TopLeft" Width="10" Height="10" Background="Transparent"
 		        HorizontalAlignment="Left" VerticalAlignment="Top"
-		        Cursor="TopLeftCorner" PointerPressed="OnGripPressed" />
+		        Cursor="TopLeftCorner"
+		        PointerPressed="OnGripPressed"
+		        PointerMoved="OnGripMoved"
+		        PointerReleased="OnGripReleased"
+		        PointerCaptureLost="OnPointerCaptureLost" />
 		<Border x:Name="TopRight" Width="10" Height="10" Background="Transparent"
 		        HorizontalAlignment="Right" VerticalAlignment="Top"
-		        Cursor="TopRightCorner" PointerPressed="OnGripPressed" />
+		        Cursor="TopRightCorner"
+		        PointerPressed="OnGripPressed"
+		        PointerMoved="OnGripMoved"
+		        PointerReleased="OnGripReleased"
+		        PointerCaptureLost="OnPointerCaptureLost" />
 		<Border x:Name="BottomLeft" Width="10" Height="10" Background="Transparent"
 		        HorizontalAlignment="Left" VerticalAlignment="Bottom"
-		        Cursor="BottomLeftCorner" PointerPressed="OnGripPressed" />
+		        Cursor="BottomLeftCorner"
+		        PointerPressed="OnGripPressed"
+		        PointerMoved="OnGripMoved"
+		        PointerReleased="OnGripReleased"
+		        PointerCaptureLost="OnPointerCaptureLost" />
 		<Border x:Name="BottomRight" Width="10" Height="10" Background="Transparent"
 		        HorizontalAlignment="Right" VerticalAlignment="Bottom"
-		        Cursor="BottomRightCorner" PointerPressed="OnGripPressed" />
+		        Cursor="BottomRightCorner"
+		        PointerPressed="OnGripPressed"
+		        PointerMoved="OnGripMoved"
+		        PointerReleased="OnGripReleased"
+		        PointerCaptureLost="OnPointerCaptureLost" />
 	</Grid>
 </UserControl>
