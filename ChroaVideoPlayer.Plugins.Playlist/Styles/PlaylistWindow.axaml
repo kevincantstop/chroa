@@ -51,4 +51,60 @@
 	<Style Selector="Button.remove:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="#33FF6B6B" />
 	</Style>
+
+	<Style Selector="TextBlock.count">
+		<Setter Property="Foreground" Value="#B0FFFFFF" />
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Margin" Value="0,0,8,0" />
+	</Style>
+
+	<Style Selector="Button.batch">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="Padding" Value="8,3" />
+		<Setter Property="CornerRadius" Value="4" />
+		<Setter Property="Cursor" Value="Hand" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="HorizontalContentAlignment" Value="Center" />
+		<Setter Property="VerticalContentAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="Button.batch:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="#33FF6B6B" />
+	</Style>
+
+	<Style Selector="CheckBox.check">
+		<Setter Property="MinWidth" Value="0" />
+		<Setter Property="MinHeight" Value="0" />
+		<Setter Property="Padding" Value="0" />
+		<Setter Property="Cursor" Value="Hand" />
+		<Setter Property="HorizontalAlignment" Value="Center" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="CheckBox.check /template/ Border#NormalRectangle">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="#55FFFFFF" />
+		<Setter Property="BorderThickness" Value="1.5" />
+		<Setter Property="CornerRadius" Value="3" />
+	</Style>
+
+	<Style Selector="CheckBox.check:pointerover /template/ Border#NormalRectangle">
+		<Setter Property="BorderBrush" Value="#88FFFFFF" />
+	</Style>
+
+	<Style Selector="CheckBox.check:checked /template/ Border#NormalRectangle">
+		<Setter Property="Background" Value="#E0E0E0" />
+		<Setter Property="BorderBrush" Value="#E0E0E0" />
+	</Style>
+
+	<Style Selector="CheckBox.check:indeterminate /template/ Border#NormalRectangle">
+		<Setter Property="Background" Value="#E0E0E0" />
+		<Setter Property="BorderBrush" Value="#E0E0E0" />
+	</Style>
+
+	<Style Selector="CheckBox.check /template/ Path#CheckGlyph">
+		<Setter Property="Fill" Value="#101010" />
+	</Style>
 </Styles>

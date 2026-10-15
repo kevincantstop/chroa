@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -13,16 +16,29 @@ namespace ChroaVideoPlayer.Plugins.Playlist;
 
 public partial class PlaylistPluginWindow : PluginWindow
 {
+    private ObservableCollection<PlaylistEntry>? _entries;
+
     public PlaylistPluginWindow()
     {
         InitializeComponent();
     }
 
-    public event Action<PlaylistEntry>? DeleteRequested;
+    public event Action<IReadOnlyList<PlaylistEntry>>? DeleteRequested;
 
     public event Action<PlaylistEntry>? PlayRequested;
 
-    public void ShowEntries(ObservableCollection<PlaylistEntry> entries) => ItemHost.ItemsSource = entries;
+    public void ShowEntries(ObservableCollection<PlaylistEntry> entries)
+    {
+        if (_entries is not null) _entries.CollectionChanged -= OnEntriesChanged;
+
+        _entries = entries;
+
+        entries.CollectionChanged += OnEntriesChanged;
+
+        ItemHost.ItemsSource = entries;
+
+        RefreshState();
+    }
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
@@ -37,8 +53,59 @@ public partial class PlaylistPluginWindow : PluginWindow
     {
         if (sender is not Button { DataContext: PlaylistEntry entry }) return;
 
-        DeleteRequested?.Invoke(entry);
+        DeleteRequested?.Invoke([entry]);
     }
+
+    private void OnDeleteSelectedClick(object? sender, RoutedEventArgs e)
+    {
+        if (_entries is not { } entries) return;
+
+        var selected = entries.Where(entry => entry.IsSelected).ToList();
+
+        if (selected.Count == 0) return;
+
+        DeleteRequested?.Invoke(selected);
+    }
+
+    private void OnRowCheckClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not CheckBox { DataContext: PlaylistEntry entry } box) return;
+
+        entry.MarkSelected(box.IsChecked == true);
+
+        RefreshState();
+    }
+
+    private void OnSelectAllClick(object? sender, RoutedEventArgs e)
+    {
+        if (_entries is not { } entries) return;
+
+        var select = SelectAllBox.IsChecked == true;
+
+        foreach (var entry in entries) entry.MarkSelected(select);
+
+        RefreshState();
+    }
+
+    private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e) => RefreshState();
+
+    private void RefreshState()
+    {
+        var total = _entries?.Count ?? 0;
+        var selected = _entries?.Count(entry => entry.IsSelected) ?? 0;
+
+        CountText.Text = selected > 0
+            ? $"{selected} of {total} {Count(total)}"
+            : $"{total} {Count(total)}";
+
+        DeleteSelectedButton.IsVisible = selected > 0;
+
+        if (selected == 0 || total == 0) SelectAllBox.IsChecked = false;
+        else if (selected == total) SelectAllBox.IsChecked = true;
+        else SelectAllBox.IsChecked = null;
+    }
+
+    private static string Count(int total) => total == 1 ? "video" : "videos";
 
     private void OnRowDoubleTapped(object? sender, TappedEventArgs e)
     {

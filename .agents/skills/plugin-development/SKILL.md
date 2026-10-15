@@ -133,6 +133,12 @@ Rules and knobs:
   a canvas, a drag handle that is not a `Button`. Pressing anywhere else in the panel starts a *window drag*,
   and that drag captures the pointer, so your element never receives the release: clicks and double clicks
   aimed at it simply never arrive. `Button` is exempt already; `interactive` is how a non-button opts out.
+- `CheckBox` derives from `Button`, so checkboxes inside a window are exempt from that drag already — and a
+  double click on one never reaches the row underneath it. Stock Fluent checkboxes are drawn for a light
+  surface, though: on the black panel the unchecked border (`#99000000`) is nearly invisible and the checked
+  fill is the blue accent, so restyle the template parts `Border#NormalRectangle` and `Path#CheckGlyph`
+  (and set `MinHeight="0"`, since the default 32 px is taller than a 28 px row — fill the box for
+  `:indeterminate` too, or its glyph lands dark-on-black).
 
 ## 5. Icons
 

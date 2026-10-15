@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using ChroaVideoPlayer.Core.EventBus;
@@ -81,11 +82,14 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         Store.Save(record);
     }
 
-    private void OnDeleteRequested(PlaylistEntry entry)
+    private void OnDeleteRequested(IReadOnlyList<PlaylistEntry> entries)
     {
-        _entries.Remove(entry);
+        foreach (var entry in entries)
+        {
+            _entries.Remove(entry);
 
-        Store.Delete(entry.Path);
+            Store.Delete(entry.Path);
+        }
     }
 
     private void OnPlayRequested(PlaylistEntry entry) => Context?.Mpv.Play(entry.Path);
