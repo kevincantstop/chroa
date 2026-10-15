@@ -1,0 +1,32 @@
+<chroa:PluginWindow xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:chroa="clr-namespace:ChroaVideoPlayer.Core.Plugin.UI;assembly=ChroaVideoPlayer.Core"
+                    xmlns:playlist="clr-namespace:ChroaVideoPlayer.Plugins.Playlist"
+                    x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistPluginWindow"
+                    Title="Playlist"
+                    Width="280"
+                    Height="360"
+                    InitialDockSide="Left">
+	<Grid Margin="12" RowDefinitions="Auto,*,Auto">
+		<TextBlock Text="Playlist" FontSize="16" Foreground="White" />
+
+		<ScrollViewer Grid.Row="1" Margin="0,8">
+			<ItemsControl x:Name="ItemHost">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="playlist:PlaylistEntry">
+						<TextBlock Text="{Binding Title}"
+						           ToolTip.Tip="{Binding Path}"
+						           TextTrimming="CharacterEllipsis"
+						           Foreground="#E0E0E0"
+						           Margin="0,2" />
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+
+		<Button Grid.Row="2"
+		        Content="Close"
+		        HorizontalAlignment="Left"
+		        Click="OnCloseClick" />
+	</Grid>
+</chroa:PluginWindow>

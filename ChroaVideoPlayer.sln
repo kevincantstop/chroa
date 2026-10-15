@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer", "ChroaVi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer.Core", "ChroaVideoPlayer.Core\ChroaVideoPlayer.Core.csproj", "{4694E122-22EE-4229-8776-A46230EEAAC0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer.Plugins.Sample", "ChroaVideoPlayer.Plugins.Sample\ChroaVideoPlayer.Plugins.Sample.csproj", "{AC25B315-46D5-4CF4-B93C-552295F47A6F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer.Plugins.Playlist", "ChroaVideoPlayer.Plugins.Playlist\ChroaVideoPlayer.Plugins.Playlist.csproj", "{19930752-773A-4DF7-B569-4EE4F071261A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,18 +43,18 @@ Global
 		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|x64.Build.0 = Release|Any CPU
 		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|x86.ActiveCfg = Release|Any CPU
 		{4694E122-22EE-4229-8776-A46230EEAAC0}.Release|x86.Build.0 = Release|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Debug|x64.Build.0 = Debug|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Debug|x86.Build.0 = Debug|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Release|x64.ActiveCfg = Release|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Release|x64.Build.0 = Release|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Release|x86.ActiveCfg = Release|Any CPU
-		{AC25B315-46D5-4CF4-B93C-552295F47A6F}.Release|x86.Build.0 = Release|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Debug|x64.Build.0 = Debug|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Debug|x86.Build.0 = Debug|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Release|x64.ActiveCfg = Release|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Release|x64.Build.0 = Release|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Release|x86.ActiveCfg = Release|Any CPU
+		{19930752-773A-4DF7-B569-4EE4F071261A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
