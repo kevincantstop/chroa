@@ -13,9 +13,7 @@ public sealed class VideoPlayerSettingsBinder
 {
     public const int DefaultRecentVideoLimit = 30;
 
-    private readonly LocalStore<VideoPlayerSettings> _store = new();
-
-    private readonly LruLimiter<VideoPlayerSettings> _limiter;
+    private readonly LocalStore<VideoPlayerSettings> _store;
 
     private VideoPlayerSettings _row = new();
 
@@ -29,14 +27,8 @@ public sealed class VideoPlayerSettingsBinder
 
     private bool _isApplying;
 
-    public VideoPlayerSettingsBinder(int recentVideoLimit = DefaultRecentVideoLimit)
-    {
-        RecentVideoLimit = recentVideoLimit;
-
-        _limiter = new LruLimiter<VideoPlayerSettings>(_store, nameof(VideoPlayerSettings.LastOpenedUtc));
-    }
-
-    public int RecentVideoLimit { get; }
+    public VideoPlayerSettingsBinder(int recentVideoLimit = DefaultRecentVideoLimit) =>
+        _store = new LocalStore<VideoPlayerSettings>(recentVideoLimit, nameof(VideoPlayerSettings.LastOpenedUtc));
 
     public void Attach(Window window, VideoPlayerViewModel viewModel)
     {
@@ -48,8 +40,6 @@ public sealed class VideoPlayerSettingsBinder
         window.PropertyChanged += OnWindowPropertyChanged;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
         viewModel.Mpv.MediaOpened += OnMediaOpened;
-
-        _limiter.Trim(RecentVideoLimit);
     }
 
     public void Detach()
@@ -159,8 +149,6 @@ public sealed class VideoPlayerSettingsBinder
         _store.Save(path, _row);
 
         _isNew = false;
-
-        _limiter.Trim(RecentVideoLimit);
     }
 
     private void Track(string path)

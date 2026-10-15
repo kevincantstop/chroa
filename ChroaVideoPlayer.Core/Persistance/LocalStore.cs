@@ -13,11 +13,23 @@ public sealed class LocalStore<T> where T : class, new()
     private readonly TableSchema _schema;
     private readonly TableRepository<T> _repository;
     private readonly DeferredSaveQueue _queue;
+    private readonly LruLimiter<T>? _limiter;
     private readonly string _databasePath;
     private readonly string _connectionString;
 
     public LocalStore(string? databasePath = null, TimeSpan? saveDelay = null)
+        : this(null, databasePath, saveDelay)
     {
+    }
+
+    public LocalStore(int limit, string recencyColumn, string? databasePath = null, TimeSpan? saveDelay = null)
+        : this(new LruLimiter<T>(limit, recencyColumn), databasePath, saveDelay)
+    {
+    }
+
+    private LocalStore(LruLimiter<T>? limiter, string? databasePath, TimeSpan? saveDelay)
+    {
+        _limiter = limiter;
         _schema = TableSchema.For<T>();
         _repository = new TableRepository<T>(_schema);
 
@@ -29,6 +41,8 @@ public sealed class LocalStore<T> where T : class, new()
         }.ToString();
 
         _queue = new DeferredSaveQueue(saveDelay ?? DefaultSaveDelay, WritePendingValues);
+
+        _limiter?.Trim(this);
     }
 
     public string TableName => _schema.Name;
@@ -38,7 +52,11 @@ public sealed class LocalStore<T> where T : class, new()
         RequireKey(key);
         if (value is null) throw new ArgumentNullException(nameof(value));
 
-        return Run(nameof(Save), connection => _repository.Save(connection, key, value), false);
+        var saved = Run(nameof(Save), connection => _repository.Save(connection, key, value), false);
+
+        _limiter?.Trim(this);
+
+        return saved;
     }
 
     public T? Get(string key)
