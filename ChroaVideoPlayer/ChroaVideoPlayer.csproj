@@ -10,6 +10,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChroaVideoPlayer.Core\ChroaVideoPlayer.Core.csproj" />
+    <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Sample\ChroaVideoPlayer.Plugins.Sample.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,4 +43,11 @@
   <ItemGroup>
     <Folder Include="Settings\" />
   </ItemGroup>
+
+  <Target Name="CopyPlugins" AfterTargets="Build">
+    <ItemGroup>
+      <PluginFiles Include="..\ChroaVideoPlayer.Plugins.Sample\bin\$(Configuration)\$(TargetFramework)\ChroaVideoPlayer.Plugins.Sample.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(OutDir)Plugins" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

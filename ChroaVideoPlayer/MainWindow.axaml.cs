@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
+using ChroaVideoPlayer.Core.Plugin;
 using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Settings;
 using ChroaVideoPlayer.ViewModels;
@@ -20,6 +21,10 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         DataContext = new MainViewModel(VideoPlayer.ViewModel);
+
+        _pluginWindows = new PluginWindowManager(this);
+
+        PluginMenu.Initialize(_pluginWindows, VideoPlayer.ViewModel, PluginScanner.Load());
 
         VideoPlayer.ViewModel.PropertyChanged += OnPlayerPropertyChanged;
         VideoPlayer.FullScreenToggleRequested += ToggleFullScreen;
@@ -36,6 +41,8 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(3) };
 
     private readonly VideoPlayerSettingsBinder _settings = new();
+
+    private readonly PluginWindowManager _pluginWindows;
 
     private WindowState _stateBeforeFullScreen = WindowState.Normal;
 
@@ -54,6 +61,8 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
+        _pluginWindows.CloseAll();
+
         _settings.Detach();
 
         base.OnClosing(e);

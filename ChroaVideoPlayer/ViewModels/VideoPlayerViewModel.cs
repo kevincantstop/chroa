@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using ChroaVideoPlayer.Core.Mpv;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -56,6 +57,13 @@ namespace ChroaVideoPlayer.ViewModels
         [ObservableProperty]
         public partial bool IsFreeResize { get; set; }
 
+        [ObservableProperty]
+        public partial bool IsPluginMenuOpen { get; set; }
+
+        public ObservableCollection<PluginItem> Plugins { get; } = new();
+
+        public bool HasPlugins => Plugins.Count > 0;
+
         public VideoPlayerViewModel()
         {
             Mpv.VideoAspectDetected += OnVideoAspectDetected;
@@ -108,24 +116,43 @@ namespace ChroaVideoPlayer.ViewModels
         {
             IsSubtitleMenuOpen = !IsSubtitleMenuOpen;
 
-            if (IsSubtitleMenuOpen) IsSpeedMenuOpen = false;
+            if (!IsSubtitleMenuOpen) return;
+
+            IsSpeedMenuOpen = false;
+            IsPluginMenuOpen = false;
         }
 
         public void ToggleSpeedMenu()
         {
             IsSpeedMenuOpen = !IsSpeedMenuOpen;
 
-            if (IsSpeedMenuOpen) IsSubtitleMenuOpen = false;
+            if (!IsSpeedMenuOpen) return;
+
+            IsSubtitleMenuOpen = false;
+            IsPluginMenuOpen = false;
+        }
+
+        public void TogglePluginMenu()
+        {
+            IsPluginMenuOpen = !IsPluginMenuOpen;
+
+            if (!IsPluginMenuOpen) return;
+
+            IsSubtitleMenuOpen = false;
+            IsSpeedMenuOpen = false;
         }
 
         public void CloseSubtitleMenu() => IsSubtitleMenuOpen = false;
 
         public void CloseSpeedMenu() => IsSpeedMenuOpen = false;
 
+        public void ClosePluginMenu() => IsPluginMenuOpen = false;
+
         public void CloseMenus()
         {
             IsSubtitleMenuOpen = false;
             IsSpeedMenuOpen = false;
+            IsPluginMenuOpen = false;
         }
 
 

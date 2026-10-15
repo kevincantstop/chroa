@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ChroaVideoPlayer.ViewModels"
+             xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
+             x:Class="ChroaVideoPlayer.Controls.PluginMenu"
+             x:DataType="vm:MainViewModel">
+	<Grid>
+		<Border Classes="overlay"
+		        HorizontalAlignment="Left"
+		        VerticalAlignment="Top">
+			<chroa:SVGIconButton Icon="/Icons/house.svg"
+			                     ButtonShape="Square"
+			                     ButtonSize="48"
+			                     IconSize="24"
+			                     Click="OnMenuButtonClick" />
+		</Border>
+
+		<Border Classes="overlay subtitleMenu"
+		        HorizontalAlignment="Left"
+		        VerticalAlignment="Top"
+		        Margin="12,52,0,0"
+		        IsVisible="{Binding Player.IsPluginMenuOpen}">
+			<StackPanel>
+				<TextBlock Classes="subtitleHint"
+				           Text="No plugins"
+				           IsVisible="{Binding !Player.HasPlugins}" />
+
+				<ItemsControl ItemsSource="{Binding Player.Plugins}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="vm:PluginItem">
+							<Button Classes="subtitleItem" Click="OnPluginClick">
+								<Grid ColumnDefinitions="18,*,14">
+									<chroa:SvgIcon Grid.Column="0"
+									               Icon="{Binding Icon}"
+									               IconSize="16"
+									               Foreground="#E0E0E0"
+									               VerticalAlignment="Center" />
+									<TextBlock Grid.Column="1" Classes="subtitleLabel" Text="{Binding Label}" />
+									<Border Grid.Column="2" Classes="subtitleDot" IsVisible="{Binding IsOpen}" />
+								</Grid>
+							</Button>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</StackPanel>
+		</Border>
+	</Grid>
+</UserControl>

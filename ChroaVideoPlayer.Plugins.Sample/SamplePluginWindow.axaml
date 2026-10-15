@@ -1,0 +1,18 @@
+<chroa:PluginWindow xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:chroa="clr-namespace:ChroaVideoPlayer.Core.Plugin.UI;assembly=ChroaVideoPlayer.Core"
+                    x:Class="ChroaVideoPlayer.Plugins.Sample.SamplePluginWindow"
+                    Title="Sample"
+                    Width="260"
+                    Height="320"
+                    InitialDockSide="Left">
+	<StackPanel Margin="12" Spacing="8">
+		<TextBlock Text="Sample plugin" FontSize="16" Foreground="White" />
+		<TextBlock Text="Loaded from its own assembly by scanning the Plugins folder."
+		           TextWrapping="Wrap"
+		           Foreground="#AAFFFFFF" />
+		<Button Content="Close"
+		        HorizontalAlignment="Left"
+		        Click="OnCloseClick" />
+	</StackPanel>
+</chroa:PluginWindow>
