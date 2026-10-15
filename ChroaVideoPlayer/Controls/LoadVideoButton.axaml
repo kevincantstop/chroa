@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
+             xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
              mc:Ignorable="d" d:DesignWidth="220" d:DesignHeight="96"
              x:Class="ChroaVideoPlayer.Controls.LoadVideoButton">
 	<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
@@ -11,7 +12,7 @@
 		        Cursor="Hand"
 		        Click="OnButtonClick">
 			<StackPanel Orientation="Horizontal" Spacing="10">
-				<chroa:SvgIcon x:Name="IconElement" Icon="/Icons/film.svg" IconSize="20" VerticalAlignment="Center" />
+				<core:SvgIcon x:Name="IconElement" Icon="/Icons/film.svg" IconSize="20" VerticalAlignment="Center" />
 				<TextBlock x:Name="LabelElement" Text="Load Video" VerticalAlignment="Center" />
 			</StackPanel>
 		</Button>

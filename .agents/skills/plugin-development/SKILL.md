@@ -115,6 +115,19 @@ Rules and knobs:
 
 ## 5. Icons
 
+Inside your own window, render an SVG asset with the same control the player's chrome uses:
+
+```xml
+<core:SvgIcon xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
+              Icon="avares://MyPlugin/Icons/icon.svg"
+              IconSize="14"
+              Foreground="#E0E0E0" />
+```
+
+It draws the path as a stroke in `Foreground`, so an icon that should read as "danger" (a delete button)
+just sets `Foreground` to a red brush. Note it is a *display* control, not a button — wrap it in a `Button`
+and style that yourself.
+
 ```
 avares://MyPlugin/Icons/icon.svg
 ```
@@ -124,6 +137,7 @@ avares://MyPlugin/Icons/icon.svg
 - The SVG should be `viewBox="0 0 24 24"`; nothing is auto-scaled, so any other viewBox renders wrong.
 - Supported elements: `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`. Everything else is
   ignored, and a shape that fails to parse is dropped silently.
+- `Icon` also accepts raw path data (`"M8 6h13"`) — no `.svg` suffix means it is parsed as geometry.
 
 ## 6. Wording in the UI
 

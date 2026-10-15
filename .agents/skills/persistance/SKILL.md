@@ -68,6 +68,9 @@ store.Flush();
   SQLite locking.
 - **Debounce frequent edits** with `QueueSave` (1 s) — a slider drag should not issue a write per pixel.
   One-off events (a video started) can use `Save` directly.
+- **Delete rows, not the database file.** The file stays locked for as long as the process lives (SQLite
+  pools its connections), so a "clear this history" feature must call `LocalStore.Delete` per row instead
+  of deleting or truncating the file.
 - Store UTC (`DateTime.UtcNow`) in any timestamp you intend to order or cap on.
 
 ## Worked example

@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:chroa="clr-namespace:ChroaVideoPlayer.Core.Plugin.UI;assembly=ChroaVideoPlayer.Core"
                     xmlns:playlist="clr-namespace:ChroaVideoPlayer.Plugins.Playlist"
+                    xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
                     x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistPluginWindow"
                     Title="Playlist"
                     Width="460"
@@ -18,8 +19,14 @@
 			           Foreground="White"
 			           VerticalAlignment="Center" />
 			<Button Grid.Column="1"
-			        Content="Close"
-			        Click="OnCloseClick" />
+			        Classes="action"
+			        HorizontalAlignment="Right"
+			        Click="OnCloseClick"
+			        ToolTip.Tip="Close">
+				<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/close.svg"
+				              IconSize="14"
+				              Foreground="#E0E0E0" />
+			</Button>
 		</Grid>
 
 		<ScrollViewer Grid.Row="1"

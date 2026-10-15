@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:ChroaVideoPlayer.ViewModels"
              xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
+             xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
              x:Class="ChroaVideoPlayer.Controls.HomeMenu"
              x:DataType="vm:MainViewModel">
 	<Grid>
@@ -23,7 +24,7 @@
 			<StackPanel>
 				<Button Classes="subtitleItem" Click="OnLoadVideoClick">
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<chroa:SvgIcon Icon="/Icons/film.svg"
+						<core:SvgIcon Icon="/Icons/film.svg"
 						               IconSize="16"
 						               Foreground="#E0E0E0"
 						               VerticalAlignment="Center" />
@@ -39,7 +40,7 @@
 							<Button Classes="subtitleItem" Click="OnPluginClick">
 								<Grid ColumnDefinitions="*,14">
 									<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
-										<chroa:SvgIcon Icon="{Binding Icon}"
+										<core:SvgIcon Icon="{Binding Icon}"
 										               IconSize="16"
 										               Foreground="#E0E0E0"
 										               VerticalAlignment="Center" />

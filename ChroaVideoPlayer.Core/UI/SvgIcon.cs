@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -15,7 +16,7 @@ using VAlign = Avalonia.Layout.VerticalAlignment;
 
 using Path = Avalonia.Controls.Shapes.Path;
 
-namespace ChroaVideoPlayer.Controls;
+namespace ChroaVideoPlayer.Core.UI;
 
 public class SvgIcon : Decorator
 {
@@ -116,9 +117,11 @@ public class SvgIcon : Decorator
         Geometry? geometry = null;
         try
         {
+            var owner = Assembly.GetEntryAssembly() ?? typeof(SvgIcon).Assembly;
+
             var uri = source.StartsWith("avares://", StringComparison.OrdinalIgnoreCase)
                 ? new Uri(source)
-                : new Uri($"avares://{typeof(SvgIcon).Assembly.GetName().Name}/{source.TrimStart('/')}");
+                : new Uri($"avares://{owner.GetName().Name}/{source.TrimStart('/')}");
 
             using var stream = AssetLoader.Open(uri, null);
             using var reader = new StreamReader(stream);
