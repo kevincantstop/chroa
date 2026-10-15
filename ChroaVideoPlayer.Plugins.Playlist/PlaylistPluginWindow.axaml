@@ -31,8 +31,8 @@
 
 		<Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,10">
 			<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/plus.svg"
-			                    ButtonSize="28"
-			                    IconSize="14"
+			                    ButtonSize="32"
+			                    IconSize="20"
 			                    HorizontalAlignment="Left"
 			                    VerticalAlignment="Center"
 			                    Click="OnAddClick"
@@ -43,7 +43,7 @@
 			                    Classes="remove"
 			                    Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/trash.svg"
 			                    ButtonSize="28"
-			                    IconSize="14"
+			                    IconSize="18"
 			                    Foreground="#FF6B6B"
 			                    VerticalAlignment="Center"
 			                    IsVisible="False"
