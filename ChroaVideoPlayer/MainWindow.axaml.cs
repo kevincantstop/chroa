@@ -26,9 +26,9 @@ public partial class MainWindow : Window
 
         _pluginWindows = new PluginWindowManager(this);
 
-        _eventBus = new EventBus();
+        _eventBus = new UIEventBus(new EventBus());
 
-        VideoPlayer.ViewModel.Mpv.Events = _eventBus;
+        VideoPlayer.Events = _eventBus;
 
         var plugins = PluginScanner.Load();
 

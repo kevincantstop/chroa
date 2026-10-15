@@ -11,6 +11,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using ChroaVideoPlayer.Core.EventBus;
 using ChroaVideoPlayer.ViewModels;
 
 namespace ChroaVideoPlayer.Controls;
@@ -24,6 +25,8 @@ public partial class MpvVideoPlayer : UserControl
         AvaloniaProperty.Register<MpvVideoPlayer, bool>(nameof(IsTopMost));
 
     public VideoPlayerViewModel ViewModel { get; } = new();
+
+    public IEventBus? Events { get; set; }
 
     public event Action? FullScreenToggleRequested;
 
@@ -53,6 +56,8 @@ public partial class MpvVideoPlayer : UserControl
         VolumeBar.Committed += OnBarDragCommitted;
 
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        ViewModel.Mpv.MediaOpened += OnMediaOpened;
 
         _copyFeedbackTimer.Tick += OnCopyFeedbackTick;
 
@@ -91,6 +96,15 @@ public partial class MpvVideoPlayer : UserControl
     private void OnBarDragCommitted(double fraction) => ViewModel.IsDragging = false;
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) => ApplyState();
+
+    private void OnMediaOpened(object? sender, EventArgs e)
+    {
+        var path = ViewModel.Mpv.CurrentFile;
+
+        if (string.IsNullOrEmpty(path)) return;
+
+        Events?.Publish(new VideoPlayed(path));
+    }
 
     private void OnPlayerPointerPressed(object? sender, PointerPressedEventArgs e)
     {

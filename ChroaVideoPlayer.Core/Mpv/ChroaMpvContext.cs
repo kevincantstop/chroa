@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using ChroaVideoPlayer.Core.EventBus;
 using HanumanInstitute.LibMpv;
 using HanumanInstitute.LibMpv.Core;
 
@@ -36,8 +35,6 @@ public sealed partial class ChroaMpvContext
 
     public string? CurrentFile => _currentFile;
 
-    public IEventBus? Events { get; set; }
-
     public MpvContext? ViewContext
     {
         get => _context;
@@ -66,8 +63,6 @@ public sealed partial class ChroaMpvContext
     public void Play(string path)
     {
         _currentFile = path;
-
-        Events?.Publish(new VideoPlayed(path));
 
         var context = _context;
         if (context is null)
