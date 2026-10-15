@@ -11,6 +11,10 @@
 		<TextBlock Text="A minimal window provided as a starting point."
 		           TextWrapping="Wrap"
 		           Foreground="#AAFFFFFF" />
+		<TextBlock x:Name="LastPlayed"
+		           Text="Nothing played yet"
+		           TextTrimming="CharacterEllipsis"
+		           Foreground="#AAFFFFFF" />
 		<Button Content="Close"
 		        HorizontalAlignment="Left"
 		        Click="OnCloseClick" />

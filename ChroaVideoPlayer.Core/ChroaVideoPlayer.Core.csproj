@@ -14,5 +14,6 @@
   <ItemGroup>
     <Folder Include="Persistance\" />
     <Folder Include="Plugin\UI\" />
+    <Folder Include="EventBus\" />
   </ItemGroup>
 </Project>

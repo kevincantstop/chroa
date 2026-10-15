@@ -10,5 +10,8 @@ public partial class SamplePluginWindow : PluginWindow
         InitializeComponent();
     }
 
+    public void ShowLastPlayed(string? path) =>
+        LastPlayed.Text = string.IsNullOrEmpty(path) ? "Nothing played yet" : path;
+
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 }
