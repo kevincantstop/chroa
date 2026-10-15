@@ -5,62 +5,58 @@
                     xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
                     x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistPluginWindow"
                     Title="Playlist"
-                    Width="460"
-                    Height="380"
+                    Width="680"
+                    Height="780"
                     InitialDockSide="Left">
 	<chroa:PluginWindow.Styles>
 		<StyleInclude Source="avares://ChroaVideoPlayer.Plugins.Playlist/Styles/PlaylistWindow.axaml" />
 	</chroa:PluginWindow.Styles>
 
-	<Grid Margin="12" RowDefinitions="Auto,*">
-		<Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="0,0,0,8">
+	<Grid Margin="12" RowDefinitions="Auto,Auto,*">
+		<Grid ColumnDefinitions="*,Auto">
 			<TextBlock Text="Playlist"
 			           FontSize="16"
 			           Foreground="White"
 			           VerticalAlignment="Center" />
 
-			<Button Grid.Column="2"
+			<Button Grid.Column="1"
+			        Classes="action close"
+			        HorizontalAlignment="Right"
+			        Click="OnCloseClick"
+			        ToolTip.Tip="Close">
+				<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/close.svg"
+				              IconSize="16"
+				              Foreground="#E0E0E0" />
+			</Button>
+		</Grid>
+
+		<Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,10">
+			<Button Grid.Column="1"
 			        x:Name="DeleteSelectedButton"
 			        Classes="batch"
 			        IsVisible="False"
 			        Click="OnDeleteSelectedClick"
 			        ToolTip.Tip="Remove selected videos">
-				<StackPanel Orientation="Horizontal" Spacing="6">
-					<Path Data="M10 11v6 M14 11v6 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6 M3 6h18 M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-					      Stroke="#FF6B6B"
-					      StrokeThickness="2"
-					      StrokeLineCap="Round"
-					      StrokeJoin="Round"
-					      Stretch="Uniform"
-					      Width="12"
-					      Height="12" />
-					<TextBlock Text="Delete"
-					           FontSize="12"
-					           Foreground="#FF6B6B"
-					           VerticalAlignment="Center" />
-				</StackPanel>
+				<Path Data="M10 11v6 M14 11v6 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6 M3 6h18 M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+				      Stroke="#FF6B6B"
+				      StrokeThickness="2"
+				      StrokeLineCap="Round"
+				      StrokeJoin="Round"
+				      Stretch="Uniform"
+				      Width="14"
+				      Height="14" />
 			</Button>
 
-			<TextBlock Grid.Column="3"
+			<TextBlock Grid.Column="2"
 			           x:Name="CountText"
 			           Classes="count" />
-
-			<Button Grid.Column="4"
-			        Classes="action"
-			        HorizontalAlignment="Right"
-			        Click="OnCloseClick"
-			        ToolTip.Tip="Close">
-				<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/close.svg"
-				              IconSize="14"
-				              Foreground="#E0E0E0" />
-			</Button>
 		</Grid>
 
-		<ScrollViewer Grid.Row="1"
+		<ScrollViewer Grid.Row="2"
 		              HorizontalScrollBarVisibility="Auto"
 		              VerticalScrollBarVisibility="Auto">
 			<Grid Grid.IsSharedSizeScope="True" RowDefinitions="Auto,*">
-				<Grid Grid.Row="0" Height="28" Background="#1AFFFFFF">
+				<Grid Grid.Row="0" Height="32" Background="#1AFFFFFF">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="28" />
 						<ColumnDefinition Width="80" SharedSizeGroup="Duration" />
@@ -69,7 +65,7 @@
 						<ColumnDefinition Width="6" />
 						<ColumnDefinition Width="260" SharedSizeGroup="Path" />
 						<ColumnDefinition Width="6" />
-						<ColumnDefinition Width="60" />
+						<ColumnDefinition Width="68" />
 					</Grid.ColumnDefinitions>
 
 					<CheckBox Grid.Column="0"
@@ -90,7 +86,7 @@
 					<ItemsControl.ItemTemplate>
 						<DataTemplate x:DataType="playlist:PlaylistEntry">
 							<Grid Classes="row interactive"
-							      Height="28"
+							      Height="32"
 							      Classes.playing="{Binding IsPlaying}"
 							      ToolTip.Tip="Double click to play"
 							      DoubleTapped="OnRowDoubleTapped">
@@ -102,7 +98,7 @@
 									<ColumnDefinition Width="6" />
 									<ColumnDefinition Width="260" SharedSizeGroup="Path" />
 									<ColumnDefinition Width="6" />
-									<ColumnDefinition Width="60" />
+									<ColumnDefinition Width="68" />
 								</Grid.ColumnDefinitions>
 
 								<Border Grid.ColumnSpan="8"

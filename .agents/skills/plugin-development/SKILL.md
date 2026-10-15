@@ -137,10 +137,53 @@ Rules and knobs:
   double click on one never reaches the row underneath it. Stock Fluent checkboxes are drawn for a light
   surface, though: on the black panel the unchecked border (`#99000000`) is nearly invisible and the checked
   fill is the blue accent, so restyle the template parts `Border#NormalRectangle` and `Path#CheckGlyph`
-  (and set `MinHeight="0"`, since the default 32 px is taller than a 28 px row — fill the box for
+  (and set `MinHeight="0"`, since the default 32 px box otherwise dictates the row height — fill the box for
   `:indeterminate` too, or its glyph lands dark-on-black).
 
-## 5. Icons
+## 5. Visual conventions
+
+A plugin window sits next to the player, so it has to look like it belongs there. These are the rules the
+playlist window was tuned to; follow them instead of inventing a look.
+
+**The title bar holds the title and the close button — nothing else.** Actions, counters and filters belong on
+a row of their own between the title and the content, right-aligned, so the close button never moves around.
+
+| Element | Spec |
+| --- | --- |
+| Window title | `FontSize="16"`, `Foreground="White"` |
+| Body text — list cells, table headers, counters, button labels | `FontSize="14"` |
+| Icon buttons in the content (per-row actions, a contextual delete) | 28×28, `CornerRadius="14"`, icon 14 px |
+| The close button in the title bar | 32×32, `CornerRadius="16"`, icon 16 px |
+| List rows | `Height="32"` |
+
+One rule behind those numbers: **the icon takes about half the button's side and the rest is padding**, which
+is what the player's own `SVGIconButton` does (`ButtonSize` 32, `IconSize` 16, `ButtonShape = Circle` →
+`CornerRadius = min(width, height) / 2`). Copy its state colours too:
+
+| State | Neutral | Destructive |
+| --- | --- | --- |
+| Background | `Transparent` | `Transparent` |
+| Hover | `#40FFFFFF` | `#33FF6B6B` |
+| Pressed | `#66FFFFFF` | `#55FF6B6B` |
+| Icon | `#E0E0E0` | `#FF6B6B` |
+
+- Give every button your own class with `Padding="0"`, `BorderThickness="0"` and `Cursor="Hand"` — the stock
+  Fluent `Button` look does not belong on the black panel.
+- **An icon-only button must carry a `ToolTip.Tip`** — that tooltip is its label.
+- Set the pressed state as well as the hover one. A neutral `:pressed` rule also matches your destructive
+  buttons, so give those their own `:pressed` colour or they flash white.
+- **Size a column that holds icon buttons to fit them**: two 28 px circles plus a 6 px gap need 68 px, and the
+  row that carries them has to be a few pixels taller than the buttons.
+- Colour is monochrome by design: white and black at various alphas (`#XXFFFFFF`, `#XX000000`) plus `#E0E0E0`
+  and `#B0FFFFFF` for text. The destructive red above is the only exception — never introduce an accent
+  colour, and restyle any stock Fluent control you use, because the theme brings its blue accent with it
+  (see the checkbox note in §4).
+- Leave room between the title and the content below: the playlist window puts `Margin="0,12,0,10"` on the row
+  between them, so the title never sits on top of the content.
+- Keep ~16 px between a contextual action and a right-aligned counter, and give such a counter a *left* margin
+  only, so its right edge stays flush with the close button.
+
+## 6. Icons
 
 Inside your own window, render an SVG asset with the same control the player's chrome uses:
 
@@ -166,13 +209,13 @@ avares://MyPlugin/Icons/icon.svg
   ignored, and a shape that fails to parse is dropped silently.
 - `Icon` also accepts raw path data (`"M8 6h13"`) — no `.svg` suffix means it is parsed as geometry.
 
-## 6. Wording in the UI
+## 7. Wording in the UI
 
 Never expose implementation language to the user. `Label`, window titles and every string inside the
 window are user-facing: write "Playlist", not "Playlist plugin", and never mention assemblies, scanning or
 add-ins.
 
-## 7. State and lifecycle
+## 8. State and lifecycle
 
 - `CreateWindow()` runs **every time** the user opens the plugin — a new window instance each time. Keep
   state on the plugin object, not on the window.
@@ -180,12 +223,12 @@ add-ins.
 - Handing state to the window works well with an `ObservableCollection` bound to an `ItemsControl`: the
   window then updates live without the plugin holding a reference to it.
 
-## 8. Dependencies
+## 9. Dependencies
 
 Stay on `ChroaVideoPlayer.Core` + `Avalonia`. The build currently copies only the plugin's own assembly
 into `Plugins`, so a third-party NuGet dependency is not resolvable at runtime yet — ask before adding one.
 
-## 9. Traps worth knowing
+## 10. Traps worth knowing
 
 - **Renaming or deleting a plugin project leaves its old DLL in `Plugins\`** — the stale plugin still loads
   and appears in the menu a second time. Delete the file after such a change.
@@ -195,7 +238,7 @@ into `Plugins`, so a third-party NuGet dependency is not resolvable at runtime y
 - Anything that publishes player events belongs in the control/window layer (`MpvVideoPlayer`), never in
   `ChroaMpvContext` or the view model.
 
-## 10. Trust
+## 11. Trust
 
 Plugins run **in the player's process with full trust** — no sandbox, no isolated load context, no unload.
 Only ship or install plugins you trust.
@@ -213,6 +256,10 @@ On machines without network access the Avalonia telemetry task can fail (`MSB401
 - [ ] `Enabled` set honestly (`false` = scanned but hidden)
 - [ ] `Context` declared as an auto-property for the player to fill in
 - [ ] Interactive rows/canvases marked `Classes="interactive"`
+- [ ] Title bar carries only the title and the close button
+- [ ] Icon buttons are round and follow the player's proportions (content 28×28 / radius 14 / icon 14,
+      close 32×32 / radius 16 / icon 16) with its hover, pressed and red-destructive colours
+- [ ] Body text 14, window title 16, no accent colour introduced
 - [ ] Icon uses a full `avares://` URI and a `0 0 24 24` viewBox
 - [ ] Window derives from `PluginWindow` with a public parameterless constructor
 - [ ] Event handlers assumed to run on the UI thread

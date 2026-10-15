@@ -2,7 +2,7 @@
 
 	<Style Selector="TextBlock.head">
 		<Setter Property="Foreground" Value="#B0FFFFFF" />
-		<Setter Property="FontSize" Value="12" />
+		<Setter Property="FontSize" Value="14" />
 		<Setter Property="VerticalAlignment" Value="Center" />
 		<Setter Property="Margin" Value="8,0,0,0" />
 		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -10,7 +10,7 @@
 
 	<Style Selector="TextBlock.cell">
 		<Setter Property="Foreground" Value="#E0E0E0" />
-		<Setter Property="FontSize" Value="12" />
+		<Setter Property="FontSize" Value="14" />
 		<Setter Property="VerticalAlignment" Value="Center" />
 		<Setter Property="Margin" Value="8,0,0,0" />
 		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -36,34 +36,50 @@
 		<Setter Property="Background" Value="Transparent" />
 		<Setter Property="BorderThickness" Value="0" />
 		<Setter Property="Padding" Value="0" />
-		<Setter Property="Width" Value="24" />
-		<Setter Property="Height" Value="24" />
-		<Setter Property="CornerRadius" Value="4" />
+		<Setter Property="Width" Value="28" />
+		<Setter Property="Height" Value="28" />
+		<Setter Property="CornerRadius" Value="14" />
 		<Setter Property="Cursor" Value="Hand" />
 		<Setter Property="HorizontalContentAlignment" Value="Center" />
 		<Setter Property="VerticalContentAlignment" Value="Center" />
 	</Style>
 
+	<Style Selector="Button.action.close">
+		<Setter Property="Width" Value="32" />
+		<Setter Property="Height" Value="32" />
+		<Setter Property="CornerRadius" Value="16" />
+	</Style>
+
 	<Style Selector="Button.action:pointerover /template/ ContentPresenter">
-		<Setter Property="Background" Value="#26FFFFFF" />
+		<Setter Property="Background" Value="#40FFFFFF" />
+	</Style>
+
+	<Style Selector="Button.action:pressed /template/ ContentPresenter">
+		<Setter Property="Background" Value="#66FFFFFF" />
 	</Style>
 
 	<Style Selector="Button.remove:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="#33FF6B6B" />
 	</Style>
 
+	<Style Selector="Button.remove:pressed /template/ ContentPresenter">
+		<Setter Property="Background" Value="#55FF6B6B" />
+	</Style>
+
 	<Style Selector="TextBlock.count">
 		<Setter Property="Foreground" Value="#B0FFFFFF" />
-		<Setter Property="FontSize" Value="12" />
+		<Setter Property="FontSize" Value="14" />
 		<Setter Property="VerticalAlignment" Value="Center" />
-		<Setter Property="Margin" Value="0,0,8,0" />
+		<Setter Property="Margin" Value="16,0,0,0" />
 	</Style>
 
 	<Style Selector="Button.batch">
 		<Setter Property="Background" Value="Transparent" />
 		<Setter Property="BorderThickness" Value="0" />
-		<Setter Property="Padding" Value="8,3" />
-		<Setter Property="CornerRadius" Value="4" />
+		<Setter Property="Padding" Value="0" />
+		<Setter Property="Width" Value="28" />
+		<Setter Property="Height" Value="28" />
+		<Setter Property="CornerRadius" Value="14" />
 		<Setter Property="Cursor" Value="Hand" />
 		<Setter Property="VerticalAlignment" Value="Center" />
 		<Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -72,6 +88,10 @@
 
 	<Style Selector="Button.batch:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="#33FF6B6B" />
+	</Style>
+
+	<Style Selector="Button.batch:pressed /template/ ContentPresenter">
+		<Setter Property="Background" Value="#55FF6B6B" />
 	</Style>
 
 	<Style Selector="CheckBox.check">
@@ -84,10 +104,12 @@
 	</Style>
 
 	<Style Selector="CheckBox.check /template/ Border#NormalRectangle">
+		<Setter Property="Width" Value="14" />
+		<Setter Property="Height" Value="14" />
 		<Setter Property="Background" Value="Transparent" />
 		<Setter Property="BorderBrush" Value="#55FFFFFF" />
 		<Setter Property="BorderThickness" Value="1.5" />
-		<Setter Property="CornerRadius" Value="3" />
+		<Setter Property="CornerRadius" Value="2.5" />
 	</Style>
 
 	<Style Selector="CheckBox.check:pointerover /template/ Border#NormalRectangle">
@@ -105,6 +127,8 @@
 	</Style>
 
 	<Style Selector="CheckBox.check /template/ Path#CheckGlyph">
+		<Setter Property="Width" Value="8" />
+		<Setter Property="Height" Value="8" />
 		<Setter Property="Fill" Value="#101010" />
 	</Style>
 </Styles>
