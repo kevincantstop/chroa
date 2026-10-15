@@ -12,5 +12,7 @@ public interface IChroaPlugin
 
     PluginLocation Location { get; }
 
+    bool Enabled { get; }
+
     PluginWindow CreateWindow();
 }

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -30,7 +31,7 @@ public partial class MainWindow : Window
 
         VideoPlayer.Events = _eventBus;
 
-        var plugins = PluginScanner.Load();
+        var plugins = PluginScanner.Load().Where(plugin => plugin.Enabled).ToList();
 
         foreach (var plugin in plugins) (plugin as IChroaPluginEvents)?.SubscribeEvents(_eventBus);
 

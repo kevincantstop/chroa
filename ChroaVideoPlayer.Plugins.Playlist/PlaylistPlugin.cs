@@ -18,6 +18,8 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
     public PluginLocation Location => PluginLocation.MainMenu;
 
+    public bool Enabled => true;
+
     public void SubscribeEvents(IEventSubscriber events) => events.Subscribe<VideoPlayed>(OnVideoPlayed);
 
     public PluginWindow CreateWindow()
