@@ -4,29 +4,77 @@
                     xmlns:playlist="clr-namespace:ChroaVideoPlayer.Plugins.Playlist"
                     x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistPluginWindow"
                     Title="Playlist"
-                    Width="280"
-                    Height="360"
+                    Width="420"
+                    Height="380"
                     InitialDockSide="Left">
-	<Grid Margin="12" RowDefinitions="Auto,*,Auto">
-		<TextBlock Text="Playlist" FontSize="16" Foreground="White" />
+	<chroa:PluginWindow.Styles>
+		<Style Selector="TextBlock.head">
+			<Setter Property="Foreground" Value="#B0FFFFFF" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Margin" Value="8,0,0,0" />
+			<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+		</Style>
+		<Style Selector="TextBlock.cell">
+			<Setter Property="Foreground" Value="#E0E0E0" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Margin" Value="8,0,0,0" />
+			<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+		</Style>
+	</chroa:PluginWindow.Styles>
 
-		<ScrollViewer Grid.Row="1" Margin="0,8">
-			<ItemsControl x:Name="ItemHost">
-				<ItemsControl.ItemTemplate>
-					<DataTemplate x:DataType="playlist:PlaylistEntry">
-						<TextBlock Text="{Binding Title}"
-						           ToolTip.Tip="{Binding Path}"
-						           TextTrimming="CharacterEllipsis"
-						           Foreground="#E0E0E0"
-						           Margin="0,2" />
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
-			</ItemsControl>
+	<Grid Margin="12" RowDefinitions="Auto,*">
+		<Grid ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+			<TextBlock Text="Playlist"
+			           FontSize="16"
+			           Foreground="White"
+			           VerticalAlignment="Center" />
+			<Button Grid.Column="1"
+			        Content="Close"
+			        Click="OnCloseClick" />
+		</Grid>
+
+		<ScrollViewer Grid.Row="1"
+		              HorizontalScrollBarVisibility="Auto"
+		              VerticalScrollBarVisibility="Auto">
+			<Grid Grid.IsSharedSizeScope="True" RowDefinitions="Auto,*">
+				<Grid Grid.Row="0" Height="28" Background="#1AFFFFFF">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="80" SharedSizeGroup="Duration" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="180" SharedSizeGroup="Name" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="260" SharedSizeGroup="Path" />
+					</Grid.ColumnDefinitions>
+
+					<TextBlock Grid.Column="0" Classes="head" Text="Duration" />
+					<GridSplitter Grid.Column="1" Background="Transparent" ResizeDirection="Columns" />
+					<TextBlock Grid.Column="2" Classes="head" Text="Name" />
+					<GridSplitter Grid.Column="3" Background="Transparent" ResizeDirection="Columns" />
+					<TextBlock Grid.Column="4" Classes="head" Text="Path" />
+				</Grid>
+
+				<ItemsControl Grid.Row="1" x:Name="ItemHost">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="playlist:PlaylistEntry">
+							<Grid Height="26">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="80" SharedSizeGroup="Duration" />
+									<ColumnDefinition Width="6" />
+									<ColumnDefinition Width="180" SharedSizeGroup="Name" />
+									<ColumnDefinition Width="6" />
+									<ColumnDefinition Width="260" SharedSizeGroup="Path" />
+								</Grid.ColumnDefinitions>
+
+								<TextBlock Grid.Column="0" Classes="cell" Text="{Binding DurationText}" />
+								<TextBlock Grid.Column="2" Classes="cell" Text="{Binding Title}" />
+								<TextBlock Grid.Column="4" Classes="cell" Text="{Binding Path}" ToolTip.Tip="{Binding Path}" />
+							</Grid>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</Grid>
 		</ScrollViewer>
-
-		<Button Grid.Row="2"
-		        Content="Close"
-		        HorizontalAlignment="Left"
-		        Click="OnCloseClick" />
 	</Grid>
 </chroa:PluginWindow>

@@ -12,6 +12,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Core.EventBus;
+using ChroaVideoPlayer.Core.Mpv;
 using ChroaVideoPlayer.ViewModels;
 
 namespace ChroaVideoPlayer.Controls;
@@ -36,6 +37,8 @@ public partial class MpvVideoPlayer : UserControl
 
     private readonly DispatcherTimer _copyFeedbackTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
+    private string? _pendingPlayedPath;
+
     public MpvVideoPlayer()
     {
         DataContext = ViewModel;
@@ -58,6 +61,7 @@ public partial class MpvVideoPlayer : UserControl
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         ViewModel.Mpv.MediaOpened += OnMediaOpened;
+        ViewModel.Mpv.ProgressChanged += OnProgressChanged;
 
         _copyFeedbackTimer.Tick += OnCopyFeedbackTick;
 
@@ -101,9 +105,20 @@ public partial class MpvVideoPlayer : UserControl
     {
         var path = ViewModel.Mpv.CurrentFile;
 
-        if (string.IsNullOrEmpty(path)) return;
+        _pendingPlayedPath = string.IsNullOrEmpty(path) ? null : path;
+    }
 
-        Events?.Publish(new VideoPlayed(path));
+    private void OnProgressChanged(object? sender, PlaybackProgress progress)
+    {
+        if (_pendingPlayedPath is not { } path) return;
+
+        _pendingPlayedPath = null;
+
+        var duration = double.IsFinite(progress.Duration) && progress.Duration > 0
+            ? TimeSpan.FromSeconds(progress.Duration)
+            : TimeSpan.Zero;
+
+        Events?.Publish(new VideoPlayed(path, duration));
     }
 
     private void OnPlayerPointerPressed(object? sender, PointerPressedEventArgs e)

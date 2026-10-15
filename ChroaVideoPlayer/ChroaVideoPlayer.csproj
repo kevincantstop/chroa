@@ -10,10 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChroaVideoPlayer.Core\ChroaVideoPlayer.Core.csproj" />
-    <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Playlist\ChroaVideoPlayer.Plugins.Playlist.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <Private>false</Private>
-    </ProjectReference>
+    <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Playlist\ChroaVideoPlayer.Plugins.Playlist.csproj" ReferenceOutputAssembly="false" Private="false" IsPlugin="true" />
+    <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Sample\ChroaVideoPlayer.Plugins.Sample.csproj" ReferenceOutputAssembly="false" Private="false" IsPlugin="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,9 +43,9 @@
   </ItemGroup>
 
   <Target Name="CopyPlugins" AfterTargets="Build">
-    <ItemGroup>
-      <PluginFiles Include="..\ChroaVideoPlayer.Plugins.Playlist\bin\$(Configuration)\$(TargetFramework)\ChroaVideoPlayer.Plugins.Playlist.dll" />
-    </ItemGroup>
-    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(OutDir)Plugins" SkipUnchangedFiles="true" />
+    <MSBuild Projects="@(ProjectReference-&gt;WithMetadataValue('IsPlugin', 'true'))" Targets="GetTargetPath">
+      <Output TaskParameter="TargetOutputs" ItemName="PluginAssemblies" />
+    </MSBuild>
+    <Copy SourceFiles="@(PluginAssemblies)" DestinationFolder="$(OutDir)Plugins" SkipUnchangedFiles="true" />
   </Target>
 </Project>

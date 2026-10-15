@@ -35,6 +35,6 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
         if (existing is not null) _entries.Remove(existing);
 
-        _entries.Insert(0, new PlaylistEntry(message.Path));
+        _entries.Insert(0, new PlaylistEntry(message.Path, message.Duration));
     }
 }
