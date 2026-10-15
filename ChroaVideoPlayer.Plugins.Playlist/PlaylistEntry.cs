@@ -2,8 +2,14 @@ using System;
 
 namespace ChroaVideoPlayer.Plugins.Playlist;
 
-public sealed record PlaylistEntry(string Path, TimeSpan Duration)
+public sealed class PlaylistEntry
 {
+    public string Path { get; set; } = string.Empty;
+
+    public TimeSpan Duration { get; set; }
+
+    public DateTime LastPlayedUtc { get; set; }
+
     public string Title => System.IO.Path.GetFileName(Path);
 
     public string DurationText => Duration >= TimeSpan.FromHours(1)

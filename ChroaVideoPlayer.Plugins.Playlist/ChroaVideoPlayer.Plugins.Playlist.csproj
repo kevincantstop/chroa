@@ -15,4 +15,8 @@
   <ItemGroup>
     <AvaloniaResource Include="Icons\**" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Persistance\" />
+  </ItemGroup>
 </Project>
