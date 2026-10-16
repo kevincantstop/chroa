@@ -112,6 +112,8 @@ public class PluginWindow : Window
 
         if (_host is null && Owner is Window owner) SetHost(owner);
 
+        EnsureOwnedByHost();
+
         if (_opened) return;
 
         _opened = true;
@@ -124,6 +126,11 @@ public class PluginWindow : Window
         SetHost(null);
 
         base.OnClosed(e);
+    }
+
+    private void EnsureOwnedByHost()
+    {
+        if (_host is not null) Owner = _host;
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -216,6 +223,8 @@ public class PluginWindow : Window
         var size = PanelSize;
 
         Position = ToWindowPosition(DockedPosition(_side, WindowUtils.GetClientBounds(host), size, _offset));
+
+        WindowUtils.KeepInsideWorkingArea(this, host);
     }
 
     private void ApplyInitialDock()
@@ -346,6 +355,7 @@ public class PluginWindow : Window
             _host.PositionChanged -= OnHostPositionChanged;
             _host.Resized -= OnHostResized;
             _host.PropertyChanged -= OnHostPropertyChanged;
+            _host.Activated -= OnHostActivated;
             _host.Closed -= OnHostClosed;
         }
 
@@ -358,6 +368,7 @@ public class PluginWindow : Window
         host.PositionChanged += OnHostPositionChanged;
         host.Resized += OnHostResized;
         host.PropertyChanged += OnHostPropertyChanged;
+        host.Activated += OnHostActivated;
         host.Closed += OnHostClosed;
 
         Owner = host;
@@ -366,6 +377,8 @@ public class PluginWindow : Window
     private void OnHostPositionChanged(object? sender, PixelPointEventArgs e) => SyncToHost();
 
     private void OnHostResized(object? sender, WindowResizedEventArgs e) => SyncToHost();
+
+    private void OnHostActivated(object? sender, EventArgs e) => SyncToHost();
 
     private void OnHostPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {

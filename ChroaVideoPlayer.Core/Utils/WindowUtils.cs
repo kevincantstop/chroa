@@ -96,9 +96,11 @@ public static class WindowUtils
         return new Size(screen.WorkingArea.Width / scaling, screen.WorkingArea.Height / scaling);
     }
 
-    public static void KeepInsideWorkingArea(Window window)
+    public static void KeepInsideWorkingArea(Window window, Window? anchor = null)
     {
-        var screen = window.Screens.ScreenFromWindow(window) ?? window.Screens.Primary;
+        var screen = (anchor is not null ? anchor.Screens.ScreenFromWindow(anchor) : null)
+            ?? window.Screens.ScreenFromWindow(window)
+            ?? window.Screens.Primary;
         if (screen is null) return;
 
         var scaling = screen.Scaling > 0 ? screen.Scaling : 1.0;

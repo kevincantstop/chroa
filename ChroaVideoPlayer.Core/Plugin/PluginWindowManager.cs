@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Avalonia.Controls;
 using ChroaVideoPlayer.Core.Plugin.UI;
+using ChroaVideoPlayer.Core.Utils;
 
 namespace ChroaVideoPlayer.Core.Plugin;
 
@@ -21,6 +22,15 @@ public sealed class PluginWindowManager
     {
         if (_windows.TryGetValue(plugin, out var existing))
         {
+            if (!existing.IsVisible)
+            {
+                existing.Show();
+
+                WindowUtils.KeepInsideWorkingArea(existing, _host);
+
+                return;
+            }
+
             existing.Close();
 
             return;
