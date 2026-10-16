@@ -6,7 +6,7 @@
                     x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistPluginWindow"
                     Title="Playlist"
                     Width="680"
-                    Height="720"
+                    Height="770"
                     InitialDockSide="Left"
                     DragDrop.AllowDrop="True"
                     DragDrop.DragOver="OnFileDragOver"
