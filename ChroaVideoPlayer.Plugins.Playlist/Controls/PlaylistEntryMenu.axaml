@@ -2,14 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
              x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistEntryMenu">
-	<MenuItem Header="Play" Click="OnPlayClick">
+	<MenuItem Header="Play" x:Name="PlayItem" Click="OnPlayClick">
 		<MenuItem.Icon>
 			<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play.svg"
 			              IconSize="14" />
 		</MenuItem.Icon>
 	</MenuItem>
 
-	<MenuItem Header="Show in folder" Click="OnRevealClick">
+	<MenuItem Header="Show in folder" x:Name="RevealItem" Click="OnRevealClick">
 		<MenuItem.Icon>
 			<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/folder.svg"
 			              IconSize="14" />

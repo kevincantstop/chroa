@@ -99,7 +99,8 @@
 							      Height="32"
 							      Classes.playing="{Binding IsPlaying}"
 							      Classes.selected="{Binding IsSelected}"
-							      ToolTip.Tip="Double click to play"
+							      Classes.missing="{Binding IsMissing}"
+							      ToolTip.Tip="{Binding RowTip}"
 							      DoubleTapped="OnRowDoubleTapped"
 							      ContextRequested="OnRowContextRequested">
 								<Grid.ColumnDefinitions>
@@ -126,7 +127,16 @@
 
 								<TextBlock Grid.Column="1" Classes="cell" Text="{Binding DurationText}" />
 								<TextBlock Grid.Column="3" Classes="cell" Text="{Binding Title}" />
-								<TextBlock Grid.Column="5" Classes="cell" Text="{Binding Path}" ToolTip.Tip="{Binding Path}" />
+								<Grid Grid.Column="5" ColumnDefinitions="Auto,*">
+									<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/close.svg"
+									              IconSize="12"
+									              Foreground="#FF6B6B"
+									              Margin="8,0,0,0"
+									              HorizontalAlignment="Left"
+									              VerticalAlignment="Center"
+									              IsVisible="{Binding IsMissing}" />
+									<TextBlock Grid.Column="1" Classes="cell" Text="{Binding Path}" ToolTip.Tip="{Binding Path}" />
+								</Grid>
 
 								<StackPanel Grid.Column="7"
 								            Orientation="Horizontal"

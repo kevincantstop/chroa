@@ -41,6 +41,18 @@
 		<Setter Property="Background" Value="#40FFFFFF" />
 	</Style>
 
+	<Style Selector="Grid.row.missing">
+		<Setter Property="Background" Value="#33FF6B6B" />
+	</Style>
+
+	<Style Selector="Grid.row.missing:pointerover">
+		<Setter Property="Background" Value="#44FF6B6B" />
+	</Style>
+
+	<Style Selector="Grid.row.missing TextBlock.cell">
+		<Setter Property="Foreground" Value="#FF6B6B" />
+	</Style>
+
 	<Style Selector="core|SVGIconButton.remove:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="#33FF6B6B" />
 	</Style>

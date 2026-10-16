@@ -6,6 +6,8 @@ namespace ChroaVideoPlayer.Plugins.Playlist;
 
 public partial class PlaylistEntryMenu : ContextMenu
 {
+    private PlaylistEntry? _entry;
+
     protected override Type StyleKeyOverride => typeof(ContextMenu);
 
     public PlaylistEntryMenu()
@@ -19,7 +21,19 @@ public partial class PlaylistEntryMenu : ContextMenu
 
     public event Action<PlaylistEntry>? RevealRequested;
 
-    public PlaylistEntry? Entry { get; set; }
+    public PlaylistEntry? Entry
+    {
+        get => _entry;
+        set
+        {
+            _entry = value;
+
+            var missing = value?.IsMissing ?? false;
+
+            PlayItem.IsEnabled = !missing;
+            RevealItem.IsEnabled = !missing;
+        }
+    }
 
     private void OnPlayClick(object? sender, RoutedEventArgs e)
     {

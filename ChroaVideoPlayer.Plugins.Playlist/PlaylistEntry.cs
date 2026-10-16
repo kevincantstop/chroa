@@ -9,6 +9,8 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     private bool _isSelected;
 
+    private bool _isMissing;
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Path { get; set; } = string.Empty;
@@ -21,6 +23,10 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     public bool IsSelected => _isSelected;
 
+    public bool IsMissing => _isMissing;
+
+    public string RowTip => _isMissing ? "File not found" : "Double click to play";
+
     public string Title => System.IO.Path.GetFileName(Path);
 
     public string DurationText => Duration <= TimeSpan.Zero
@@ -32,6 +38,16 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
     public void MarkPlaying(bool playing) => SetFlag(ref _isPlaying, playing, nameof(IsPlaying));
 
     public void MarkSelected(bool selected) => SetFlag(ref _isSelected, selected, nameof(IsSelected));
+
+    public void MarkMissing(bool missing)
+    {
+        if (_isMissing == missing) return;
+
+        _isMissing = missing;
+
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsMissing)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RowTip)));
+    }
 
     private void SetFlag(ref bool field, bool value, string name)
     {

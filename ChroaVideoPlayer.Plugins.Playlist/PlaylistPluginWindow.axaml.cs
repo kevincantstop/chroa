@@ -41,6 +41,8 @@ public partial class PlaylistPluginWindow : PluginWindow
 
         ItemHost.ItemsSource = entries;
 
+        foreach (var entry in entries) entry.MarkMissing(!File.Exists(entry.Path));
+
         RefreshState();
     }
 
@@ -146,12 +148,18 @@ public partial class PlaylistPluginWindow : PluginWindow
         if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
         if (sender is not Grid { DataContext: PlaylistEntry entry }) return;
 
+        entry.MarkMissing(!File.Exists(entry.Path));
+
+        if (entry.IsMissing) return;
+
         PlayRequested?.Invoke(entry);
     }
 
     private void OnRowContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         if (sender is not Grid { DataContext: PlaylistEntry entry }) return;
+
+        entry.MarkMissing(!File.Exists(entry.Path));
 
         RowMenu.Entry = entry;
 
