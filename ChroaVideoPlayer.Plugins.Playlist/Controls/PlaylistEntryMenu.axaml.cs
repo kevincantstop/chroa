@@ -17,6 +17,8 @@ public partial class PlaylistEntryMenu : ContextMenu
 
     public event Action<PlaylistEntry>? DeleteRequested;
 
+    public event Action<PlaylistEntry>? RevealRequested;
+
     public PlaylistEntry? Entry { get; set; }
 
     private void OnPlayClick(object? sender, RoutedEventArgs e)
@@ -31,5 +33,12 @@ public partial class PlaylistEntryMenu : ContextMenu
         if (Entry is not { } entry) return;
 
         DeleteRequested?.Invoke(entry);
+    }
+
+    private void OnRevealClick(object? sender, RoutedEventArgs e)
+    {
+        if (Entry is not { } entry) return;
+
+        RevealRequested?.Invoke(entry);
     }
 }

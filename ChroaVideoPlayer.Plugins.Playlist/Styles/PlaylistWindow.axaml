@@ -25,6 +25,14 @@
 		<Setter Property="Background" Value="#1AFFFFFF" />
 	</Style>
 
+	<Style Selector="Grid.row.selected">
+		<Setter Property="Background" Value="#26FFFFFF" />
+	</Style>
+
+	<Style Selector="Grid.row.selected:pointerover">
+		<Setter Property="Background" Value="#33FFFFFF" />
+	</Style>
+
 	<Style Selector="Grid.row.playing">
 		<Setter Property="Background" Value="#33FFFFFF" />
 	</Style>

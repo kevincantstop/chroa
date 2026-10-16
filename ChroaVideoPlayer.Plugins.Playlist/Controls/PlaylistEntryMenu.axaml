@@ -2,5 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistEntryMenu">
 	<MenuItem Header="Play" Click="OnPlayClick" />
+	<MenuItem Header="Show in folder" Click="OnRevealClick" />
 	<MenuItem Header="Remove from playlist" Click="OnDeleteClick" />
 </ContextMenu>

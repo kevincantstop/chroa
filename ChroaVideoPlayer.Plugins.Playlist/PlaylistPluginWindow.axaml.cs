@@ -154,9 +154,20 @@ public partial class PlaylistPluginWindow : PluginWindow
         if (sender is not Grid { DataContext: PlaylistEntry entry }) return;
 
         RowMenu.Entry = entry;
+
+        if (entry.IsSelected) return;
+
+        if (_entries is { } entries)
+            foreach (var other in entries) other.MarkSelected(false);
+
+        entry.MarkSelected(true);
+
+        RefreshState();
     }
 
     private void OnMenuPlayRequested(PlaylistEntry entry) => PlayRequested?.Invoke(entry);
+
+    private void OnMenuRevealRequested(PlaylistEntry entry) => Reveal(entry.Path);
 
     private void OnMenuDeleteRequested(PlaylistEntry entry) => DeleteRequested?.Invoke([entry]);
 

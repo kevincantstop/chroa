@@ -89,6 +89,7 @@
 					<ItemsControl.ContextMenu>
 						<playlist:PlaylistEntryMenu x:Name="RowMenu"
 						                            PlayRequested="OnMenuPlayRequested"
+						                            RevealRequested="OnMenuRevealRequested"
 						                            DeleteRequested="OnMenuDeleteRequested" />
 					</ItemsControl.ContextMenu>
 
@@ -97,6 +98,7 @@
 							<Grid Classes="row interactive"
 							      Height="32"
 							      Classes.playing="{Binding IsPlaying}"
+							      Classes.selected="{Binding IsSelected}"
 							      ToolTip.Tip="Double click to play"
 							      DoubleTapped="OnRowDoubleTapped"
 							      ContextRequested="OnRowContextRequested">
