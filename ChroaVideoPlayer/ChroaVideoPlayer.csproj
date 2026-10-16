@@ -43,9 +43,15 @@
   </ItemGroup>
 
   <Target Name="CopyPlugins" AfterTargets="Build">
-    <MSBuild Projects="@(ProjectReference-&gt;WithMetadataValue('IsPlugin', 'true'))" Targets="GetTargetPath">
+    <MSBuild Projects="@(ProjectReference-&gt;WithMetadataValue('IsPlugin', 'true'))"
+             Targets="GetTargetPath"
+             RemoveProperties="RuntimeIdentifier;SelfContained;RuntimeIdentifiers">
       <Output TaskParameter="TargetOutputs" ItemName="PluginAssemblies" />
     </MSBuild>
     <Copy SourceFiles="@(PluginAssemblies)" DestinationFolder="$(OutDir)Plugins" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyPluginsToPublish" AfterTargets="Publish" DependsOnTargets="CopyPlugins">
+    <Copy SourceFiles="@(PluginAssemblies)" DestinationFolder="$(PublishDir)Plugins" SkipUnchangedFiles="true" />
   </Target>
 </Project>

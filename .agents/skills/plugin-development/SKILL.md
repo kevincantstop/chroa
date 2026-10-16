@@ -284,6 +284,14 @@ into `Plugins`, so a third-party NuGet dependency is not resolvable at runtime y
   and appears in the menu a second time. Delete the file after such a change.
 - A plugin DLL is only refreshed by a build, and a running player locks its own output — close the player
   before rebuilding, or the copy step fails with `MSB3021` / `MSB3027`.
+- **A RID publish asks for the plugin's target path *with* the RID, but the plugin is built *without* one.**
+  Under `dotnet publish -r win-x64`, `GetTargetPath` answers `…\bin\Release\net10.0\win-x64\MyPlugin.dll` while
+  the plugin really lands in `…\bin\Release\net10.0\MyPlugin.dll`, so the copy dies with `MSB3030`. That is why
+  the target passes `RemoveProperties="RuntimeIdentifier;SelfContained;RuntimeIdentifiers"`; do not "fix" it by
+  giving the plugin projects a runtime identifier instead.
+- The plugins are deliberately copied twice: `AfterTargets="Build"` into `$(OutDir)Plugins` (what a local run
+  loads) and `AfterTargets="Publish"` into `$(PublishDir)Plugins`, because files written into the build output
+  by a custom target are not part of the publish item list and would otherwise be missing from a release.
 - Plugins are loaded from `Plugins\` at startup only; there is no reload.
 - Anything that publishes player events belongs in the control/window layer (`MpvVideoPlayer`), never in
   `ChroaMpvContext` or the view model.
