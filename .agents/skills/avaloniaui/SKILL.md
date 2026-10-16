@@ -135,3 +135,69 @@ The context-menu bug took nine variants. The method that found it, in order:
    said "opened".
 5. Run the failing case **on the real platform** — headless can differ precisely where popups and sizing are
    concerned.
+6. **Do not fix by deduction.** Three successive "plausible cause" fixes changed nothing, because each one was
+   verified only for the quantity that *felt* wrong (visibility, minimise state, position) while the quantity
+   that actually changed was one nobody had measured yet (z-order). Reproduce the state first, then measure
+   every quantity that could differ and compare it against a healthy run of the same steps.
+
+## 8. A window that is "open but invisible"
+
+A window can be `IsVisible == true`, `WindowState == Normal`, at a sane `Position`, and still be impossible to
+see — because it is **covered**. Avalonia's API cannot tell you the z-order; Win32 can. Reconcile the four
+cases before touching anything:
+
+| Symptom | What it is | How to tell |
+| --- | --- | --- |
+| `IsVisible == false` | hidden (`Hide()`, or `_hiddenByHost` in `PluginWindow`) | Avalonia alone |
+| `WindowState == Minimized` | minimized, often as a side effect of the owner window | Avalonia alone |
+| rect outside the screen bounds | off-screen (docking math, or a position set while the screen was unknown) | `GetWindowRect` |
+| **all of the above look normal** | **covered — a z-order problem** | `GetWindow(hwnd, GW_OWNER)` + `EnumWindows` order |
+
+What the last row looked like in this repository: the plugin window was not above the player, so a taskbar
+focus cycle (player deactivates, gets re-activated) left it hidden behind the player — and because the two
+overlapped, "not visible" was indistinguishable from "closed", which is why the menu needed two clicks.
+
+The cause, measured: **`Owner` only takes effect when it is set after `Show()`.** Assigning it before leaves
+`GW_OWNER != host` — the window is not an owned window at all, and Windows then makes no promise about keeping
+it above the owner. Re-asserting `Owner` in `OnOpened` flipped both facts:
+
+| | `GW_OWNER == host` | z-order (0 = topmost) | verdict |
+| --- | --- | --- | --- |
+| `Owner` set before `Show()` only | False | plugin 31, host 29 | covered ✗ |
+| `Owner` re-asserted after `Show()` | True | plugin 29, host 30 | above ✓ |
+
+- `Window.Owner`'s setter is **protected** — only a derived `Window` can assign it. Assigning it again after
+  `Show()` does reach the platform; it is not a no-op just because the value is unchanged.
+- `ShowInTaskbar` is not what decides ownership — flipping it changed nothing in those measurements.
+- Compare **relative** positions in `EnumWindows` order, never absolute indices: unrelated desktop windows
+  shift them run to run.
+
+## 9. Clamping a window into the working area
+
+`Screens.ScreenFromWindow(window)` returns a **nonsense working area for a window that is already off-screen**
+— measured `-1920,550,1920,1032` for a window at `x = -984` on a `0,0,3840,2088` desktop, and it reported
+`Scaling = 1` where the real screen reports `1.5`. A clamp built on that result clamps the window back into the
+bogus rect and changes nothing at all:
+
+```
+before:                                Position = -984, 550
+after KeepInsideWorkingArea(window):   Position = -984, 550     ← self-cancelling
+```
+
+Resolve the screen from a window you know is on screen (the anchor) and pass it in:
+
+```csharp
+public static void KeepInsideWorkingArea(Window window, Window? anchor = null)
+{
+    var screen = (anchor is not null ? anchor.Screens.ScreenFromWindow(anchor) : null)
+        ?? window.Screens.ScreenFromWindow(window)
+        ?? window.Screens.Primary;
+    ...
+}
+```
+
+- `WorkingArea` and `Window.Position` are both **physical** pixels while `Window.Width` is **logical** —
+  multiply the size by `screen.Scaling` before comparing.
+- Anchor only where anchoring is right: a window the user deliberately dragged to another monitor should keep
+  clamping to *its own* screen.
+
