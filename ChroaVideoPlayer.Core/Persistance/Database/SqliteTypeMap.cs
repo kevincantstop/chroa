@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace ChroaVideoPlayer.Core.Persistance;
+namespace ChroaVideoPlayer.Core.Persistance.Database;
 
 public static class SqliteTypeMap
 {

@@ -6,8 +6,9 @@ description: This skill should be used when storing or loading local data in Chr
 # Local persistence (SQLite) in Chroa Video Player
 
 Everything durable lives in `ChroaVideoPlayer.Core/Persistance/`, a thin key/value layer over
-`Microsoft.Data.Sqlite`. The player uses it for per-video settings and its recent-video list; plugins
-use the same layer (the playlist plugin keeps its history with it).
+`Microsoft.Data.Sqlite`: the public API at the top, the SQL machinery in `Persistance/Database/`, the
+column marker in `Persistance/Attributes/`. The player uses it for per-video settings and its
+recent-video list; plugins use the same layer (the playlist plugin keeps its history with it).
 
 ## The shape of it
 
@@ -15,7 +16,7 @@ use the same layer (the playlist plugin keeps its history with it).
 | --- | --- |
 | `LocalStore<T>` | The public API: one table, keyed by a string |
 | `LocalDatabase.DefaultPath` | `%LOCALAPPDATA%\ChroaVideoPlayer\chroa.db` |
-| `TableSchema.For<T>()` | Builds the table definition from `T` — **the table name is the class name** |
+| `TableSchema.For<T>()` | Builds the table definition from `T` — **only `[PersistentColumn]` properties become columns**, and **the table name is the class name** |
 | `TableRepository<T>` | SQL: upsert, select, delete, count |
 | `SqliteTypeMap` | Maps CLR types to SQLite and back |
 | `DeferredSaveQueue` | Debounced writes for high-frequency updates (`QueueSave` → 1 s) |
@@ -24,8 +25,11 @@ use the same layer (the playlist plugin keeps its history with it).
 ## Model requirements (enforced, and they throw)
 
 - `T` must be a **class with a public parameterless constructor** (`where T : class, new()`).
-- Columns are the **public properties that are both readable and writable**. Get-only properties are
-  skipped, so computed display properties (`Title => Path.GetFileName(Path)`) are free.
+- Columns are the **public properties marked `[PersistentColumn]`**
+  (`ChroaVideoPlayer.Core.Persistance.Attributes`), and nothing else. An unmarked property is simply not
+  a column, so computed display properties (`Title => Path.GetFileName(Path)`) need no special care.
+- A model with **no** marked property throws `NotSupportedException` instead of quietly building a table
+  with no columns.
 - **No property may be named `key`** — the key lives in its own `key` column and a clash throws
   `NotSupportedException`.
 - Supported types (via `SqliteTypeMap`): `string`, `bool`, enums, all integer types, `float`, `double`,
@@ -71,14 +75,15 @@ store.Flush();
 - **Delete rows, not the database file.** The file stays locked for as long as the process lives (SQLite
   pools its connections), so a "clear this history" feature must call `LocalStore.Delete` per row instead
   of deleting or truncating the file.
-- **Keep UI-only state out of the model by making it get-only.** A `public bool IsPlaying { get; set; }`
-  added to drive a "now playing" highlight is a get+set property, so it becomes a real column — and the flag
-  then comes back from disk as `true` on the next launch. Declare it get-only and mutate it through a method,
-  exactly like the computed display properties.
+- **Keep UI-only state out of the schema by leaving it unmarked.** A `public bool IsPlaying { get; set; }`
+  added to drive a "now playing" highlight becomes a real column the moment it is marked
+  `[PersistentColumn]` — and the flag then comes back from disk as `true` on the next launch. An unmarked
+  property is never a column, and a get-only one cannot be marked in the first place.
 - Store UTC (`DateTime.UtcNow`) in any timestamp you intend to order or cap on.
 
 ## Worked example
 
 `ChroaVideoPlayer.Plugins.Playlist/Persistance/PlaylistStore.cs` is the smallest complete example: a
-dedicated database file, a 200-row LRU cap keyed on `LastPlayedUtc`, newest-first `Load()`, and an
-upsert-on-save so replaying a file updates its row instead of adding another one.
+dedicated database file, a 200-row LRU cap keyed on `AddedUtc`, an **ascending** `Load()` that keeps the
+list in the order entries were added, and an upsert-on-save so replaying a file updates its row instead
+of adding another one.

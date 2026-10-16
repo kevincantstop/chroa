@@ -1,4 +1,4 @@
-namespace ChroaVideoPlayer.Core.Persistance;
+namespace ChroaVideoPlayer.Core.Persistance.Database;
 
 public static class SqliteSyntax
 {

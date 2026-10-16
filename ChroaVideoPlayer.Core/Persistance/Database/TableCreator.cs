@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.Sqlite;
 
-namespace ChroaVideoPlayer.Core.Persistance;
+namespace ChroaVideoPlayer.Core.Persistance.Database;
 
 public static class TableCreator
 {

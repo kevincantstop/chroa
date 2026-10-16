@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using ChroaVideoPlayer.Core.Persistance.Attributes;
 
 namespace ChroaVideoPlayer.Plugins.Playlist;
 
@@ -13,12 +14,16 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    [PersistentColumn]
     public string Path { get; set; } = string.Empty;
 
+    [PersistentColumn]
     public TimeSpan Duration { get; set; }
 
+    [PersistentColumn]
     public DateTime LastPlayedUtc { get; set; }
 
+    [PersistentColumn]
     public DateTime AddedUtc { get; set; }
 
     public bool IsPlaying => _isPlaying;

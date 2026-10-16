@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using ChroaVideoPlayer.Core.Persistance.Database;
 using Microsoft.Data.Sqlite;
 
 namespace ChroaVideoPlayer.Core.Persistance;

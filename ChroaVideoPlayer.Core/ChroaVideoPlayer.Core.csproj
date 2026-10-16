@@ -13,7 +13,8 @@
 
   <ItemGroup>
     <Folder Include="EventBus\Events\" />
-    <Folder Include="Persistance\" />
+    <Folder Include="Persistance\Attributes\" />
+    <Folder Include="Persistance\Database\" />
     <Folder Include="Plugin\UI\" />
     <Folder Include="Plugin\Context\" />
     <Folder Include="UI\" />

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.Data.Sqlite;
 
-namespace ChroaVideoPlayer.Core.Persistance;
+namespace ChroaVideoPlayer.Core.Persistance.Database;
 
 public sealed class TableRepository<T> where T : class, new()
 {

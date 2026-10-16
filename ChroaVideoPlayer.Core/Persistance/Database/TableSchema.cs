@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using ChroaVideoPlayer.Core.Persistance.Attributes;
 
-namespace ChroaVideoPlayer.Core.Persistance;
+namespace ChroaVideoPlayer.Core.Persistance.Database;
 
 public sealed class TableSchema
 {
@@ -25,6 +26,7 @@ public sealed class TableSchema
 
         foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
+            if (property.GetCustomAttribute<PersistentColumnAttribute>() is null) continue;
             if (!property.CanRead || !property.CanWrite) continue;
             if (property.GetIndexParameters().Length > 0) continue;
 
@@ -39,6 +41,12 @@ public sealed class TableSchema
                     $"{type.Name}.{property.Name} has unsupported type {property.PropertyType.Name}.");
 
             columns.Add(new ColumnDefinition(property, property.Name, sqlType));
+        }
+
+        if (columns.Count == 0)
+        {
+            throw new NotSupportedException(
+                $"{type.Name} has no property marked with [PersistentColumn]; the table would have no columns.");
         }
 
         return new TableSchema(type.Name, columns);
