@@ -6,6 +6,8 @@ namespace ChroaVideoPlayer.Plugins.Playlist;
 
 public partial class PlaylistEntryMenu : ContextMenu
 {
+    protected override Type StyleKeyOverride => typeof(ContextMenu);
+
     public PlaylistEntryMenu()
     {
         InitializeComponent();

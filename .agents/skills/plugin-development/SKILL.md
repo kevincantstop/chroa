@@ -229,7 +229,9 @@ play/pause) and the window chrome is 48/24 — and `SVGIconButton` turns any of 
 
   Attach **one** menu to the list rather than one per row, and resolve the clicked item from the row's
   `ContextRequested` handler (it bubbles through the row *before* the menu opens) instead of relying on the
-  menu inheriting a `DataContext` — a `ContextMenu` is a popup and sits outside the row's visual tree.
+  menu inheriting a `DataContext` — a `ContextMenu` is a popup and sits outside the row's visual tree. If you
+  derive from `ContextMenu` to carry the clicked entry, you **must** override `StyleKeyOverride` (see the
+  `avaloniaui` skill) or the popup opens at 0×0 and never appears.
 
 ## 6. Icons
 
