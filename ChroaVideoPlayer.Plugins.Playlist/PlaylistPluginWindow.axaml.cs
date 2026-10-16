@@ -64,7 +64,7 @@ public partial class PlaylistPluginWindow : PluginWindow
             return;
         }
 
-        var query = SearchBox.Text?.Trim();
+        var query = SearchInput.Text?.Trim();
 
         foreach (var entry in entries)
             if (string.IsNullOrEmpty(query) || Matches(entry, query))

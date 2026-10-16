@@ -6,7 +6,7 @@
                     x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistPluginWindow"
                     Title="Playlist"
                     Width="680"
-                    Height="780"
+                    Height="720"
                     InitialDockSide="Left"
                     DragDrop.AllowDrop="True"
                     DragDrop.DragOver="OnFileDragOver"
@@ -45,19 +45,19 @@
 				                    Click="OnAddClick"
 				                    ToolTip.Tip="Add to playlist" />
 
-				<TextBox x:Name="SearchBox"
-				         Classes="search"
-				         Width="200"
-				         PlaceholderText="Search"
-				         VerticalAlignment="Center"
-				         TextChanged="OnSearchChanged">
+				<core:InputBox x:Name="SearchInput"
+				               Classes="search"
+				               Width="200"
+				               PlaceholderText="Search"
+				               VerticalAlignment="Center"
+				               TextChanged="OnSearchChanged">
 					<TextBox.InnerLeftContent>
 						<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/search.svg"
 						              IconSize="14"
 						              Foreground="#B0FFFFFF"
 						              Margin="8,0,0,0" />
 					</TextBox.InnerLeftContent>
-				</TextBox>
+				</core:InputBox>
 			</StackPanel>
 
 			<core:SVGIconButton Grid.Column="1"
