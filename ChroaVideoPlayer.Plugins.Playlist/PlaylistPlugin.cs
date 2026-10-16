@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using ChroaVideoPlayer.Core.EventBus;
+using ChroaVideoPlayer.Core.EventBus.Events;
 using ChroaVideoPlayer.Core.Plugin;
 using ChroaVideoPlayer.Core.Plugin.Context;
 using ChroaVideoPlayer.Core.Plugin.UI;
@@ -16,7 +18,17 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
     private PlaylistStore? _store;
 
+    private PlaylistSettingsStore? _settingsStore;
+
+    private List<string>? _queue;
+
+    private int _queueIndex = -1;
+
+    private string? _expectedPath;
+
     private bool _loaded;
+
+    private bool _autoPlay = true;
 
     public string Name => "playlist";
 
@@ -30,7 +42,12 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
     public ChroaApplicationContext? Context { get; set; }
 
-    public void SubscribeEvents(IEventSubscriber events) => events.Subscribe<VideoPlayed>(OnVideoPlayed);
+    public void SubscribeEvents(IEventSubscriber events)
+    {
+        events.Subscribe<VideoPlayed>(OnVideoPlayed);
+
+        events.Subscribe<VideoEnded>(OnVideoEnded);
+    }
 
     public PluginWindow CreateWindow()
     {
@@ -40,16 +57,22 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
         window.ShowEntries(_entries);
 
+        window.SetAutoPlay(_autoPlay);
+
         window.DeleteRequested += OnDeleteRequested;
 
         window.PlayRequested += OnPlayRequested;
 
         window.AddRequested += OnAddRequested;
 
+        window.AutoPlayChanged += OnAutoPlayChanged;
+
         return window;
     }
 
     private PlaylistStore Store => _store ??= new PlaylistStore();
+
+    private PlaylistSettingsStore SettingsStore => _settingsStore ??= new PlaylistSettingsStore();
 
     private void EnsureLoaded()
     {
@@ -58,15 +81,78 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         _loaded = true;
 
         foreach (var entry in Store.Load()) _entries.Add(entry);
+
+        _autoPlay = SettingsStore.LoadAutoPlay();
     }
 
     private void OnVideoPlayed(VideoPlayed message)
     {
         EnsureLoaded();
 
+        if (message.Path != _expectedPath) ClearQueue();
+
         foreach (var entry in _entries) entry.MarkPlaying(false);
 
         Insert(message.Path, message.Duration).MarkPlaying(true);
+    }
+
+    private void OnVideoEnded(VideoEnded message)
+    {
+        if (!_autoPlay) return;
+        if (_queue is not { } queue || message.Path != _expectedPath) return;
+
+        Advance(queue);
+    }
+
+    private void Advance(List<string> queue)
+    {
+        for (var index = _queueIndex + 1; index < queue.Count; index++)
+        {
+            _queueIndex = index;
+
+            var path = queue[index];
+
+            if (path == _expectedPath) continue;
+
+            var entry = _entries.FirstOrDefault(item => item.Path == path);
+
+            if (entry is null) continue;
+
+            entry.MarkMissing(!File.Exists(path));
+
+            if (entry.IsMissing) continue;
+
+            _expectedPath = path;
+
+            Context?.Mpv.Play(path);
+
+            return;
+        }
+
+        ClearQueue();
+    }
+
+    private void ClearQueue()
+    {
+        _queue = null;
+        _queueIndex = -1;
+        _expectedPath = null;
+    }
+
+    private void OnAutoPlayChanged(bool autoPlay)
+    {
+        _autoPlay = autoPlay;
+
+        SettingsStore.SaveAutoPlay(autoPlay);
+    }
+
+    private void OnPlayRequested(PlaylistEntry entry, IReadOnlyList<string> order)
+    {
+        _queue = order.ToList();
+        _queueIndex = _queue.IndexOf(entry.Path);
+        _expectedPath = entry.Path;
+
+        Context?.Mpv.Play(entry.Path);
     }
 
     private void OnAddRequested(IReadOnlyList<string> paths)
@@ -109,6 +195,4 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
             Store.Delete(entry.Path);
         }
     }
-
-    private void OnPlayRequested(PlaylistEntry entry) => Context?.Mpv.Play(entry.Path);
 }

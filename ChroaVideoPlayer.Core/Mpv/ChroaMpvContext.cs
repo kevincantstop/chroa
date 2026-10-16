@@ -56,6 +56,8 @@ public sealed partial class ChroaMpvContext
 
     public event EventHandler? MediaOpened;
 
+    public event EventHandler? MediaEnded;
+
     public event EventHandler<PlaybackProgress>? ProgressChanged;
 
     public event EventHandler<bool>? EndedChanged;
@@ -319,7 +321,12 @@ public sealed partial class ChroaMpvContext
 
 
     private void OnEndFile(object? sender, MpvEndFileEventArgs e) =>
-        SafeRun(nameof(OnEndFile), () => SetEnded(true));
+        SafeRun(nameof(OnEndFile), () =>
+        {
+            SetEnded(true);
+
+            if (e.Reason == MpvEndFileReason.EndOfFile) MediaEnded?.Invoke(this, EventArgs.Empty);
+        });
 
     private void OnEofReachedChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
         SafeRun(nameof(OnEofReachedChanged), () =>

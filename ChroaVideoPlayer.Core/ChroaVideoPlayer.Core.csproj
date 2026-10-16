@@ -12,10 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="EventBus\Events\" />
     <Folder Include="Persistance\" />
     <Folder Include="Plugin\UI\" />
     <Folder Include="Plugin\Context\" />
-    <Folder Include="EventBus\" />
     <Folder Include="UI\" />
   </ItemGroup>
 </Project>

@@ -22,6 +22,8 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     private readonly ObservableCollection<PlaylistEntry> _view = new();
 
+    private bool _autoPlay;
+
     public PlaylistPluginWindow()
     {
         InitializeComponent();
@@ -29,7 +31,9 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     public event Action<IReadOnlyList<PlaylistEntry>>? DeleteRequested;
 
-    public event Action<PlaylistEntry>? PlayRequested;
+    public event Action<PlaylistEntry, IReadOnlyList<string>>? PlayRequested;
+
+    public event Action<bool>? AutoPlayChanged;
 
     public event Action<IReadOnlyList<string>>? AddRequested;
 
@@ -48,7 +52,36 @@ public partial class PlaylistPluginWindow : PluginWindow
         RebuildView(clearSelection: false);
     }
 
+    public void SetAutoPlay(bool autoPlay)
+    {
+        _autoPlay = autoPlay;
+
+        ApplyAutoPlay();
+    }
+
     private void OnSearchChanged(object? sender, TextChangedEventArgs e) => RebuildView(clearSelection: true);
+
+    private void OnAutoPlayClick(object? sender, RoutedEventArgs e)
+    {
+        _autoPlay = !_autoPlay;
+
+        ApplyAutoPlay();
+
+        AutoPlayChanged?.Invoke(_autoPlay);
+    }
+
+    private void ApplyAutoPlay()
+    {
+        AutoPlayButton.Icon = _autoPlay
+            ? "avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play-next.svg"
+            : "avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play-single.svg";
+
+        ToolTip.SetTip(AutoPlayButton, _autoPlay
+            ? "Play the next video automatically"
+            : "Play one video and stop");
+    }
+
+    private List<string> VisiblePaths() => _view.Select(entry => entry.Path).ToList();
 
     private void RebuildView(bool clearSelection)
     {
@@ -213,7 +246,7 @@ public partial class PlaylistPluginWindow : PluginWindow
 
         if (entry.IsMissing) return;
 
-        PlayRequested?.Invoke(entry);
+        PlayRequested?.Invoke(entry, VisiblePaths());
     }
 
     private void OnRowContextRequested(object? sender, ContextRequestedEventArgs e)
@@ -234,7 +267,7 @@ public partial class PlaylistPluginWindow : PluginWindow
         RefreshState();
     }
 
-    private void OnMenuPlayRequested(PlaylistEntry entry) => PlayRequested?.Invoke(entry);
+    private void OnMenuPlayRequested(PlaylistEntry entry) => PlayRequested?.Invoke(entry, VisiblePaths());
 
     private void OnMenuRevealRequested(PlaylistEntry entry) => Reveal(entry.Path);
 

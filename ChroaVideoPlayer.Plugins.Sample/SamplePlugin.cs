@@ -1,4 +1,5 @@
 using ChroaVideoPlayer.Core.EventBus;
+using ChroaVideoPlayer.Core.EventBus.Events;
 using ChroaVideoPlayer.Core.Plugin;
 using ChroaVideoPlayer.Core.Plugin.Context;
 using ChroaVideoPlayer.Core.Plugin.UI;

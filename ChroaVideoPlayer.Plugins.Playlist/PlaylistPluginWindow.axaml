@@ -45,6 +45,14 @@
 				                    Click="OnAddClick"
 				                    ToolTip.Tip="Add to playlist" />
 
+				<core:SVGIconButton x:Name="AutoPlayButton"
+				                    Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play-next.svg"
+				                    ButtonSize="32"
+				                    IconSize="20"
+				                    VerticalAlignment="Center"
+				                    Click="OnAutoPlayClick"
+				                    ToolTip.Tip="Play the next video automatically" />
+
 				<core:InputBox x:Name="SearchInput"
 				               Classes="search"
 				               Width="200"
