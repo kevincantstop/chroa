@@ -48,6 +48,20 @@
 		<Setter Property="Margin" Value="16,0,0,0" />
 	</Style>
 
+	<Style Selector="ContextMenu">
+		<Setter Property="Background" Value="#000000" />
+		<Setter Property="Padding" Value="0" />
+	</Style>
+
+	<Style Selector="MenuItem">
+		<Setter Property="Foreground" Value="#E0E0E0" />
+		<Setter Property="Padding" Value="10,6" />
+	</Style>
+
+	<Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+		<Setter Property="Background" Value="#26FFFFFF" />
+	</Style>
+
 	<Style Selector="CheckBox.check">
 		<Setter Property="MinWidth" Value="0" />
 		<Setter Property="MinHeight" Value="0" />

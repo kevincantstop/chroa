@@ -149,6 +149,17 @@ public partial class PlaylistPluginWindow : PluginWindow
         PlayRequested?.Invoke(entry);
     }
 
+    private void OnRowContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not Grid { DataContext: PlaylistEntry entry }) return;
+
+        RowMenu.Entry = entry;
+    }
+
+    private void OnMenuPlayRequested(PlaylistEntry entry) => PlayRequested?.Invoke(entry);
+
+    private void OnMenuDeleteRequested(PlaylistEntry entry) => DeleteRequested?.Invoke([entry]);
+
     private static void Reveal(string path)
     {
         if (!OperatingSystem.IsWindows()) return;

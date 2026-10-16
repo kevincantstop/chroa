@@ -86,13 +86,20 @@
 				</Grid>
 
 				<ItemsControl Grid.Row="1" x:Name="ItemHost">
+					<ItemsControl.ContextMenu>
+						<playlist:PlaylistEntryMenu x:Name="RowMenu"
+						                            PlayRequested="OnMenuPlayRequested"
+						                            DeleteRequested="OnMenuDeleteRequested" />
+					</ItemsControl.ContextMenu>
+
 					<ItemsControl.ItemTemplate>
 						<DataTemplate x:DataType="playlist:PlaylistEntry">
 							<Grid Classes="row interactive"
 							      Height="32"
 							      Classes.playing="{Binding IsPlaying}"
 							      ToolTip.Tip="Double click to play"
-							      DoubleTapped="OnRowDoubleTapped">
+							      DoubleTapped="OnRowDoubleTapped"
+							      ContextRequested="OnRowContextRequested">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="28" />
 									<ColumnDefinition Width="80" SharedSizeGroup="Duration" />

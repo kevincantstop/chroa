@@ -19,5 +19,6 @@
   <ItemGroup>
     <Folder Include="Persistance\" />
     <Folder Include="Styles\" />
+    <Folder Include="Controls\" />
   </ItemGroup>
 </Project>

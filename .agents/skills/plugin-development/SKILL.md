@@ -211,6 +211,25 @@ play/pause) and the window chrome is 48/24 — and `SVGIconButton` turns any of 
   between them, so the title never sits on top of the content.
 - Keep ~16 px between a contextual action and a right-aligned counter, and give such a counter a *left* margin
   only, so its right edge stays flush with the close button.
+- **A right-click menu is a Fluent `ContextMenu` plus `MenuItem`s, and it is light by default** — a white popup
+  with black labels. Restyle it or it will not belong on the black panel:
+
+  ```xml
+  <Style Selector="ContextMenu">
+      <Setter Property="Background" Value="#000000" />
+      <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="MenuItem">
+      <Setter Property="Foreground" Value="#E0E0E0" />
+  </Style>
+  <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="#26FFFFFF" />
+  </Style>
+  ```
+
+  Attach **one** menu to the list rather than one per row, and resolve the clicked item from the row's
+  `ContextRequested` handler (it bubbles through the row *before* the menu opens) instead of relying on the
+  menu inheriting a `DataContext` — a `ContextMenu` is a popup and sits outside the row's visual tree.
 
 ## 6. Icons
 
