@@ -16,7 +16,7 @@ public sealed class PlaylistStore
     public PlaylistStore(string? databasePath = null) =>
         _store = new LocalStore<PlaylistEntry>(
             MaxEntries,
-            nameof(PlaylistEntry.LastPlayedUtc),
+            nameof(PlaylistEntry.AddedUtc),
             databasePath ?? DefaultPath);
 
     public static string DefaultPath { get; } = Path.Combine(
@@ -25,7 +25,7 @@ public sealed class PlaylistStore
         DatabaseFileName);
 
     public IReadOnlyList<PlaylistEntry> Load() =>
-        _store.Query(orderBy: nameof(PlaylistEntry.LastPlayedUtc), descending: true, limit: MaxEntries);
+        _store.Query(orderBy: nameof(PlaylistEntry.AddedUtc), limit: MaxEntries);
 
     public void Save(PlaylistEntry entry) => _store.Save(entry.Path, entry);
 

@@ -93,7 +93,7 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
         foreach (var entry in _entries) entry.MarkPlaying(false);
 
-        Insert(message.Path, message.Duration).MarkPlaying(true);
+        Track(message.Path, message.Duration).MarkPlaying(true);
     }
 
     private void OnVideoEnded(VideoEnded message)
@@ -101,10 +101,10 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         if (!_autoPlay) return;
         if (_queue is not { } queue || message.Path != _expectedPath) return;
 
-        Advance(queue);
+        PlayNextVideo(queue);
     }
 
-    private void Advance(List<string> queue)
+    private void PlayNextVideo(List<string> queue)
     {
         for (var index = _queueIndex + 1; index < queue.Count; index++)
         {
@@ -159,32 +159,43 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
     {
         EnsureLoaded();
 
-        var playing = _entries.FirstOrDefault(entry => entry.IsPlaying)?.Path;
+        foreach (var path in paths)
+        {
+            if (Find(path) is not null) continue;
 
-        foreach (var path in paths) Insert(path, TimeSpan.Zero);
+            var entry = Add(path);
 
-        _entries.FirstOrDefault(entry => entry.Path == playing)?.MarkPlaying(true);
+            Store.Save(entry);
+        }
     }
 
-    private PlaylistEntry Insert(string path, TimeSpan duration)
+    private PlaylistEntry Track(string path, TimeSpan duration)
     {
-        var existing = _entries.FirstOrDefault(entry => entry.Path == path);
+        var entry = Find(path) ?? Add(path);
 
-        if (existing is not null) _entries.Remove(existing);
+        if (duration > TimeSpan.Zero) entry.MarkDuration(duration);
 
+        entry.LastPlayedUtc = DateTime.UtcNow;
+
+        Store.Save(entry);
+
+        return entry;
+    }
+
+    private PlaylistEntry Add(string path)
+    {
         var record = new PlaylistEntry
         {
             Path = path,
-            Duration = duration,
-            LastPlayedUtc = DateTime.UtcNow,
+            AddedUtc = DateTime.UtcNow,
         };
 
-        _entries.Insert(0, record);
-
-        Store.Save(record);
+        _entries.Add(record);
 
         return record;
     }
+
+    private PlaylistEntry? Find(string path) => _entries.FirstOrDefault(entry => entry.Path == path);
 
     private void OnDeleteRequested(IReadOnlyList<PlaylistEntry> entries)
     {

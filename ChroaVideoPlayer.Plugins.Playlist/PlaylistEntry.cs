@@ -19,6 +19,8 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     public DateTime LastPlayedUtc { get; set; }
 
+    public DateTime AddedUtc { get; set; }
+
     public bool IsPlaying => _isPlaying;
 
     public bool IsSelected => _isSelected;
@@ -47,6 +49,15 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsMissing)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RowTip)));
+    }
+
+    public void MarkDuration(TimeSpan duration)
+    {
+        if (Duration == duration) return;
+
+        Duration = duration;
+
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DurationText)));
     }
 
     private void SetFlag(ref bool field, bool value, string name)
