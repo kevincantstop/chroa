@@ -3,6 +3,16 @@
              x:Class="ChroaVideoPlayer.App"
              RequestedThemeVariant="Default">
 
+    <Application.Resources>
+        <Color x:Key="SystemAccentColor">#FFE0E0E0</Color>
+        <Color x:Key="SystemAccentColorLight1">#FFE0E0E0</Color>
+        <Color x:Key="SystemAccentColorLight2">#FFE0E0E0</Color>
+        <Color x:Key="SystemAccentColorLight3">#FFE0E0E0</Color>
+        <Color x:Key="SystemAccentColorDark1">#FFE0E0E0</Color>
+        <Color x:Key="SystemAccentColorDark2">#FFE0E0E0</Color>
+        <Color x:Key="SystemAccentColorDark3">#FFE0E0E0</Color>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
 		<StyleInclude Source="avares://ChroaVideoPlayer/Styles/SVGIconButton.axaml" />

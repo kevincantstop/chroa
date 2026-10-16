@@ -5,7 +5,7 @@
                     xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
                     x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistPluginWindow"
                     Title="Playlist"
-                    Width="680"
+                    Width="580"
                     Height="770"
                     InitialDockSide="Left"
                     DragDrop.AllowDrop="True"
