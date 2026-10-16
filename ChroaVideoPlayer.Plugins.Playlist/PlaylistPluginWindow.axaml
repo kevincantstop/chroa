@@ -7,7 +7,10 @@
                     Title="Playlist"
                     Width="680"
                     Height="780"
-                    InitialDockSide="Left">
+                    InitialDockSide="Left"
+                    DragDrop.AllowDrop="True"
+                    DragDrop.DragOver="OnFileDragOver"
+                    DragDrop.Drop="OnFileDrop">
 	<chroa:PluginWindow.Styles>
 		<StyleInclude Source="avares://ChroaVideoPlayer.Plugins.Playlist/Styles/PlaylistWindow.axaml" />
 	</chroa:PluginWindow.Styles>

@@ -62,11 +62,7 @@ public partial class PlaylistPluginWindow : PluginWindow
                 FileTypeFilter = VideoFileTypes.Filter,
             });
 
-            var paths = files
-                .Select(file => file.TryGetLocalPath())
-                .Where(path => !string.IsNullOrEmpty(path))
-                .Select(path => path!)
-                .ToList();
+            var paths = LocalPaths(files);
 
             if (paths.Count == 0) return;
 
@@ -76,6 +72,42 @@ public partial class PlaylistPluginWindow : PluginWindow
         {
             Debug.WriteLine($"Add to playlist picker failed: {ex}");
         }
+    }
+
+    private void OnFileDragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = LocalPaths(e.DataTransfer.TryGetFiles()).Count > 0
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
+
+        e.Handled = true;
+    }
+
+    private void OnFileDrop(object? sender, DragEventArgs e)
+    {
+        e.Handled = true;
+
+        var paths = LocalPaths(e.DataTransfer.TryGetFiles());
+
+        if (paths.Count == 0) return;
+
+        AddRequested?.Invoke(paths);
+    }
+
+    private static List<string> LocalPaths(IEnumerable<IStorageItem>? items)
+    {
+        var paths = new List<string>();
+
+        if (items is null) return paths;
+
+        foreach (var item in items)
+        {
+            var path = item.TryGetLocalPath();
+
+            if (!string.IsNullOrEmpty(path)) paths.Add(path);
+        }
+
+        return paths;
     }
 
     private void OnRevealClick(object? sender, RoutedEventArgs e)
