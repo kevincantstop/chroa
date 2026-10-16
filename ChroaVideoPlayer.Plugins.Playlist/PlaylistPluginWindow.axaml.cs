@@ -20,6 +20,8 @@ public partial class PlaylistPluginWindow : PluginWindow
 {
     private ObservableCollection<PlaylistEntry>? _entries;
 
+    private readonly ObservableCollection<PlaylistEntry> _view = new();
+
     public PlaylistPluginWindow()
     {
         InitializeComponent();
@@ -39,12 +41,41 @@ public partial class PlaylistPluginWindow : PluginWindow
 
         entries.CollectionChanged += OnEntriesChanged;
 
-        ItemHost.ItemsSource = entries;
-
         foreach (var entry in entries) entry.MarkMissing(!File.Exists(entry.Path));
+
+        ItemHost.ItemsSource = _view;
+
+        RebuildView(clearSelection: false);
+    }
+
+    private void OnSearchChanged(object? sender, TextChangedEventArgs e) => RebuildView(clearSelection: true);
+
+    private void RebuildView(bool clearSelection)
+    {
+        if (clearSelection && _entries is { } all)
+            foreach (var entry in all) entry.MarkSelected(false);
+
+        _view.Clear();
+
+        if (_entries is not { } entries)
+        {
+            RefreshState();
+
+            return;
+        }
+
+        var query = SearchBox.Text?.Trim();
+
+        foreach (var entry in entries)
+            if (string.IsNullOrEmpty(query) || Matches(entry, query))
+                _view.Add(entry);
 
         RefreshState();
     }
+
+    private static bool Matches(PlaylistEntry entry, string query) =>
+        entry.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        entry.Path.Contains(query, StringComparison.OrdinalIgnoreCase);
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
@@ -146,16 +177,14 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     private void OnSelectAllClick(object? sender, RoutedEventArgs e)
     {
-        if (_entries is not { } entries) return;
-
         var select = SelectAllBox.IsChecked == true;
 
-        foreach (var entry in entries) entry.MarkSelected(select);
+        foreach (var entry in _view) entry.MarkSelected(select);
 
         RefreshState();
     }
 
-    private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e) => RefreshState();
+    private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e) => RebuildView(clearSelection: false);
 
     private void RefreshState()
     {

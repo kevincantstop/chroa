@@ -123,4 +123,25 @@
 		<Setter Property="Height" Value="8" />
 		<Setter Property="Fill" Value="#101010" />
 	</Style>
+
+	<Style Selector="TextBox.search">
+		<Setter Property="Background" Value="#1AFFFFFF" />
+		<Setter Property="BorderBrush" Value="#33FFFFFF" />
+		<Setter Property="BorderThickness" Value="1" />
+		<Setter Property="CornerRadius" Value="4" />
+		<Setter Property="Foreground" Value="#E0E0E0" />
+		<Setter Property="CaretBrush" Value="#E0E0E0" />
+		<Setter Property="SelectionBrush" Value="#40FFFFFF" />
+		<Setter Property="FontSize" Value="14" />
+		<Setter Property="Height" Value="28" />
+		<Setter Property="VerticalContentAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="TextBox.search:pointerover">
+		<Setter Property="BorderBrush" Value="#55FFFFFF" />
+	</Style>
+
+	<Style Selector="TextBox.search:focus">
+		<Setter Property="BorderBrush" Value="#88FFFFFF" />
+	</Style>
 </Styles>

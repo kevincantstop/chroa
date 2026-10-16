@@ -33,13 +33,32 @@
 		</Grid>
 
 		<Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,10">
-			<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/plus.svg"
-			                    ButtonSize="32"
-			                    IconSize="20"
-			                    HorizontalAlignment="Left"
-			                    VerticalAlignment="Center"
-			                    Click="OnAddClick"
-			                    ToolTip.Tip="Add to playlist" />
+			<StackPanel Grid.Column="0"
+			            Orientation="Horizontal"
+			            Spacing="8"
+			            HorizontalAlignment="Left"
+			            VerticalAlignment="Center">
+				<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/plus.svg"
+				                    ButtonSize="32"
+				                    IconSize="20"
+				                    VerticalAlignment="Center"
+				                    Click="OnAddClick"
+				                    ToolTip.Tip="Add to playlist" />
+
+				<TextBox x:Name="SearchBox"
+				         Classes="search"
+				         Width="200"
+				         PlaceholderText="Search"
+				         VerticalAlignment="Center"
+				         TextChanged="OnSearchChanged">
+					<TextBox.InnerLeftContent>
+						<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/search.svg"
+						              IconSize="14"
+						              Foreground="#B0FFFFFF"
+						              Margin="8,0,0,0" />
+					</TextBox.InnerLeftContent>
+				</TextBox>
+			</StackPanel>
 
 			<core:SVGIconButton Grid.Column="1"
 			                    x:Name="DeleteSelectedButton"
