@@ -1,7 +1,26 @@
 <ContextMenu xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
              x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistEntryMenu">
-	<MenuItem Header="Play" Click="OnPlayClick" />
-	<MenuItem Header="Show in folder" Click="OnRevealClick" />
-	<MenuItem Header="Remove from playlist" Click="OnDeleteClick" />
+	<MenuItem Header="Play" Click="OnPlayClick">
+		<MenuItem.Icon>
+			<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play.svg"
+			              IconSize="14" />
+		</MenuItem.Icon>
+	</MenuItem>
+
+	<MenuItem Header="Show in folder" Click="OnRevealClick">
+		<MenuItem.Icon>
+			<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/folder.svg"
+			              IconSize="14" />
+		</MenuItem.Icon>
+	</MenuItem>
+
+	<MenuItem Header="Remove from playlist" Classes="remove" Click="OnDeleteClick">
+		<MenuItem.Icon>
+			<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/trash.svg"
+			              IconSize="14"
+			              Foreground="#FF6B6B" />
+		</MenuItem.Icon>
+	</MenuItem>
 </ContextMenu>

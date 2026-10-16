@@ -70,6 +70,10 @@
 		<Setter Property="Background" Value="#26FFFFFF" />
 	</Style>
 
+	<Style Selector="MenuItem.remove">
+		<Setter Property="Foreground" Value="#FF6B6B" />
+	</Style>
+
 	<Style Selector="CheckBox.check">
 		<Setter Property="MinWidth" Value="0" />
 		<Setter Property="MinHeight" Value="0" />
