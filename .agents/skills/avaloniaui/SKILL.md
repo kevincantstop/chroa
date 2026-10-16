@@ -92,6 +92,25 @@ not guesses):
 - `CheckBox` also has `MinHeight` 32 by default — taller than a 28 px row, so set `MinHeight="0"`.
 - `MenuItem` hover must be set on `Border#PART_LayoutRoot`, not on the `MenuItem` itself.
 - A window-scoped style beats the app-wide one, so a plugin window can override the player's own look.
+- **The accent colour cannot be overridden with a `Style` — not even on the template part.** Measured: adding
+  `Selector="core|InputBox:focus /template/ Border#PART_BorderElement"` with a `BorderBrush` setter left the
+  focused brush at the theme's accent (`#ff0078d7`); the `ControlTheme`'s state setter wins. Overriding the
+  **resource** does work:
+
+  ```xml
+  <Application.Resources>
+      <Color x:Key="SystemAccentColor">#FFE0E0E0</Color>
+      <Color x:Key="SystemAccentColorLight1">#FFE0E0E0</Color>
+      <Color x:Key="SystemAccentColorDark1">#FFE0E0E0</Color>
+      <!-- …Light2/3 and Dark2/3 as well -->
+  </Application.Resources>
+  ```
+
+  Measured effect: the same focused border went from `#ff0078d7` to `#ffe0e0e0`. This app pins every accent
+  variant to `#E0E0E0` in `App.axaml`, so no stock Fluent control can introduce a colour the palette lacks.
+- A focused `TextBox` paints its border on `Border#PART_BorderElement` (accent brush, `BorderThickness` 2 — it
+  jumps from 1 when focus arrives). `TextBox.InnerLeftContent` is the supported way to put an icon inside the
+  box; `TextBox.Watermark` is obsolete in Avalonia 12 — use `PlaceholderText`.
 
 ## 4. A captured pointer swallows the release, so gestures never complete
 
@@ -139,6 +158,10 @@ The context-menu bug took nine variants. The method that found it, in order:
    verified only for the quantity that *felt* wrong (visibility, minimise state, position) while the quantity
    that actually changed was one nobody had measured yet (z-order). Reproduce the state first, then measure
    every quantity that could differ and compare it against a healthy run of the same steps.
+7. **When a style does not bite, dump the element *and the resources* — not just the selector.** The accent
+   colour on a focused `TextBox` survived three different selector attempts, because the brush came from a
+   `ControlTheme` state setter that reads a theme resource. Measuring the resource value, and overriding that
+   resource, is what fixed it (see §3).
 
 ## 8. A window that is "open but invisible"
 
@@ -200,4 +223,33 @@ public static void KeepInsideWorkingArea(Window window, Window? anchor = null)
   multiply the size by `screen.Scaling` before comparing.
 - Anchor only where anchoring is right: a window the user deliberately dragged to another monitor should keep
   clamping to *its own* screen.
+
+## 10. Making an input lose focus when the user clicks elsewhere
+
+Clicking a non-focusable element — a `Panel`, a `Border`, a list row — does **not** move focus away from a
+`TextBox`. WPF clears it; Avalonia leaves the caret where it is. Clearing it needs a real focusable target, and
+"just focus the window" never works because **a `Window` is `Focusable = False`**:
+
+| Attempt | `TextBox.IsFocused` afterwards |
+| --- | --- |
+| `window.Focus()` | True ✗ |
+| `FocusManager.Focus(window)` | True ✗ |
+| `FocusManager.Focus(aFocusableControl)` | False ✓ |
+| `input.Focusable = false` then `true` | True ✗ |
+
+`FocusManager.Focus(null)` is not the answer either: it compiles, then throws at runtime — and because it threw
+from inside a `PointerPressed` handler it took the whole input pipeline with it, so every button in that window
+stopped responding.
+
+The recipe `ChroaVideoPlayer.Core/UI/InputBox` uses: on attach, take the top level's `Content` root, make it
+focusable *without* adding a tab stop, and hand focus to it on any press outside the box.
+
+```csharp
+root.Focusable = true;
+root.IsTabStop = false;
+```
+
+Hook that press on the **top level** with `handledEventsToo: true` — a plugin window's panel handler marks
+presses handled for dragging, so an ordinary handler never sees them — and unhook in
+`OnDetachedFromVisualTree`. If the control derives from a themed control, remember §1.
 
