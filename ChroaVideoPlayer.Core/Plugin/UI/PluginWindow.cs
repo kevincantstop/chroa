@@ -44,7 +44,7 @@ public class PluginWindow : ChroaWindow
 
         _resizer = new PluginWindowResizer(this, PanelBorder)
         {
-            MinimumSide = MinimumPanelSide + (ShadowMargin * 2),
+            MinimumSide = MinimumPanelSide + (WindowUtils.PanelShadowMargin * 2),
             DockedPosition = DockedWindowPosition,
         };
 
@@ -241,7 +241,7 @@ public class PluginWindow : ChroaWindow
         }
     }
 
-    private int Inset => (int)Math.Round(ShadowMargin * Scale);
+    private int Inset => (int)Math.Round(WindowUtils.PanelShadowMargin * Scale);
 
     private DockSide FindSide(PixelRect bounds, PixelRect host, double threshold, out int offset)
     {

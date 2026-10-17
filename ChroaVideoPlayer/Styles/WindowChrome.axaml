@@ -8,7 +8,7 @@
 		</Setter>
 	</Style>
 
-	<Style Selector="Border.chrome:pointerover Border.overlay">
+	<Style Selector="Grid.root:pointerover Border.overlay">
 		<Setter Property="Opacity" Value="1" />
 	</Style>
 

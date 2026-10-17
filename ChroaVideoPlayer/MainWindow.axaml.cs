@@ -5,13 +5,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
 using ChroaVideoPlayer.Core.EventBus;
 using ChroaVideoPlayer.Core.Plugin;
 using ChroaVideoPlayer.Core.Plugin.Context;
+using ChroaVideoPlayer.Core.UI;
 using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Settings;
 using ChroaVideoPlayer.ViewModels;
@@ -19,7 +19,7 @@ using Avalonia.Platform.Storage;
 
 namespace ChroaVideoPlayer;
 
-public partial class MainWindow : Window
+public partial class MainWindow : ChroaWindow
 {
     public MainWindow()
     {
@@ -56,10 +56,6 @@ public partial class MainWindow : Window
 
 
     private const double MaxWorkingAreaFraction = 0.8;
-
-    private const double PanelCornerRadius = 10;
-
-    private static readonly BoxShadows PanelShadow = BoxShadows.Parse("0 6 24 0 #A0000000");
 
     private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(3) };
 
@@ -157,7 +153,7 @@ public partial class MainWindow : Window
 
     private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property == WindowStateProperty) ApplyFullScreenState();
+        if (e.Property == WindowStateProperty) ApplyWindowState();
         else if (e.Property == WindowBase.TopmostProperty) VideoPlayer.IsTopMost = Topmost;
     }
 
@@ -183,17 +179,15 @@ public partial class MainWindow : Window
         WindowState = _stateBeforeFullScreen;
     }
 
-    private void ApplyFullScreenState()
+    private void ApplyWindowState()
     {
         var fullScreen = WindowState == WindowState.FullScreen;
+        var maximized = WindowState == WindowState.Maximized;
 
-        Chrome.Margin = fullScreen ? default : new Thickness(WindowUtils.PanelShadowMargin);
-        Chrome.CornerRadius = fullScreen ? default : new CornerRadius(PanelCornerRadius);
-        Chrome.BoxShadow = fullScreen ? default : PanelShadow;
-        ChromeClip.CornerRadius = Chrome.CornerRadius;
+        IsPanelFlush = fullScreen || maximized;
 
         WindowButtons.IsVisible = !fullScreen;
-        Resizer.IsVisible = !fullScreen;
+        Resizer.IsVisible = !fullScreen && !maximized;
         VideoPlayer.IsFullScreen = fullScreen;
 
         _idleTimer.Stop();

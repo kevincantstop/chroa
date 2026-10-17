@@ -1,47 +1,35 @@
-<Window xmlns="https://github.com/avaloniaui"
+<core:ChroaWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:ChroaVideoPlayer.ViewModels"
         xmlns:chroa="clr-namespace:ChroaVideoPlayer.Controls"
+        xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
         mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
         x:Class="ChroaVideoPlayer.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Chroa Video Player"
         Width="1280"
-		Height="720"
-        WindowDecorations="None"
-        TransparencyLevelHint="Transparent"
-        CanResize="False"
-        Background="Transparent">
-	<Grid x:Name="RootGrid" Classes="root" Background="Transparent"
-	      PointerPressed="OnRootPointerPressed"
-	      PointerExited="OnRootPointerExited"
-	      DoubleTapped="OnRootDoubleTapped"
-	      DragDrop.AllowDrop="True"
-	      DragDrop.DragOver="OnDragOver"
-	      DragDrop.Drop="OnDrop">
-		<Border x:Name="Chrome"
-		        Classes="chrome"
-		        Margin="24"
-		        Background="Black"
-		        CornerRadius="10"
-		        BoxShadow="0 6 24 0 #A0000000">
-			<Grid>
-				<Border x:Name="ChromeClip" CornerRadius="10" ClipToBounds="True">
-					<Grid>
-						<chroa:MpvVideoPlayer x:Name="VideoPlayer" />
-						<chroa:LoadVideoButton IsVisible="{Binding ShowLoadVideo}" Player="{Binding Mpv}" />
-						<chroa:WindowActionButtons x:Name="WindowButtons" />
-						<chroa:HomeMenu x:Name="HomeMenu" />
-						<Border x:Name="IdleLayer" Background="Transparent" Cursor="None" IsVisible="False" />
-					</Grid>
-				</Border>
-
-				<chroa:WindowResizer x:Name="Resizer"
-				                     Aspect="{Binding Player.VideoAspect}"
-				                     IsFreeResize="{Binding Player.IsFreeResize}" />
+        Height="720">
+	<core:ChroaWindow.PanelContent>
+		<Grid>
+			<Grid x:Name="RootGrid" Classes="root" Background="Transparent"
+			      PointerPressed="OnRootPointerPressed"
+			      PointerExited="OnRootPointerExited"
+			      DoubleTapped="OnRootDoubleTapped"
+			      DragDrop.AllowDrop="True"
+			      DragDrop.DragOver="OnDragOver"
+			      DragDrop.Drop="OnDrop">
+				<chroa:MpvVideoPlayer x:Name="VideoPlayer" />
+				<chroa:LoadVideoButton IsVisible="{Binding ShowLoadVideo}" Player="{Binding Mpv}" />
+				<chroa:WindowActionButtons x:Name="WindowButtons" />
+				<chroa:HomeMenu x:Name="HomeMenu" />
+				<Border x:Name="IdleLayer" Background="Transparent" Cursor="None" IsVisible="False" />
 			</Grid>
-		</Border>
-	</Grid>
-</Window>
+
+			<chroa:WindowResizer x:Name="Resizer"
+			                     Aspect="{Binding Player.VideoAspect}"
+			                     IsFreeResize="{Binding Player.IsFreeResize}" />
+		</Grid>
+	</core:ChroaWindow.PanelContent>
+</core:ChroaWindow>

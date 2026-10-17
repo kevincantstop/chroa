@@ -1,16 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using ChroaVideoPlayer.Core.Utils;
 
 namespace ChroaVideoPlayer.Core.UI;
 
 public class ChroaWindow : Window
 {
-    public const double ShadowMargin = 24;
-
     public const double PanelCornerRadius = 10;
 
-    private static readonly Thickness PanelMargin = new(ShadowMargin);
+    private static readonly Thickness PanelMargin = new(WindowUtils.PanelShadowMargin);
 
     private static readonly CornerRadius PanelCorners = new(PanelCornerRadius);
 
