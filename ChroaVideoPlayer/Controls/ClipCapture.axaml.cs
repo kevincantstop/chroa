@@ -71,6 +71,17 @@ public partial class ClipCapture : UserControl
         _dwellTimer.Start();
     }
 
+    public void ClearCache()
+    {
+        Cancel();
+        ClearFrames();
+
+        _path = null;
+        _captureAt = TimeSpan.FromSeconds(-1);
+
+        ClipCaptureManager.ClearCache();
+    }
+
     public void Hide()
     {
         _dwellTimer.Stop();

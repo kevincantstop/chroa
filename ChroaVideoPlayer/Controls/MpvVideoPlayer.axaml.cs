@@ -107,6 +107,8 @@ public partial class MpvVideoPlayer : UserControl
         ViewModel.Play(path);
     }
 
+    public void ClearPreviewCache() => Preview.ClearCache();
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -187,6 +189,8 @@ public partial class MpvVideoPlayer : UserControl
 
     private void OnMediaOpened(object? sender, EventArgs e)
     {
+        Preview.ClearCache();
+
         var path = ViewModel.Mpv.CurrentFile;
 
         _openedPath = string.IsNullOrEmpty(path) ? null : path;

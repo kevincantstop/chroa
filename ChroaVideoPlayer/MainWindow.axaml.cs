@@ -86,6 +86,8 @@ public partial class MainWindow : ChroaWindow
 
         _settings.Detach();
 
+        VideoPlayer.ClearPreviewCache();
+
         base.OnClosing(e);
     }
 

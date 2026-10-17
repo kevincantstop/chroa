@@ -31,6 +31,21 @@ public sealed class ClipCaptureManager
     public static string DefaultHeadlessPath =>
         Path.Combine(AppContext.BaseDirectory, HeadlessExecutable);
 
+    public static string PreviewRoot =>
+        Path.Combine(Path.GetTempPath(), "ChroaVideoPlayer", "previews");
+
+    public static void ClearCache()
+    {
+        try
+        {
+            if (Directory.Exists(PreviewRoot)) Directory.Delete(PreviewRoot, recursive: true);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not clear the clip preview cache: {ex.Message}");
+        }
+    }
+
     public async Task<ClipCaptureResult?> CaptureAsync(
         string path,
         TimeSpan captureAt,
@@ -133,7 +148,7 @@ public sealed class ClipCaptureManager
 
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(key)))[..16];
 
-        return Path.Combine(Path.GetTempPath(), "ChroaVideoPlayer", "previews", hash);
+        return Path.Combine(PreviewRoot, hash);
     }
 
     private static IReadOnlyList<string> ReadFrames(string directory)
