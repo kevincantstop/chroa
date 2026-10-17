@@ -208,6 +208,7 @@ public sealed partial class ChroaMpvContext
         });
 
 
+
     private void OnStartFile(object? sender, MpvStartFileEventArgs e) =>
         SafeRun(nameof(OnStartFile), () =>
         {
@@ -242,6 +243,8 @@ public sealed partial class ChroaMpvContext
 
             if (_sizeTrustworthy) TryReportAspect();
             else _ = RetryAspectAsync();
+
+            EnsurePlaying();
         });
 
     private void OnPausePropertyChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
@@ -327,6 +330,18 @@ public sealed partial class ChroaMpvContext
 
             if (e.Reason == MpvEndFileReason.EndOfFile) MediaEnded?.Invoke(this, EventArgs.Empty);
         });
+
+    private void EnsurePlaying()
+    {
+        var context = _context;
+
+        if (context is null) return;
+
+        SafeRun(nameof(EnsurePlaying), () =>
+        {
+            if (context.Pause.Get() == true) context.Pause.Set(false);
+        });
+    }
 
     private void OnEofReachedChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
         SafeRun(nameof(OnEofReachedChanged), () =>

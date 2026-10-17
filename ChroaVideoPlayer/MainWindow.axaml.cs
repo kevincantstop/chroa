@@ -121,11 +121,7 @@ public partial class MainWindow : ChroaWindow
 
     private void ApplyVideoAspectForCurrentFile(double aspect)
     {
-        var path = VideoPlayer.ViewModel.Mpv.CurrentFile ?? string.Empty;
-
-        if (path.Length == 0) return;
-
-        if (_settings.HasSettingsFor(path)) return;
+        if (VideoPlayer.ViewModel.IsFreeResize) return;
 
         WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction, WindowUtils.PanelShadowMargin);
     }
