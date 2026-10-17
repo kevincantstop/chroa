@@ -106,6 +106,22 @@ Derive from `PluginWindow`, never from a bare `Window`. The panel chrome (black,
 per-pixel transparent frame), dragging with magnetic docking against the player, and resizing all come
 with it.
 
+`PluginWindow` extends `ChroaWindow` (`ChroaVideoPlayer.Core.UI`), the same base the player's own window
+uses, so the two look alike by construction rather than by copied constants. That has three consequences
+worth knowing:
+
+- **The chrome spec lives in `ChroaWindow`** — corner radius, the `0 6 24 0 #A0000000` shadow and the panel
+  margin. `WindowUtils.PanelShadowMargin` is the single source of the margin value, shared with the
+  docking maths and the player's aspect fitting. Changing it there changes every window at once; do not
+  reintroduce a second copy.
+- **Put content in `PluginContent`** (the supported surface) rather than reaching for the panel. Setting
+  `Content` still works — `PluginWindow` relocates it into the panel — but `PluginContent` says what you
+  mean.
+- **The transparent ring around the panel belongs to nobody.** Docking targets the host's *panel* rect
+  (`WindowUtils.GetPanelBounds`), not its window rect, which is why a docked window sits flush against the
+  visible player instead of 24 px away.
+
+
 ```xml
 <chroa:PluginWindow xmlns:chroa="clr-namespace:ChroaVideoPlayer.Core.Plugin.UI;assembly=ChroaVideoPlayer.Core"
                     x:Class="MyPlugin.MyPluginWindow"

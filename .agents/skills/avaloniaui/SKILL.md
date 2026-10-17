@@ -340,6 +340,42 @@ Dead ends — all **measured to have no effect**, so do not spend time on them:
    be dark or the user moves the window mid-measurement.
 3. Vary exactly one declaration per run (`WindowDecorations`, then `ExtendClientArea…`, then transparency).
 
+## 13. A self-drawn window panel: three traps, all silent
+
+Once the window uses `WindowDecorations="None"` plus a panel drawn inside it (`ChroaWindow` in
+`Core/UI/`), three failures appear that the compiler cannot see.
+
+**Deleting an element orphans the style selectors that named it.** The hover that reveals the control bar
+was `Grid.root:pointerover Border.overlay`; it had been retargeted to `Border.chrome:pointerover` so that a
+transparent shadow ring would not trigger it. When the chrome panel moved into the base class, the element
+carrying `Classes="chrome"` disappeared — and the selector simply matched nothing, leaving
+`Border.overlay` at `Opacity = 0` forever. **Every button and the whole control bar vanished, with a clean
+build.** XAML selectors are not validated, so removing a classed element and removing its styles are one
+operation, not two. Move the selector back onto an element that still exists (`Grid.root`, now itself
+inside the panel, so the ring is excluded again).
+
+**`WindowState.Maximized` needs the panel flushed too.** Flushing only for `FullScreen` leaves the 24 px
+margin in place when maximized: the window does fill the working area, but the panel floats 24 px inside
+it, which reads as "the maximize button did nothing, the edges have gaps". Treat
+`Maximized` the same as `FullScreen` — zero margin, corner radius and shadow — and hide the resize grips,
+since `WindowResizer` already ignores presses outside `WindowState.Normal`.
+
+**A member named `Panel` collides with `Avalonia.Controls.Panel`.** `CS0119: 'Panel' is a type, which is not
+valid in the given context` — in `new WindowMover(this, Panel)` the type wins and the property is never
+found. Name the chrome border something unambiguous (`PanelBorder`), which keeps it distinct from
+`PanelContent` as well.
+
+Two smaller things worth knowing about the same change:
+
+- The base sets `Content` to its own panel, so **derived XAML must place its content in `PanelContent`**.
+  A derived window that overrides `OnPropertyChanged` to intercept `Content` (as `PluginWindow` does, to
+  keep plugin XAML working) must compare against the base's already-initialised panel property — comparing
+  a *derived* field would read `null` during base construction and throw.
+- A transparent ring means the outer 24 px belongs to no content: dragging the ring no longer moves the
+  window and dropping files on it does nothing. If that matters, the window needs a pointer handler for
+  the ring — the panel itself only covers the inset area.
+
+
 
 
 

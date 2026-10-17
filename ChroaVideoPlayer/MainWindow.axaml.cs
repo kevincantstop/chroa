@@ -75,8 +75,6 @@ public partial class MainWindow : ChroaWindow
     {
         base.OnOpened(e);
 
-        WindowUtils.RemoveSystemBorder(this);
-
         WindowUtils.ClampToWorkingArea(this, MaxWorkingAreaFraction);
 
         _settings.Attach(this, VideoPlayer.ViewModel);

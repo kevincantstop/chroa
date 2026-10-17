@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 
@@ -10,42 +8,7 @@ public static class WindowUtils
 {
     public const double PanelShadowMargin = 24;
 
-    private const int DwmwaUseImmersiveDarkMode = 20;
-    private const int DwmwaBorderColor = 34;
-    private const int DwmwaColorNone = unchecked((int)0xFFFFFFFE);
     private const int FrameSlackPixels = 8;
-
-    [DllImport("dwmapi.dll")]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
-
-    public static void RemoveSystemBorder(Window window)
-    {
-        if (!OperatingSystem.IsWindows()) return;
-
-        var handle = window.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
-        if (handle == IntPtr.Zero)
-        {
-            Debug.WriteLine("Could not get the window handle; the system border was not removed");
-            return;
-        }
-
-        TrySetAttribute(handle, DwmwaUseImmersiveDarkMode, 1, nameof(DwmwaUseImmersiveDarkMode));
-        TrySetAttribute(handle, DwmwaBorderColor, DwmwaColorNone, nameof(DwmwaBorderColor));
-    }
-
-    private static void TrySetAttribute(IntPtr handle, int attribute, int value, string name)
-    {
-        try
-        {
-            var hr = DwmSetWindowAttribute(handle, attribute, ref value, sizeof(int));
-            if (hr != 0) Debug.WriteLine($"{name} failed: 0x{hr:X8} (unsupported on this Windows build; safe to ignore)");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"{name} threw: {ex.Message}");
-        }
-    }
 
     public static void ClampToWorkingArea(Window window, double fraction) =>
         FitSize(window, window.Width, window.Height, fraction);
