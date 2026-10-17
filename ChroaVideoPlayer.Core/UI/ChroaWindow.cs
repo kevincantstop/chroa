@@ -53,6 +53,8 @@ public class ChroaWindow : Window
         set => _clip.Child = value;
     }
 
+    protected Border PanelBorder => _panel;
+
     public bool IsPanelFlush
     {
         get => _isPanelFlush;

@@ -3,13 +3,13 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Media;
 using Avalonia.VisualTree;
+using ChroaVideoPlayer.Core.UI;
 using ChroaVideoPlayer.Core.Utils;
 
 namespace ChroaVideoPlayer.Core.Plugin.UI;
 
-public class PluginWindow : Window
+public class PluginWindow : ChroaWindow
 {
     public static readonly StyledProperty<DockSide> InitialDockSideProperty =
         AvaloniaProperty.Register<PluginWindow, DockSide>(nameof(InitialDockSide));
@@ -18,11 +18,7 @@ public class PluginWindow : Window
 
     private const double MinimumVisible = 24;
 
-    private const double ShadowMargin = 24;
-
     private const string InteractiveClass = "interactive";
-
-    private readonly Border _panel;
 
     private readonly WindowMover _mover;
 
@@ -40,27 +36,13 @@ public class PluginWindow : Window
 
     public PluginWindow()
     {
-        WindowDecorations = WindowDecorations.None;
-        TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
-        Background = Brushes.Transparent;
-        CanResize = false;
         CanMinimize = false;
         CanMaximize = false;
         ShowInTaskbar = false;
 
-        _panel = new Border
-        {
-            Margin = new Thickness(ShadowMargin),
-            Background = Brushes.Black,
-            BoxShadow = BoxShadows.Parse("0 6 24 0 #A0000000"),
-            CornerRadius = new CornerRadius(10),
-        };
+        _mover = new WindowMover(this, PanelBorder) { Adjust = AdjustPosition };
 
-        Content = _panel;
-
-        _mover = new WindowMover(this, _panel) { Adjust = AdjustPosition };
-
-        _resizer = new PluginWindowResizer(this, _panel)
+        _resizer = new PluginWindowResizer(this, PanelBorder)
         {
             MinimumSide = MinimumPanelSide + (ShadowMargin * 2),
             DockedPosition = DockedWindowPosition,
@@ -69,13 +51,13 @@ public class PluginWindow : Window
         _mover.Ended += OnInteractionEnded;
         _resizer.Ended += OnInteractionEnded;
 
-        _panel.PointerPressed += OnPointerPressed;
+        PanelBorder.PointerPressed += OnPointerPressed;
     }
 
     public Control? PluginContent
     {
-        get => _panel.Child;
-        set => _panel.Child = value;
+        get => PanelContent;
+        set => PanelContent = value;
     }
 
     public double SnapDistance { get; set; } = 12;
@@ -139,11 +121,11 @@ public class PluginWindow : Window
 
         if (change.Property != ContentProperty) return;
         if (change.NewValue is not Control content) return;
-        if (ReferenceEquals(content, _panel)) return;
+        if (ReferenceEquals(content, PanelBorder)) return;
 
-        Content = _panel;
+        Content = PanelBorder;
 
-        _panel.Child = content;
+        PanelContent = content;
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
