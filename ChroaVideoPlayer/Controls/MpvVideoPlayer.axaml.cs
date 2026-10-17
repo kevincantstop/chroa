@@ -107,17 +107,7 @@ public partial class MpvVideoPlayer : UserControl
         ViewModel.Play(path);
     }
 
-    public void ClearPreviewCache()
-    {
-        try
-        {
-            Preview.ClearCache();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Could not clear the clip preview cache: {ex}");
-        }
-    }
+    public void ClearPreviewCache() => Preview.ClearCache();
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {

@@ -73,13 +73,20 @@ public partial class ClipCapture : UserControl
 
     public void ClearCache()
     {
-        Cancel();
-        ClearFrames();
+        try
+        {
+            Cancel();
+            ClearFrames();
 
-        _path = null;
-        _captureAt = TimeSpan.FromSeconds(-1);
+            _path = null;
+            _captureAt = TimeSpan.FromSeconds(-1);
 
-        ClipCaptureManager.ClearCache();
+            ClipCaptureManager.ClearCache();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not clear the clip preview cache: {ex}");
+        }
     }
 
     public void Hide()
