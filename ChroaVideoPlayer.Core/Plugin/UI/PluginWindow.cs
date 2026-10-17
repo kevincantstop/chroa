@@ -3,13 +3,13 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Media;
 using Avalonia.VisualTree;
+using ChroaVideoPlayer.Core.UI;
 using ChroaVideoPlayer.Core.Utils;
 
 namespace ChroaVideoPlayer.Core.Plugin.UI;
 
-public class PluginWindow : Window
+public class PluginWindow : ChroaWindow
 {
     public static readonly StyledProperty<DockSide> InitialDockSideProperty =
         AvaloniaProperty.Register<PluginWindow, DockSide>(nameof(InitialDockSide));
@@ -18,11 +18,7 @@ public class PluginWindow : Window
 
     private const double MinimumVisible = 24;
 
-    private const double ShadowMargin = 24;
-
     private const string InteractiveClass = "interactive";
-
-    private readonly Border _panel;
 
     private readonly WindowMover _mover;
 
@@ -40,47 +36,35 @@ public class PluginWindow : Window
 
     public PluginWindow()
     {
-        WindowDecorations = WindowDecorations.None;
-        TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
-        Background = Brushes.Transparent;
-        CanResize = false;
         CanMinimize = false;
         CanMaximize = false;
         ShowInTaskbar = false;
 
-        _panel = new Border
+        _mover = new WindowMover(this, PanelBorder) { Adjust = AdjustPosition };
+
+        _resizer = new PluginWindowResizer(this, PanelBorder)
         {
-            Margin = new Thickness(ShadowMargin),
-            Background = Brushes.Black,
-            BoxShadow = BoxShadows.Parse("0 6 24 0 #A0000000"),
-            CornerRadius = new CornerRadius(10),
-        };
-
-        Content = _panel;
-
-        _mover = new WindowMover(this, _panel) { Adjust = AdjustPosition };
-
-        _resizer = new PluginWindowResizer(this, _panel)
-        {
-            MinimumSide = MinimumPanelSide + (ShadowMargin * 2),
+            MinimumSide = MinimumPanelSide + (WindowUtils.PanelShadowMargin * 2),
             DockedPosition = DockedWindowPosition,
         };
 
         _mover.Ended += OnInteractionEnded;
         _resizer.Ended += OnInteractionEnded;
 
-        _panel.PointerPressed += OnPointerPressed;
+        PanelBorder.PointerPressed += OnPointerPressed;
     }
 
     public Control? PluginContent
     {
-        get => _panel.Child;
-        set => _panel.Child = value;
+        get => PanelContent;
+        set => PanelContent = value;
     }
 
     public double SnapDistance { get; set; } = 12;
 
     public double DetachDistance { get; set; } = 24;
+
+    public double DockGap { get; set; } = 2;
 
     public bool IsResizable
     {
@@ -139,11 +123,11 @@ public class PluginWindow : Window
 
         if (change.Property != ContentProperty) return;
         if (change.NewValue is not Control content) return;
-        if (ReferenceEquals(content, _panel)) return;
+        if (ReferenceEquals(content, PanelBorder)) return;
 
-        Content = _panel;
+        Content = PanelBorder;
 
-        _panel.Child = content;
+        PanelContent = content;
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -181,14 +165,14 @@ public class PluginWindow : Window
             Math.Max(1, clientSize.Width - inset),
             Math.Max(1, clientSize.Height - inset));
 
-        return ToWindowPosition(DockedPosition(_side, WindowUtils.GetClientBounds(host), panelSize, _offset));
+        return ToWindowPosition(DockedPosition(_side, WindowUtils.GetPanelBounds(host), panelSize, _offset));
     }
 
     private PixelPoint AdjustPosition(PixelPoint proposed)
     {
         if (_host is not { } host) return proposed;
 
-        var hostBounds = WindowUtils.GetClientBounds(host);
+        var hostBounds = WindowUtils.GetPanelBounds(host);
         var size = PanelSize;
         var bounds = PanelBounds(proposed, size);
 
@@ -201,7 +185,7 @@ public class PluginWindow : Window
             _side = side;
             _offset = offset;
         }
-        else if (Math.Abs(PerpendicularGap(_side, bounds, hostBounds)) > DetachDistance * Scale)
+        else if (Math.Abs(PerpendicularGap(_side, bounds, hostBounds) - DockGapPixels) > DetachDistance * Scale)
         {
             _side = DockSide.None;
 
@@ -222,7 +206,7 @@ public class PluginWindow : Window
 
         var size = PanelSize;
 
-        Position = ToWindowPosition(DockedPosition(_side, WindowUtils.GetClientBounds(host), size, _offset));
+        Position = ToWindowPosition(DockedPosition(_side, WindowUtils.GetPanelBounds(host), size, _offset));
 
         WindowUtils.KeepInsideWorkingArea(this, host);
     }
@@ -232,7 +216,7 @@ public class PluginWindow : Window
         if (_host is not { } host) return;
         if (InitialDockSide == DockSide.None) return;
 
-        var hostBounds = WindowUtils.GetClientBounds(host);
+        var hostBounds = WindowUtils.GetPanelBounds(host);
         var size = PanelSize;
         var requested = DockedPosition(InitialDockSide, hostBounds, size, (int)Math.Round(InitialDockOffset * Scale));
 
@@ -259,7 +243,9 @@ public class PluginWindow : Window
         }
     }
 
-    private int Inset => (int)Math.Round(ShadowMargin * Scale);
+    private int Inset => (int)Math.Round(WindowUtils.PanelShadowMargin * Scale);
+
+    private int DockGapPixels => (int)Math.Round(DockGap * Scale);
 
     private DockSide FindSide(PixelRect bounds, PixelRect host, double threshold, out int offset)
     {
@@ -338,12 +324,12 @@ public class PluginWindow : Window
         _ => bounds.Y - host.Bottom,
     };
 
-    private static PixelPoint DockedPosition(DockSide side, PixelRect host, PixelSize size, int offset) => side switch
+    private PixelPoint DockedPosition(DockSide side, PixelRect host, PixelSize size, int offset) => side switch
     {
-        DockSide.Left => new PixelPoint(host.X - size.Width, host.Y + offset),
-        DockSide.Right => new PixelPoint(host.Right, host.Y + offset),
-        DockSide.Top => new PixelPoint(host.X + offset, host.Y - size.Height),
-        _ => new PixelPoint(host.X + offset, host.Bottom),
+        DockSide.Left => new PixelPoint(host.X - size.Width - DockGapPixels, host.Y + offset),
+        DockSide.Right => new PixelPoint(host.Right + DockGapPixels, host.Y + offset),
+        DockSide.Top => new PixelPoint(host.X + offset, host.Y - size.Height - DockGapPixels),
+        _ => new PixelPoint(host.X + offset, host.Bottom + DockGapPixels),
     };
 
     private void SetHost(Window? host)

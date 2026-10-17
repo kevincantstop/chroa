@@ -11,6 +11,7 @@ using ChroaVideoPlayer.Controls;
 using ChroaVideoPlayer.Core.EventBus;
 using ChroaVideoPlayer.Core.Plugin;
 using ChroaVideoPlayer.Core.Plugin.Context;
+using ChroaVideoPlayer.Core.UI;
 using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Settings;
 using ChroaVideoPlayer.ViewModels;
@@ -18,7 +19,7 @@ using Avalonia.Platform.Storage;
 
 namespace ChroaVideoPlayer;
 
-public partial class MainWindow : Window
+public partial class MainWindow : ChroaWindow
 {
     public MainWindow()
     {
@@ -74,8 +75,6 @@ public partial class MainWindow : Window
     {
         base.OnOpened(e);
 
-        WindowUtils.RemoveSystemBorder(this);
-
         WindowUtils.ClampToWorkingArea(this, MaxWorkingAreaFraction);
 
         _settings.Attach(this, VideoPlayer.ViewModel);
@@ -126,7 +125,7 @@ public partial class MainWindow : Window
 
         if (_settings.HasSettingsFor(path)) return;
 
-        WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction);
+        WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction, WindowUtils.PanelShadowMargin);
     }
 
     private bool HandleFullScreenKey(KeyEventArgs e)
@@ -152,7 +151,7 @@ public partial class MainWindow : Window
 
     private void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property == WindowStateProperty) ApplyFullScreenState();
+        if (e.Property == WindowStateProperty) ApplyWindowState();
         else if (e.Property == WindowBase.TopmostProperty) VideoPlayer.IsTopMost = Topmost;
     }
 
@@ -178,12 +177,15 @@ public partial class MainWindow : Window
         WindowState = _stateBeforeFullScreen;
     }
 
-    private void ApplyFullScreenState()
+    private void ApplyWindowState()
     {
         var fullScreen = WindowState == WindowState.FullScreen;
+        var maximized = WindowState == WindowState.Maximized;
+
+        IsPanelFlush = fullScreen || maximized;
 
         WindowButtons.IsVisible = !fullScreen;
-        Resizer.IsVisible = !fullScreen;
+        Resizer.IsVisible = !fullScreen && !maximized;
         VideoPlayer.IsFullScreen = fullScreen;
 
         _idleTimer.Stop();

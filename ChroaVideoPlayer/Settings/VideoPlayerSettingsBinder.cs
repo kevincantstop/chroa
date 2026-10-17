@@ -106,7 +106,10 @@ public sealed class VideoPlayerSettingsBinder
 
             if (_window.WindowState == WindowState.Normal)
             {
-                WindowUtils.FitInsideWorkingArea(_window, width, height);
+                WindowUtils.FitInsideWorkingArea(
+                    _window,
+                    width + WindowUtils.PanelShadowMargin * 2,
+                    height + WindowUtils.PanelShadowMargin * 2);
             }
         }
         finally
@@ -133,8 +136,8 @@ public sealed class VideoPlayerSettingsBinder
 
         if (_window.WindowState == WindowState.Normal)
         {
-            _row.WindowWidth = _window.Width;
-            _row.WindowHeight = _window.Height;
+            _row.WindowWidth = _window.Width - WindowUtils.PanelShadowMargin * 2;
+            _row.WindowHeight = _window.Height - WindowUtils.PanelShadowMargin * 2;
         }
 
         _row.LastOpenedUtc = DateTime.UtcNow;

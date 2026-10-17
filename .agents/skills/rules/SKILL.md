@@ -68,6 +68,13 @@ Compile success is the deliverable — 0 errors, with the artifacts in place. Al
 interaction verification belongs to the user; do not write UI-assertion probes, do not paste long tool
 output, and keep the report to what changed, what was built, and any decision the user should review.
 
+**Before trusting anything you observe, confirm the running process is the build you just made.** A
+`ChroaVideoPlayer` already running from an older `bin` keeps the code it was started with, so a fix looks
+broken — or a bug looks fixed — for reasons that have nothing to do with the change. Compare
+`Get-Process ChroaVideoPlayer | Select StartTime` against the `.exe` write time. This has now cost three
+separate rounds in this project, and once it produced a pixel measurement of a *stale* window that was then
+reported as evidence about the new one.
+
 ## 7. If the rule is broken
 
 Do not answer with "I will be careful next time". Name the step that went wrong and which message was

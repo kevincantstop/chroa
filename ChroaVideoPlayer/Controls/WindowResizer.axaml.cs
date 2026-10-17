@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using ChroaVideoPlayer.Core.Utils;
 
 namespace ChroaVideoPlayer.Controls;
 
@@ -159,6 +160,7 @@ public partial class WindowResizer : UserControl
     private Size Constrain(double width, double height)
     {
         var aspect = Aspect;
+        var margin = WindowUtils.PanelShadowMargin * 2;
 
         if (IsFreeResize || aspect <= 0 || double.IsNaN(aspect) || double.IsInfinity(aspect))
         {
@@ -167,14 +169,14 @@ public partial class WindowResizer : UserControl
 
         if (_widthDrives == false)
         {
-            var drivenHeight = Math.Max(Math.Round(height), MinimumSide);
+            var drivenHeight = Math.Max(Math.Round(height - margin), MinimumSide);
 
-            return new Size(Math.Round(drivenHeight * aspect), drivenHeight);
+            return new Size(Math.Round(drivenHeight * aspect) + margin, drivenHeight + margin);
         }
 
-        var drivenWidth = Math.Max(Math.Round(width), MinimumSide);
+        var drivenWidth = Math.Max(Math.Round(width - margin), MinimumSide);
 
-        return new Size(drivenWidth, Math.Round(drivenWidth / aspect));
+        return new Size(drivenWidth + margin, Math.Round(drivenWidth / aspect) + margin);
     }
 
     private enum ResizeEdge
