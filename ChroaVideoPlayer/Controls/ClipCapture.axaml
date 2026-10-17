@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ChroaVideoPlayer.Controls.ClipCapture"
              IsHitTestVisible="False">
-	<Border Background="#E6000000"
+	<Border Margin="24"
+	        Background="#E6000000"
 	        CornerRadius="6"
 	        BoxShadow="0 6 24 0 #A0000000">
 		<Border CornerRadius="6" ClipToBounds="True">

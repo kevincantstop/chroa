@@ -13,6 +13,8 @@ namespace ChroaVideoPlayer.Controls;
 
 public partial class ClipCapture : UserControl
 {
+    public const double ShadowMargin = 24;
+
     private const double PreviewWidth = 320;
 
     private const double PreviewHeight = 180;
@@ -37,8 +39,8 @@ public partial class ClipCapture : UserControl
     {
         InitializeComponent();
 
-        Width = PreviewWidth;
-        Height = PreviewHeight;
+        Width = PreviewWidth + ShadowMargin * 2;
+        Height = PreviewHeight + ShadowMargin * 2;
 
         _playbackTimer.Tick += OnPlaybackTick;
         _dwellTimer.Tick += OnDwellTick;
@@ -158,7 +160,7 @@ public partial class ClipCapture : UserControl
 
         if (size.Width <= 0 || size.Height <= 0) return;
 
-        Height = Math.Round(PreviewWidth * size.Height / size.Width);
+        Height = Math.Round(PreviewWidth * size.Height / size.Width) + ShadowMargin * 2;
     }
 
     private void OnPlaybackTick(object? sender, EventArgs e)

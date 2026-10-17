@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer.Plugins.Pl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer.Plugins.Sample", "ChroaVideoPlayer.Plugins.Sample\ChroaVideoPlayer.Plugins.Sample.csproj", "{FC82B2F9-2FE1-4D7A-9C2B-92424D757A73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer.headless", "ChroaVideoPlayer.headless\ChroaVideoPlayer.headless.csproj", "{7C4A1E92-5D38-4B6F-9A2E-3F81B6D4C0A7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChroaVideoPlayer.Headless", "ChroaVideoPlayer.Headless\ChroaVideoPlayer.Headless.csproj", "{7C4A1E92-5D38-4B6F-9A2E-3F81B6D4C0A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

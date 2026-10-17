@@ -168,12 +168,12 @@ public partial class MpvVideoPlayer : UserControl
         if (SeekBar.TranslatePoint(new Point(0, 0), this) is not { } start) return;
 
         var centre = start.X + Math.Clamp(_hoverFraction, 0, 1) * SeekBar.Bounds.Width;
-        var half = Preview.Width / 2;
 
         Canvas.SetLeft(
-            Preview, Math.Clamp(centre - half, 8, Math.Max(8, Bounds.Width - Preview.Width - 8)));
+            Preview, Math.Clamp(centre - Preview.Width / 2, 8, Math.Max(8, Bounds.Width - Preview.Width - 8)));
 
-        Canvas.SetTop(Preview, Math.Max(8, start.Y - Preview.Height - 10));
+        Canvas.SetTop(
+            Preview, Math.Max(8, start.Y - Preview.Height + ClipCapture.ShadowMargin - 10));
     }
 
     private void HidePreview()

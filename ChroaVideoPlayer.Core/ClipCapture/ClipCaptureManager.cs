@@ -12,7 +12,7 @@ namespace ChroaVideoPlayer.Core.ClipCapture;
 
 public sealed class ClipCaptureManager
 {
-    private const string HeadlessExecutable = "ChroaVideoPlayer.headless.exe";
+    private const string HeadlessExecutable = "ChroaVideoPlayer.Headless.exe";
 
     private readonly TaskRunner _runner;
 
