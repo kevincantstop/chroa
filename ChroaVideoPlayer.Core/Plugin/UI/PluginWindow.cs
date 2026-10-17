@@ -64,6 +64,8 @@ public class PluginWindow : ChroaWindow
 
     public double DetachDistance { get; set; } = 24;
 
+    public double DockGap { get; set; } = 2;
+
     public bool IsResizable
     {
         get => _resizer.IsEnabled;
@@ -183,7 +185,7 @@ public class PluginWindow : ChroaWindow
             _side = side;
             _offset = offset;
         }
-        else if (Math.Abs(PerpendicularGap(_side, bounds, hostBounds)) > DetachDistance * Scale)
+        else if (Math.Abs(PerpendicularGap(_side, bounds, hostBounds) - DockGapPixels) > DetachDistance * Scale)
         {
             _side = DockSide.None;
 
@@ -242,6 +244,8 @@ public class PluginWindow : ChroaWindow
     }
 
     private int Inset => (int)Math.Round(WindowUtils.PanelShadowMargin * Scale);
+
+    private int DockGapPixels => (int)Math.Round(DockGap * Scale);
 
     private DockSide FindSide(PixelRect bounds, PixelRect host, double threshold, out int offset)
     {
@@ -320,12 +324,12 @@ public class PluginWindow : ChroaWindow
         _ => bounds.Y - host.Bottom,
     };
 
-    private static PixelPoint DockedPosition(DockSide side, PixelRect host, PixelSize size, int offset) => side switch
+    private PixelPoint DockedPosition(DockSide side, PixelRect host, PixelSize size, int offset) => side switch
     {
-        DockSide.Left => new PixelPoint(host.X - size.Width, host.Y + offset),
-        DockSide.Right => new PixelPoint(host.Right, host.Y + offset),
-        DockSide.Top => new PixelPoint(host.X + offset, host.Y - size.Height),
-        _ => new PixelPoint(host.X + offset, host.Bottom),
+        DockSide.Left => new PixelPoint(host.X - size.Width - DockGapPixels, host.Y + offset),
+        DockSide.Right => new PixelPoint(host.Right + DockGapPixels, host.Y + offset),
+        DockSide.Top => new PixelPoint(host.X + offset, host.Y - size.Height - DockGapPixels),
+        _ => new PixelPoint(host.X + offset, host.Bottom + DockGapPixels),
     };
 
     private void SetHost(Window? host)
