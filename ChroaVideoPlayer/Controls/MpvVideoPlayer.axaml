@@ -172,5 +172,9 @@
 				</Grid>
 			</Border>
 		</Grid>
+
+		<Canvas x:Name="PreviewLayer" IsHitTestVisible="False">
+			<chroa:ClipCapture x:Name="Preview" IsVisible="False" />
+		</Canvas>
 	</Grid>
 </UserControl>

@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ChroaVideoPlayer.Controls.ClipCapture"
+             IsHitTestVisible="False">
+	<Border Background="#E6000000"
+	        CornerRadius="6"
+	        ClipToBounds="True"
+	        BoxShadow="0 6 20 0 #99000000">
+		<Grid>
+			<Image x:Name="Frame" Stretch="Uniform" />
+
+			<Border HorizontalAlignment="Center"
+			        VerticalAlignment="Bottom"
+			        Margin="0,0,0,8"
+			        Padding="8,2"
+			        Background="#B3000000"
+			        CornerRadius="3">
+				<TextBlock x:Name="TimeText"
+				           FontSize="14"
+				           Foreground="White" />
+			</Border>
+		</Grid>
+	</Border>
+</UserControl>

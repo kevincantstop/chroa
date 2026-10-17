@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using System;
@@ -16,6 +16,10 @@ public partial class DragBar : UserControl
 
     public event Action<double>? Committed;
 
+    public event Action<double>? Hovered;
+
+    public event Action? HoverLeft;
+
     public Func<bool>? CanDrag { get; set; }
 
     public DragBar()
@@ -26,6 +30,8 @@ public partial class DragBar : UserControl
         Area.PointerMoved += OnPointerMoved;
         Area.PointerReleased += OnPointerReleased;
         Area.PointerCaptureLost += OnPointerCaptureLost;
+        Area.PointerEntered += OnPointerEntered;
+        Area.PointerExited += OnPointerExited;
 
         Track.SizeChanged += (_, _) => ApplyFill();
     }
@@ -51,11 +57,20 @@ public partial class DragBar : UserControl
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (!ReferenceEquals(e.Pointer, _pointer)) return;
+        if (!ReferenceEquals(e.Pointer, _pointer))
+        {
+            Hovered?.Invoke(FractionAt(e));
+
+            return;
+        }
 
         e.Handled = true;
         UpdateFromPointer(e);
     }
+
+    private void OnPointerEntered(object? sender, PointerEventArgs e) => Hovered?.Invoke(FractionAt(e));
+
+    private void OnPointerExited(object? sender, PointerEventArgs e) => HoverLeft?.Invoke();
 
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
@@ -79,11 +94,15 @@ public partial class DragBar : UserControl
 
     private void UpdateFromPointer(PointerEventArgs e)
     {
-        var width = Area.Bounds.Width;
-        if (width <= 0) return;
-
-        SetFraction(e.GetPosition(Area).X / width);
+        SetFraction(FractionAt(e));
         Dragged?.Invoke(_fraction);
+    }
+
+    private double FractionAt(PointerEventArgs e)
+    {
+        var width = Area.Bounds.Width;
+
+        return width <= 0 ? 0 : Math.Clamp(e.GetPosition(Area).X / width, 0, 1);
     }
 
     private void ApplyFill()

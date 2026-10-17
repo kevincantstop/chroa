@@ -12,6 +12,7 @@
     <ProjectReference Include="..\ChroaVideoPlayer.Core\ChroaVideoPlayer.Core.csproj" />
     <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Playlist\ChroaVideoPlayer.Plugins.Playlist.csproj" ReferenceOutputAssembly="false" Private="false" IsPlugin="true" />
     <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Sample\ChroaVideoPlayer.Plugins.Sample.csproj" ReferenceOutputAssembly="false" Private="false" IsPlugin="true" />
+    <ProjectReference Include="..\ChroaVideoPlayer.headless\ChroaVideoPlayer.headless.csproj" ReferenceOutputAssembly="false" Private="false" IsHeadless="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,5 +54,19 @@
 
   <Target Name="CopyPluginsToPublish" AfterTargets="Publish" DependsOnTargets="CopyPlugins">
     <Copy SourceFiles="@(PluginAssemblies)" DestinationFolder="$(PublishDir)Plugins" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyHeadless" AfterTargets="Build">
+    <ItemGroup>
+      <HeadlessFiles Include="..\ChroaVideoPlayer.headless\$(OutputPath)ChroaVideoPlayer.headless.exe;
+                              ..\ChroaVideoPlayer.headless\$(OutputPath)ChroaVideoPlayer.headless.dll;
+                              ..\ChroaVideoPlayer.headless\$(OutputPath)ChroaVideoPlayer.headless.runtimeconfig.json;
+                              ..\ChroaVideoPlayer.headless\$(OutputPath)ChroaVideoPlayer.headless.deps.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(HeadlessFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyHeadlessToPublish" AfterTargets="Publish" DependsOnTargets="CopyHeadless">
+    <Copy SourceFiles="@(HeadlessFiles)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

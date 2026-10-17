@@ -36,11 +36,18 @@ public partial class MpvVideoPlayer : UserControl
 
     private const double SkipSeconds = 5;
 
+    private const double PreviewHoverDelayMs = 150;
+
     private readonly DispatcherTimer _copyFeedbackTimer = new() { Interval = TimeSpan.FromSeconds(1) };
+
+    private readonly DispatcherTimer _previewTimer =
+        new() { Interval = TimeSpan.FromMilliseconds(PreviewHoverDelayMs) };
 
     private string? _pendingPlayedPath;
 
     private string? _openedPath;
+
+    private TimeSpan _hoverTime;
 
     public MpvVideoPlayer()
     {
@@ -60,6 +67,11 @@ public partial class MpvVideoPlayer : UserControl
         SeekBar.Committed += OnBarDragCommitted;
         VolumeBar.Started += OnBarDragStarted;
         VolumeBar.Committed += OnBarDragCommitted;
+
+        SeekBar.Hovered += OnSeekHovered;
+        SeekBar.HoverLeft += OnSeekHoverLeft;
+
+        _previewTimer.Tick += OnPreviewTick;
 
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -99,9 +111,67 @@ public partial class MpvVideoPlayer : UserControl
         else if (change.Property == IsTopMostProperty) ApplyState();
     }
 
-    private void OnBarDragStarted() => ViewModel.IsDragging = true;
+    private void OnBarDragStarted()
+    {
+        ViewModel.IsDragging = true;
+
+        HidePreview();
+    }
 
     private void OnBarDragCommitted(double fraction) => ViewModel.IsDragging = false;
+
+    private void OnSeekHovered(double fraction)
+    {
+        if (!ViewModel.HasVideo || ViewModel.Duration <= 0) return;
+        if (ViewModel.Mpv.CurrentFile is not { } path) return;
+
+        _hoverTime = TimeSpan.FromSeconds(Math.Clamp(fraction, 0, 1) * ViewModel.Duration);
+
+        PlacePreview(fraction, path);
+
+        _previewTimer.Stop();
+        _previewTimer.Start();
+    }
+
+    private void OnSeekHoverLeft()
+    {
+        _previewTimer.Stop();
+
+        HidePreview();
+    }
+
+    private void OnPreviewTick(object? sender, EventArgs e)
+    {
+        _previewTimer.Stop();
+
+        if (ViewModel.Mpv.CurrentFile is not { } path) return;
+        if (ViewModel.Duration <= 0) return;
+
+        Preview.Show(path, _hoverTime);
+        Preview.IsVisible = true;
+    }
+
+    private void PlacePreview(double fraction, string path)
+    {
+        if (SeekBar.TranslatePoint(new Point(0, 0), this) is not { } start) return;
+
+        var centre = start.X + Math.Clamp(fraction, 0, 1) * SeekBar.Bounds.Width;
+        var half = ClipCapture.PreviewWidth / 2;
+
+        Canvas.SetLeft(
+            Preview, Math.Clamp(centre - half, 8, Math.Max(8, Bounds.Width - ClipCapture.PreviewWidth - 8)));
+
+        Canvas.SetTop(Preview, Math.Max(8, start.Y - ClipCapture.PreviewHeight - 10));
+
+        Preview.Show(path, _hoverTime);
+    }
+
+    private void HidePreview()
+    {
+        Preview.IsVisible = false;
+
+        Preview.Hide();
+    }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) => ApplyState();
 
