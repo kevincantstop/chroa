@@ -296,4 +296,50 @@ Two borders, two jobs, never one border doing both:
 - A `const` used by the positioning code outside the control has to be `public` (`ClipCapture.ShadowMargin`),
   not `private`.
 
+## 12. A 1px line around the frameless window: it is `WindowDecorations="BorderOnly"`
+
+Symptom: a hairline runs along the window edges — most obvious at the top and bottom, but present on all
+four sides. It looks like a bug in the app's own content, and it is not.
+
+**Measured** with an isolated probe (a window declared exactly like `MainWindow`, content filled with
+magenta so any non-magenta pixel is a frame), 1.5× scaling:
+
+| Configuration | Non-client band | Rounded corners + DWM shadow |
+| --- | --- | --- |
+| `BorderOnly` + `ExtendClientAreaToDecorationsHint="True"` (the player's setup) | **2 physical px ≈ 1.33 logical px**, `#363636`, every side | **both present** |
+| `BorderOnly` + `ExtendClientAreaToDecorationsHint="False"` | **1 physical px ≈ 0.67 logical px**, `#0C0C0C` | **both lost** |
+| `WindowDecorations="None"` | **0 — `GetClientRect` equals `GetWindowRect` exactly** | both lost |
+
+Two conclusions, both measured on the real app as well as the probe:
+
+- The band is the price of the DWM frame, and **it cannot be traded away gradually**: the only setting that
+  removes it (`None`) also removes the rounded corners and the drop shadow. Turning
+  `ExtendClientAreaToDecorationsHint` off halves the band and loses the corners and shadow with it — a
+  strictly worse bargain, tried and rejected.
+- Having a shadow, rounded corners **and** no band means abandoning the DWM frame entirely: a transparent
+  window whose content is inset by a shadow margin around a `Border` with `CornerRadius` + `BoxShadow`
+  (§11), exactly as `PluginWindow` does. For a video-filling player that costs a transparent ring around
+  the picture and touches every piece of window sizing, moving and resizing math — a redesign, not a fix.
+
+Dead ends — all **measured to have no effect**, so do not spend time on them:
+
+- `DWMWA_BORDER_COLOR` (34) = `DWMWA_COLOR_NONE` (`0xFFFFFFFE`): accepted, `hr = 0`, band unchanged.
+- `DWMWA_USE_IMMERSIVE_DARK_MODE` (20) = 1: accepted, `hr = 0`, band unchanged.
+- `DwmExtendFrameIntoClientArea(hwnd, {-1,-1,-1,-1})`: `hr = 0`, `GetClientRect` unchanged.
+- `TransparencyLevelHint`: `AcrylicBlur` and `None` produce identical bands.
+- `Application.RequestedThemeVariant`: affects only how Avalonia paints, never the Win32 frame. Pinning the
+  app to Dark fixes Avalonia-side light-mode leakage (stock control surfaces) and leaves this band alone —
+  do not mistake one symptom for the other.
+
+**How to reproduce and measure it**, instead of guessing (two wrong deductions were made before this):
+
+1. `GetWindowRect` minus `GetClientRect` = 2 px in each dimension is already proof of a 1 px non-client
+   band; the client area starts one pixel inside the window, so the app *cannot* paint there.
+2. Build a throwaway window with **magenta content** and measure `CopyFromScreen` pixels per row/column.
+   With magenta any band is unmissable; measuring the real player fails whenever the video edge happens to
+   be dark or the user moves the window mid-measurement.
+3. Vary exactly one declaration per run (`WindowDecorations`, then `ExtendClientArea…`, then transparency).
+
+
+
 

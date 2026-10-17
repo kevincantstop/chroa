@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
@@ -55,6 +56,10 @@ public partial class MainWindow : Window
 
 
     private const double MaxWorkingAreaFraction = 0.8;
+
+    private const double PanelCornerRadius = 10;
+
+    private static readonly BoxShadows PanelShadow = BoxShadows.Parse("0 6 24 0 #A0000000");
 
     private readonly DispatcherTimer _idleTimer = new() { Interval = TimeSpan.FromSeconds(3) };
 
@@ -126,7 +131,7 @@ public partial class MainWindow : Window
 
         if (_settings.HasSettingsFor(path)) return;
 
-        WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction);
+        WindowUtils.FitToAspect(this, aspect, MaxWorkingAreaFraction, WindowUtils.PanelShadowMargin);
     }
 
     private bool HandleFullScreenKey(KeyEventArgs e)
@@ -181,6 +186,11 @@ public partial class MainWindow : Window
     private void ApplyFullScreenState()
     {
         var fullScreen = WindowState == WindowState.FullScreen;
+
+        Chrome.Margin = fullScreen ? default : new Thickness(WindowUtils.PanelShadowMargin);
+        Chrome.CornerRadius = fullScreen ? default : new CornerRadius(PanelCornerRadius);
+        Chrome.BoxShadow = fullScreen ? default : PanelShadow;
+        ChromeClip.CornerRadius = Chrome.CornerRadius;
 
         WindowButtons.IsVisible = !fullScreen;
         Resizer.IsVisible = !fullScreen;

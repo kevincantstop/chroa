@@ -181,14 +181,14 @@ public class PluginWindow : Window
             Math.Max(1, clientSize.Width - inset),
             Math.Max(1, clientSize.Height - inset));
 
-        return ToWindowPosition(DockedPosition(_side, WindowUtils.GetClientBounds(host), panelSize, _offset));
+        return ToWindowPosition(DockedPosition(_side, WindowUtils.GetPanelBounds(host), panelSize, _offset));
     }
 
     private PixelPoint AdjustPosition(PixelPoint proposed)
     {
         if (_host is not { } host) return proposed;
 
-        var hostBounds = WindowUtils.GetClientBounds(host);
+        var hostBounds = WindowUtils.GetPanelBounds(host);
         var size = PanelSize;
         var bounds = PanelBounds(proposed, size);
 
@@ -222,7 +222,7 @@ public class PluginWindow : Window
 
         var size = PanelSize;
 
-        Position = ToWindowPosition(DockedPosition(_side, WindowUtils.GetClientBounds(host), size, _offset));
+        Position = ToWindowPosition(DockedPosition(_side, WindowUtils.GetPanelBounds(host), size, _offset));
 
         WindowUtils.KeepInsideWorkingArea(this, host);
     }
@@ -232,7 +232,7 @@ public class PluginWindow : Window
         if (_host is not { } host) return;
         if (InitialDockSide == DockSide.None) return;
 
-        var hostBounds = WindowUtils.GetClientBounds(host);
+        var hostBounds = WindowUtils.GetPanelBounds(host);
         var size = PanelSize;
         var requested = DockedPosition(InitialDockSide, hostBounds, size, (int)Math.Round(InitialDockOffset * Scale));
 
