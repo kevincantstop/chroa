@@ -27,12 +27,15 @@ run `ChroaVideoPlayer.exe`.
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/screenshot-2-20261014.jpg" alt="The Chroa Video Player interface" width="100%">
+  <img src="screenshots/screenshot_5_20261017.jpg" alt="The Chroa Video Player interface" width="100%">
 </p>
 
 | **True frameless video player when playing** | **Before anything is loaded** |
 | :---: | :---: |
 | ![Chroa Video Player playing a video](screenshots/screenshot_1.jpg) | ![The main window before anything is loaded](screenshots/screenshot_3-20261013.jpg) |
+| **Video Preview when hovering progress bar** | **Very powerful playlist manager** |
+| :---: | :---: |
+| ![Chroa Video Player playing a video](screenshots/screenshot_2_20261017.jpg) | ![The main window before anything is loaded](screenshots/screenshot_4_20261017.jpg) |
 
 ## Formats
 
