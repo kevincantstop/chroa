@@ -93,12 +93,7 @@ public partial class ClipCapture : UserControl
     {
         _dwellTimer.Stop();
 
-        Cancel();
-
-        _path = null;
-        _captureAt = TimeSpan.FromSeconds(-1);
-
-        ClearFrames();
+        ClearCache();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
