@@ -253,3 +253,47 @@ Hook that press on the **top level** with `handledEventsToo: true` — a plugin 
 presses handled for dragging, so an ordinary handler never sees them — and unhook in
 `OnDetachedFromVisualTree`. If the control derives from a themed control, remember §1.
 
+## 11. A `BoxShadow` needs reserved margin, or it is simply not drawn
+
+Setting `BoxShadow` on a `Border` that fills its own control produced **no visible shadow at all** — the
+popup's edge was a hard line against the video, with no falloff anywhere. The shadow is painted outside
+the border, and it needs room *inside the control's own bounds* to appear; a border that is the same size
+as its control has nowhere to put it.
+
+The repository already had the working shape in `ChroaVideoPlayer.Core/Plugin/UI/PluginWindow.cs`:
+
+```csharp
+private const double ShadowMargin = 24;
+
+_panel = new Border
+{
+    Margin = new Thickness(ShadowMargin),
+    Background = Brushes.Black,
+    BoxShadow = BoxShadows.Parse("0 6 24 0 #A0000000"),
+    CornerRadius = new CornerRadius(10),
+};
+```
+
+Two borders, two jobs, never one border doing both:
+
+```xml
+<UserControl Width="368" Height="228">          <!-- content + ShadowMargin * 2 -->
+  <Border Margin="24" Background="#E6000000" CornerRadius="6"
+          BoxShadow="0 6 24 0 #A0000000">        <!-- paints background + shadow -->
+    <Border CornerRadius="6" ClipToBounds="True"> <!-- clips content to the rounded corners -->
+```
+
+- `ClipToBounds="True"` on the **outer** border clips the shadow away along with everything else, which is
+  how the shadow disappeared in the first place. Put it on an inner border.
+- Use the project's value, `0 6 24 0 #A0000000` — it is what `PluginWindow` and
+  `Styles/PlayerBar.axaml`'s `Border.subtitleMenu` use. An invented `0 6 20 0 #99000000` only looks
+  inconsistent next to them.
+- **Anything positioned absolutely must compensate the margin.** With `ShadowMargin` on the border, a
+  `Canvas.SetTop(control, barTop - control.Height - gap)` puts the *visible* popup `gap + ShadowMargin`
+  away from the bar. The vertical formula is
+  `Canvas.SetTop(control, barTop - control.Height + ShadowMargin - gap)`; the horizontal one is unchanged,
+  because a symmetric margin keeps "centre the control" equal to "centre the visible popup".
+- A `const` used by the positioning code outside the control has to be `public` (`ClipCapture.ShadowMargin`),
+  not `private`.
+
+

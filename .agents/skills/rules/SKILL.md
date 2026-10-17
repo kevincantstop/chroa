@@ -57,7 +57,10 @@ Being small, mechanical, blocking, or obviously wanted is not an exemption.
 - Fixing a compile error **inside** an already-approved change, without widening its scope.
 - Memory writes the user asks for in that turn.
 
-Edits to `.agents/skills/**` are **not** exempt: skill documentation goes through the same gate.
+**Skill documentation under `.agents/skills/**` is a separate case** — the user opened it up on 2026-10-17:
+these files, including new skill folders, are updated without asking. The gate covers the repository's code
+and configuration, not the notes that describe it. Keeping them accurate is part of delivering a change, and
+each session's findings are folded back into the relevant skill without waiting to be asked.
 
 ## 6. Delivering a landed change
 
@@ -70,3 +73,33 @@ output, and keep the report to what changed, what was built, and any decision th
 Do not answer with "I will be careful next time". Name the step that went wrong and which message was
 mistaken for permission, state plainly what is now on disk so the user can decide whether to keep it,
 then return to the gate: post the next change and wait.
+
+## 8. Renaming a project when only the case changes
+
+`ChroaVideoPlayer.headless` → `ChroaVideoPlayer.Headless` is not a normal rename on Windows, and it breaks
+the repository in a way that only shows up on someone else's machine.
+
+- **The filesystem refuses it.** `Rename-Item -Path a -NewName A` fails with "Source and destination path
+  must be different", because Windows paths are case-insensitive and both names resolve to the same path.
+  Go through an intermediate name:
+  `headless` → `chroa-headless-tmp` → `Headless`.
+  A locked `obj/` (MSBuild, VBCSCompiler) makes the delete or rename fail too — `dotnet build-server shutdown`
+  first.
+- **Git does not see it.** With `core.ignorecase = true` (the Windows default) `git status` reports nothing
+  and the index keeps the old case. Committing then leaves `HEAD` self-contradictory: the `.sln` references
+  `ChroaVideoPlayer.Headless\…csproj` while the tree contains `ChroaVideoPlayer.headless/`. It builds on
+  this machine and **fails on any case-sensitive checkout**. Record it explicitly:
+
+  ```powershell
+  git rm -r --cached "ChroaVideoPlayer.old"
+  git add "ChroaVideoPlayer.New"
+  ```
+
+  Afterwards `git status` shows pure renames with 0 content changes.
+- **Check before committing** that the references and the tree agree:
+
+  ```powershell
+  git show HEAD:ChroaVideoPlayer.sln | Select-String -Pattern 'eadless'
+  git ls-tree --name-only HEAD | Select-String -Pattern 'eadless'
+  ```
+
