@@ -33,7 +33,7 @@ run `ChroaVideoPlayer.exe`.
 | **True frameless video player when playing** | **Before anything is loaded** |
 | :---: | :---: |
 | ![Chroa Video Player playing a video](screenshots/screenshot_1.jpg) | ![The main window before anything is loaded](screenshots/screenshot_3-20261013.jpg) |
-| **Video Preview when hovering on progress bar** | **Very powerful playlist manager** |
+| **Frames Preview when hovering on progress bar** | **Very powerful playlist manager** |
 | ![Chroa Video Player playing a video](screenshots/screenshot_2_20261017.jpg) | ![The main window before anything is loaded](screenshots/screenshot_4_20261017.jpg) |
 
 ## Formats
