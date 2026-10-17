@@ -13,13 +13,15 @@ namespace ChroaVideoPlayer.Controls;
 
 public partial class ClipCapture : UserControl
 {
-    public const double PreviewWidth = 320;
+    private const double PreviewWidth = 320;
 
-    public const double PreviewHeight = 180;
+    private const double PreviewHeight = 180;
 
     private readonly ClipCaptureManager _manager = new();
 
     private readonly DispatcherTimer _playbackTimer = new();
+
+    private readonly DispatcherTimer _dwellTimer = new();
 
     private readonly List<Bitmap> _frames = new();
 
@@ -39,24 +41,38 @@ public partial class ClipCapture : UserControl
         Height = PreviewHeight;
 
         _playbackTimer.Tick += OnPlaybackTick;
+        _dwellTimer.Tick += OnDwellTick;
     }
+
+    public event Action? FrameReady;
 
     public TimeSpan PreviewLength { get; set; } = TimeSpan.FromSeconds(1);
 
+    public TimeSpan DwellLength { get; set; } = TimeSpan.FromSeconds(1);
+
     public void Show(string path, TimeSpan captureAt)
     {
-        if (_frames.Count > 0 && _path == path && _captureAt == captureAt) return;
+        if (_path == path && _captureAt == captureAt && _dwellTimer.IsEnabled) return;
 
         _path = path;
         _captureAt = captureAt;
 
         TimeText.Text = Format(captureAt);
 
-        _ = RefreshAsync();
+        _dwellTimer.Stop();
+
+        _ = RefreshAsync(TimeSpan.Zero);
+
+        if (PreviewLength <= TimeSpan.Zero) return;
+
+        _dwellTimer.Interval = DwellLength;
+        _dwellTimer.Start();
     }
 
     public void Hide()
     {
+        _dwellTimer.Stop();
+
         Cancel();
 
         _path = null;
@@ -72,7 +88,14 @@ public partial class ClipCapture : UserControl
         Hide();
     }
 
-    private async Task RefreshAsync()
+    private void OnDwellTick(object? sender, EventArgs e)
+    {
+        _dwellTimer.Stop();
+
+        _ = RefreshAsync(PreviewLength);
+    }
+
+    private async Task RefreshAsync(TimeSpan length)
     {
         Cancel();
 
@@ -84,7 +107,7 @@ public partial class ClipCapture : UserControl
 
         try
         {
-            var result = await _manager.CaptureAsync(path, _captureAt, PreviewLength, source.Token);
+            var result = await _manager.CaptureAsync(path, _captureAt, length, source.Token);
 
             if (result is null || source.IsCancellationRequested) return;
 
@@ -117,10 +140,25 @@ public partial class ClipCapture : UserControl
         _frameIndex = 0;
         Frame.Source = _frames[0];
 
+        ApplyFrameHeight();
+
+        FrameReady?.Invoke();
+
         if (_frames.Count == 1 || result.FramesPerSecond <= 0) return;
 
         _playbackTimer.Interval = TimeSpan.FromSeconds(1d / result.FramesPerSecond);
         _playbackTimer.Start();
+    }
+
+    private void ApplyFrameHeight()
+    {
+        if (_frames.Count == 0) return;
+
+        var size = _frames[0].PixelSize;
+
+        if (size.Width <= 0 || size.Height <= 0) return;
+
+        Height = Math.Round(PreviewWidth * size.Height / size.Width);
     }
 
     private void OnPlaybackTick(object? sender, EventArgs e)

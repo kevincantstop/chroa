@@ -49,6 +49,8 @@ public partial class MpvVideoPlayer : UserControl
 
     private TimeSpan _hoverTime;
 
+    private double _hoverFraction;
+
     public MpvVideoPlayer()
     {
         DataContext = ViewModel;
@@ -70,6 +72,8 @@ public partial class MpvVideoPlayer : UserControl
 
         SeekBar.Hovered += OnSeekHovered;
         SeekBar.HoverLeft += OnSeekHoverLeft;
+
+        Preview.FrameReady += OnPreviewFrameReady;
 
         _previewTimer.Tick += OnPreviewTick;
 
@@ -123,11 +127,12 @@ public partial class MpvVideoPlayer : UserControl
     private void OnSeekHovered(double fraction)
     {
         if (!ViewModel.HasVideo || ViewModel.Duration <= 0) return;
-        if (ViewModel.Mpv.CurrentFile is not { } path) return;
+        if (ViewModel.Mpv.CurrentFile is null) return;
 
+        _hoverFraction = fraction;
         _hoverTime = TimeSpan.FromSeconds(Math.Clamp(fraction, 0, 1) * ViewModel.Duration);
 
-        PlacePreview(fraction, path);
+        PlacePreview();
 
         _previewTimer.Stop();
         _previewTimer.Start();
@@ -149,21 +154,26 @@ public partial class MpvVideoPlayer : UserControl
 
         Preview.Show(path, _hoverTime);
         Preview.IsVisible = true;
+
+        PlacePreview();
     }
 
-    private void PlacePreview(double fraction, string path)
+    private void OnPreviewFrameReady()
+    {
+        if (Preview.IsVisible) PlacePreview();
+    }
+
+    private void PlacePreview()
     {
         if (SeekBar.TranslatePoint(new Point(0, 0), this) is not { } start) return;
 
-        var centre = start.X + Math.Clamp(fraction, 0, 1) * SeekBar.Bounds.Width;
-        var half = ClipCapture.PreviewWidth / 2;
+        var centre = start.X + Math.Clamp(_hoverFraction, 0, 1) * SeekBar.Bounds.Width;
+        var half = Preview.Width / 2;
 
         Canvas.SetLeft(
-            Preview, Math.Clamp(centre - half, 8, Math.Max(8, Bounds.Width - ClipCapture.PreviewWidth - 8)));
+            Preview, Math.Clamp(centre - half, 8, Math.Max(8, Bounds.Width - Preview.Width - 8)));
 
-        Canvas.SetTop(Preview, Math.Max(8, start.Y - ClipCapture.PreviewHeight - 10));
-
-        Preview.Show(path, _hoverTime);
+        Canvas.SetTop(Preview, Math.Max(8, start.Y - Preview.Height - 10));
     }
 
     private void HidePreview()
