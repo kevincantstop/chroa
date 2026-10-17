@@ -107,7 +107,17 @@ public partial class MpvVideoPlayer : UserControl
         ViewModel.Play(path);
     }
 
-    public void ClearPreviewCache() => Preview.ClearCache();
+    public void ClearPreviewCache()
+    {
+        try
+        {
+            Preview.ClearCache();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not clear the clip preview cache: {ex}");
+        }
+    }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -189,12 +199,12 @@ public partial class MpvVideoPlayer : UserControl
 
     private void OnMediaOpened(object? sender, EventArgs e)
     {
-        Preview.ClearCache();
-
         var path = ViewModel.Mpv.CurrentFile;
 
         _openedPath = string.IsNullOrEmpty(path) ? null : path;
         _pendingPlayedPath = _openedPath;
+
+        ClearPreviewCache();
     }
 
     private void OnMediaEnded(object? sender, EventArgs e)

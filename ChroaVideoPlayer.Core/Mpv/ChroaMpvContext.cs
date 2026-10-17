@@ -239,12 +239,12 @@ public sealed partial class ChroaMpvContext
             _ = RefreshAudioTrackAsync();
             _ = RefreshSubtitlesAsync();
 
+            EnsurePlaying();
+
             MediaOpened?.Invoke(this, EventArgs.Empty);
 
             if (_sizeTrustworthy) TryReportAspect();
             else _ = RetryAspectAsync();
-
-            EnsurePlaying();
         });
 
     private void OnPausePropertyChanged(object? sender, MpvValueChangedEventArgs<bool, bool> e) =>
