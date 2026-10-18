@@ -23,6 +23,21 @@ public partial class PlaylistGrid : UserControl
 
     private string? _filter;
 
+    public static readonly DataFormat<PlaylistEntry> EntryFormat =
+        DataFormat.CreateInProcessFormat<PlaylistEntry>("chroa-playlist-entry");
+
+    private const double DragThreshold = 4;
+
+    private PointerPressedEventArgs? _dragTrigger;
+
+    private PlaylistEntry? _dragEntry;
+
+    private Point _dragOrigin;
+
+    private PlaylistEntry? _dropTarget;
+
+    private bool _dropAfter;
+
     public PlaylistGrid()
     {
         InitializeComponent();
@@ -136,6 +151,10 @@ public partial class PlaylistGrid : UserControl
         if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) return;
 
         SetCurrent(entry);
+
+        _dragTrigger = e;
+        _dragEntry = entry;
+        _dragOrigin = e.GetPosition(this);
     }
 
     private void OnRowDoubleTapped(object? sender, TappedEventArgs e)
@@ -199,6 +218,116 @@ public partial class PlaylistGrid : UserControl
         _current = entry;
 
         _current?.MarkCurrent(true);
+    }
+
+    private async void OnRowPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_dragTrigger is not { } trigger || _dragEntry is not { } entry) return;
+
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            ResetDrag();
+
+            return;
+        }
+
+        var position = e.GetPosition(this);
+
+        if (Math.Abs(position.X - _dragOrigin.X) < DragThreshold &&
+            Math.Abs(position.Y - _dragOrigin.Y) < DragThreshold) return;
+
+        ResetDrag();
+
+        var data = new DataTransfer();
+
+        data.Add(DataTransferItem.Create(EntryFormat, entry));
+
+        await DragDrop.DoDragDropAsync(trigger, data, DragDropEffects.Move);
+    }
+
+    private void OnRowDragOver(object? sender, DragEventArgs e)
+    {
+        if (sender is not Control row || row.DataContext is not PlaylistEntry target) return;
+
+        if (!e.DataTransfer.Contains(EntryFormat))
+        {
+            e.DragEffects = DragDropEffects.None;
+
+            return;
+        }
+
+        e.DragEffects = DragDropEffects.Move;
+        e.Handled = true;
+
+        SetDropTarget(target, e.GetPosition(row).Y > row.Bounds.Height / 2);
+    }
+
+    private void OnRowDragLeave(object? sender, DragEventArgs e)
+    {
+        if (sender is not Control row || row.DataContext is not PlaylistEntry target) return;
+
+        if (!ReferenceEquals(_dropTarget, target)) return;
+
+        ClearDropTarget();
+    }
+
+    private void OnRowDrop(object? sender, DragEventArgs e)
+    {
+        if (sender is not Control row || row.DataContext is not PlaylistEntry target) return;
+        if (e.DataTransfer.TryGetValue(EntryFormat) is not { } source) return;
+
+        var after = e.GetPosition(row).Y > row.Bounds.Height / 2;
+
+        ClearDropTarget();
+
+        e.DragEffects = DragDropEffects.Move;
+        e.Handled = true;
+
+        MoveTo(source, target, after);
+    }
+
+    private void MoveTo(PlaylistEntry source, PlaylistEntry target, bool after)
+    {
+        if (_service is not { } service) return;
+
+        var from = service.Entries.IndexOf(source);
+        var index = service.Entries.IndexOf(target);
+
+        if (from < 0 || index < 0 || from == index) return;
+
+        var to = after ? index + 1 : index;
+
+        if (from < to) to--;
+
+        if (to < 0 || to >= service.Entries.Count) return;
+
+        service.Move(from, to);
+    }
+
+    private void SetDropTarget(PlaylistEntry target, bool after)
+    {
+        if (ReferenceEquals(_dropTarget, target) && _dropAfter == after) return;
+
+        ClearDropTarget();
+
+        _dropTarget = target;
+        _dropAfter = after;
+
+        target.MarkDrop(!after, after);
+    }
+
+    private void ClearDropTarget()
+    {
+        _dropTarget?.MarkDrop(false, false);
+
+        _dropTarget = null;
+        _dropAfter = false;
+    }
+
+    private void ResetDrag()
+    {
+        _dragTrigger = null;
+        _dragEntry = null;
     }
 
     private void OnMenuPlayRequested(PlaylistEntry entry) => _service?.Play(entry.Path, VisiblePaths());

@@ -18,6 +18,10 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     private bool _canMoveDown;
 
+    private bool _isDropBefore;
+
+    private bool _isDropAfter;
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     [PersistentColumn]
@@ -47,6 +51,10 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     public bool CanMoveDown => _canMoveDown;
 
+    public bool IsDropBefore => _isDropBefore;
+
+    public bool IsDropAfter => _isDropAfter;
+
     public string RowTip => _isMissing ? "File not found" : "Double click to play";
 
     public string Title => System.IO.Path.GetFileName(Path);
@@ -67,6 +75,12 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
     {
         SetFlag(ref _canMoveUp, up, nameof(CanMoveUp));
         SetFlag(ref _canMoveDown, down, nameof(CanMoveDown));
+    }
+
+    public void MarkDrop(bool before, bool after)
+    {
+        SetFlag(ref _isDropBefore, before, nameof(IsDropBefore));
+        SetFlag(ref _isDropAfter, after, nameof(IsDropAfter));
     }
 
     public void MarkMissing(bool missing)

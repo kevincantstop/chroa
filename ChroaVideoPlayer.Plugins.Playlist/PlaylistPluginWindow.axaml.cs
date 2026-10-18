@@ -79,6 +79,8 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     private void OnFileDragOver(object? sender, DragEventArgs e)
     {
+        if (e.DataTransfer.Contains(PlaylistGrid.EntryFormat)) return;
+
         e.DragEffects = LocalPaths(e.DataTransfer.TryGetFiles()).Count > 0
             ? DragDropEffects.Copy
             : DragDropEffects.None;

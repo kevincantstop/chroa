@@ -51,7 +51,12 @@
 						      ToolTip.Tip="{Binding RowTip}"
 						      PointerPressed="OnRowPointerPressed"
 						      DoubleTapped="OnRowDoubleTapped"
-						      ContextRequested="OnRowContextRequested">
+						      ContextRequested="OnRowContextRequested"
+						      DragDrop.AllowDrop="True"
+						      PointerMoved="OnRowPointerMoved"
+						      DragDrop.DragOver="OnRowDragOver"
+						      DragDrop.DragLeave="OnRowDragLeave"
+						      DragDrop.Drop="OnRowDrop">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="28" />
 								<ColumnDefinition Width="80" SharedSizeGroup="Duration" />
@@ -123,6 +128,18 @@
 								                    Click="OnDeleteClick"
 								                    ToolTip.Tip="Remove from playlist" />
 							</StackPanel>
+
+							<Border Grid.ColumnSpan="8"
+							        Height="2"
+							        VerticalAlignment="Top"
+							        Background="#E0E0E0"
+							        IsVisible="{Binding IsDropBefore}" />
+
+							<Border Grid.ColumnSpan="8"
+							        Height="2"
+							        VerticalAlignment="Bottom"
+							        Background="#E0E0E0"
+							        IsVisible="{Binding IsDropAfter}" />
 						</Grid>
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
