@@ -34,6 +34,9 @@ public abstract class ChroaDialog : ChroaWindow
         SizeToContent = SizeToContent.Height;
         Width = 380;
 
+        PanelBorder.BorderBrush = CreateBrush("#FFFFFF");
+        PanelBorder.BorderThickness = new Thickness(1);
+
         _actions = new StackPanel
         {
             Orientation = Orientation.Horizontal,
