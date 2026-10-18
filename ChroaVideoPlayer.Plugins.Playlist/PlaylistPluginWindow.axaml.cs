@@ -13,12 +13,13 @@ using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Core.Plugin.UI;
 using ChroaVideoPlayer.Core.Utils;
+using ChroaVideoPlayer.Plugins.Playlist.Service;
 
 namespace ChroaVideoPlayer.Plugins.Playlist;
 
 public partial class PlaylistPluginWindow : PluginWindow
 {
-    private ObservableCollection<PlaylistEntry>? _entries;
+    private PlaylistService? _service;
 
     private PlaylistEntry? _current;
 
@@ -31,98 +32,38 @@ public partial class PlaylistPluginWindow : PluginWindow
         InitializeComponent();
     }
 
-    public event Action<IReadOnlyList<PlaylistEntry>>? DeleteRequested;
-
-    public event Action<PlaylistEntry, IReadOnlyList<string>>? PlayRequested;
-
-    public event Action<bool>? AutoPlayChanged;
-
-    public event Action? OrderChanged;
-
-    public event Action<IReadOnlyList<string>>? AddRequested;
-
-    public void ShowEntries(ObservableCollection<PlaylistEntry> entries)
+    public void ShowService(PlaylistService service)
     {
-        if (_entries is not null) _entries.CollectionChanged -= OnEntriesChanged;
+        if (_service is not null)
+        {
+            _service.Entries.CollectionChanged -= OnEntriesChanged;
+            _service.AutoPlayChanged -= OnAutoPlayStateChanged;
+        }
 
-        _entries = entries;
+        _service = service;
 
-        entries.CollectionChanged += OnEntriesChanged;
+        service.EnsureLoaded();
 
-        foreach (var entry in entries) entry.MarkMissing(!File.Exists(entry.Path));
+        service.Entries.CollectionChanged += OnEntriesChanged;
+        service.AutoPlayChanged += OnAutoPlayStateChanged;
+
+        foreach (var entry in service.Entries) entry.MarkMissing(!File.Exists(entry.Path));
 
         ItemHost.ItemsSource = _view;
 
+        _autoPlay = service.AutoPlay;
+
+        ApplyAutoPlay();
+
         RebuildView(clearSelection: false);
     }
-
-    public void SetAutoPlay(bool autoPlay)
-    {
-        _autoPlay = autoPlay;
-
-        ApplyAutoPlay();
-    }
-
-    private void OnSearchChanged(object? sender, TextChangedEventArgs e) => RebuildView(clearSelection: true);
-
-    private void OnAutoPlayClick(object? sender, RoutedEventArgs e)
-    {
-        _autoPlay = !_autoPlay;
-
-        ApplyAutoPlay();
-
-        AutoPlayChanged?.Invoke(_autoPlay);
-    }
-
-    private void ApplyAutoPlay()
-    {
-        AutoPlayButton.Icon = _autoPlay
-            ? "avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play-next.svg"
-            : "avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play-single.svg";
-
-        ToolTip.SetTip(AutoPlayButton, _autoPlay
-            ? "Play the next video automatically"
-            : "Play one video and stop");
-    }
-
-    private List<string> VisiblePaths() => _view.Select(entry => entry.Path).ToList();
-
-    private void RebuildView(bool clearSelection)
-    {
-        if (clearSelection && _entries is { } all)
-            foreach (var entry in all) entry.MarkSelected(false);
-
-        _view.Clear();
-
-        if (_entries is not { } entries)
-        {
-            RefreshState();
-
-            return;
-        }
-
-        var query = SearchInput.Text?.Trim();
-
-        foreach (var entry in entries)
-            if (string.IsNullOrEmpty(query) || Matches(entry, query))
-                _view.Add(entry);
-
-        if (_current is not null && !_view.Contains(_current)) SetCurrent(null);
-
-        for (var index = 0; index < _view.Count; index++)
-            _view[index].MarkMovable(index > 0, index < _view.Count - 1);
-
-        RefreshState();
-    }
-
-    private static bool Matches(PlaylistEntry entry, string query) =>
-        entry.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-        entry.Path.Contains(query, StringComparison.OrdinalIgnoreCase);
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
     private async void OnAddClick(object? sender, RoutedEventArgs e)
     {
+        if (_service is not { } service) return;
+
         try
         {
             var storage = TopLevel.GetTopLevel(this)?.StorageProvider;
@@ -139,7 +80,7 @@ public partial class PlaylistPluginWindow : PluginWindow
 
             if (paths.Count == 0) return;
 
-            AddRequested?.Invoke(paths);
+            service.AddRange(paths);
         }
         catch (Exception ex)
         {
@@ -164,7 +105,7 @@ public partial class PlaylistPluginWindow : PluginWindow
 
         if (paths.Count == 0) return;
 
-        AddRequested?.Invoke(paths);
+        _service?.AddRange(paths);
     }
 
     private static List<string> LocalPaths(IEnumerable<IStorageItem>? items)
@@ -183,18 +124,61 @@ public partial class PlaylistPluginWindow : PluginWindow
         return paths;
     }
 
+    private void OnSearchChanged(object? sender, TextChangedEventArgs e) => RebuildView(clearSelection: true);
+
+    private void OnAutoPlayClick(object? sender, RoutedEventArgs e) => _service?.SetAutoPlay(!_autoPlay);
+
+    private void OnAutoPlayStateChanged(bool autoPlay)
+    {
+        _autoPlay = autoPlay;
+
+        ApplyAutoPlay();
+    }
+
+    private void ApplyAutoPlay()
+    {
+        AutoPlayButton.Icon = _autoPlay
+            ? "avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play-next.svg"
+            : "avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play-single.svg";
+
+        ToolTip.SetTip(AutoPlayButton, _autoPlay
+            ? "Play the next video automatically"
+            : "Play one video and stop");
+    }
+
+    private List<string> VisiblePaths() => _view.Select(entry => entry.Path).ToList();
+
+    private void RebuildView(bool clearSelection)
+    {
+        if (_service is not { } service) return;
+
+        if (clearSelection)
+            foreach (var entry in service.Entries) entry.MarkSelected(false);
+
+        _view.Clear();
+
+        foreach (var entry in service.Search(SearchInput.Text)) _view.Add(entry);
+
+        if (_current is not null && !_view.Contains(_current)) SetCurrent(null);
+
+        for (var index = 0; index < _view.Count; index++)
+            _view[index].MarkMovable(index > 0, index < _view.Count - 1);
+
+        RefreshState();
+    }
+
     private void OnRevealClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: PlaylistEntry entry }) return;
 
-        Reveal(entry.Path);
+        _service?.Reveal(entry.Path);
     }
 
     private void OnDeleteClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: PlaylistEntry entry }) return;
 
-        DeleteRequested?.Invoke([entry]);
+        _service?.Remove(entry.Path);
     }
 
     private void OnMoveUpClick(object? sender, RoutedEventArgs e) => MoveRow(sender, -1);
@@ -203,35 +187,28 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     private void MoveRow(object? sender, int offset)
     {
-        if (sender is not Button { DataContext: PlaylistEntry entry }) return;
-        if (_entries is not { } entries) return;
+        if (sender is not Button { DataContext: PlaylistEntry row }) return;
+        if (_service is not { } service) return;
 
-        var index = _view.IndexOf(entry);
+        var index = _view.IndexOf(row);
         var target = index + offset;
 
         if (index < 0 || target < 0 || target >= _view.Count) return;
 
-        var from = entries.IndexOf(entry);
-        var to = entries.IndexOf(_view[target]);
+        SetCurrent(row);
 
-        if (from < 0 || to < 0) return;
-
-        SetCurrent(entry);
-
-        entries.Move(from, to);
-
-        OrderChanged?.Invoke();
+        service.Move(service.Entries.IndexOf(row), service.Entries.IndexOf(_view[target]));
     }
 
     private void OnDeleteSelectedClick(object? sender, RoutedEventArgs e)
     {
-        if (_entries is not { } entries) return;
+        if (_service is not { } service) return;
 
-        var selected = entries.Where(entry => entry.IsSelected).ToList();
+        var selected = service.Entries.Where(entry => entry.IsSelected).Select(entry => entry.Path).ToList();
 
         if (selected.Count == 0) return;
 
-        DeleteRequested?.Invoke(selected);
+        service.RemoveRange(selected);
     }
 
     private void OnRowCheckClick(object? sender, RoutedEventArgs e)
@@ -256,8 +233,8 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     private void RefreshState()
     {
-        var total = _entries?.Count ?? 0;
-        var selected = _entries?.Count(entry => entry.IsSelected) ?? 0;
+        var total = _service?.Entries.Count ?? 0;
+        var selected = _service?.Entries.Count(entry => entry.IsSelected) ?? 0;
 
         CountText.Text = selected > 0
             ? $"{selected} of {total} {Count(total)}"
@@ -286,11 +263,7 @@ public partial class PlaylistPluginWindow : PluginWindow
         if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
         if (sender is not Grid { DataContext: PlaylistEntry entry }) return;
 
-        entry.MarkMissing(!File.Exists(entry.Path));
-
-        if (entry.IsMissing) return;
-
-        PlayRequested?.Invoke(entry, VisiblePaths());
+        _service?.Play(entry.Path, VisiblePaths());
     }
 
     private void OnRowContextRequested(object? sender, ContextRequestedEventArgs e)
@@ -315,30 +288,9 @@ public partial class PlaylistPluginWindow : PluginWindow
         _current?.MarkCurrent(true);
     }
 
-    private void OnMenuPlayRequested(PlaylistEntry entry) => PlayRequested?.Invoke(entry, VisiblePaths());
+    private void OnMenuPlayRequested(PlaylistEntry entry) => _service?.Play(entry.Path, VisiblePaths());
 
-    private void OnMenuRevealRequested(PlaylistEntry entry) => Reveal(entry.Path);
+    private void OnMenuRevealRequested(PlaylistEntry entry) => _service?.Reveal(entry.Path);
 
-    private void OnMenuDeleteRequested(PlaylistEntry entry) => DeleteRequested?.Invoke([entry]);
-
-    private static void Reveal(string path)
-    {
-        if (!OperatingSystem.IsWindows()) return;
-
-        try
-        {
-            var target = File.Exists(path) ? path : Path.GetDirectoryName(path);
-
-            if (string.IsNullOrEmpty(target)) return;
-            if (!File.Exists(target) && !Directory.Exists(target)) return;
-
-            var arguments = File.Exists(target) ? $"/select,\"{target}\"" : $"\"{target}\"";
-
-            Process.Start(new ProcessStartInfo("explorer.exe", arguments) { UseShellExecute = true });
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Could not open the file location for {path}: {ex.Message}");
-        }
-    }
+    private void OnMenuDeleteRequested(PlaylistEntry entry) => _service?.Remove(entry.Path);
 }

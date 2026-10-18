@@ -288,6 +288,15 @@ add-ins.
 - The player closes plugin windows when it exits.
 - Handing state to the window works well with an `ObservableCollection` bound to an `ItemsControl`: the
   window then updates live without the plugin holding a reference to it.
+- **Put the plugin's real work in a plain service class, not in the window and not in the plugin shell.**
+  `ChroaVideoPlayer.Plugins.Playlist/Service/PlaylistService.cs` is the reference implementation: it owns
+  the entries, the persistence calls and the auto-play queue, and exposes the operations as methods
+  (`Add`, `AddRange`, `Remove`, `RemoveRange`, `Move`, `Search`, `Play`, `Reveal`, `Track`,
+  `SetAutoPlay`). It references **no Avalonia type** — only `ObservableCollection` — so the same object can
+  later be driven by an MCP host, a test, or a second window, and it never calls mpv itself: playback
+  leaves through the `PlaybackRequested(path)` event and the host decides what "play" means. The window
+  then only renders — it calls the service and keeps its own filtered `_view` — and the plugin class
+  shrinks to event wiring plus a public `Service` property that a future MCP layer can resolve.
 
 ## 9. Dependencies
 

@@ -1,0 +1,262 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using ChroaVideoPlayer.Plugins.Playlist.Persistance;
+
+namespace ChroaVideoPlayer.Plugins.Playlist.Service;
+
+public sealed class PlaylistService
+{
+    private PlaylistStore? _store;
+
+    private PlaylistSettingsStore? _settingsStore;
+
+    private List<string>? _queue;
+
+    private int _queueIndex = -1;
+
+    private string? _expectedPath;
+
+    private bool _loaded;
+
+    private bool _autoPlay = true;
+
+    public event Action<string>? PlaybackRequested;
+
+    public event Action<bool>? AutoPlayChanged;
+
+    public ObservableCollection<PlaylistEntry> Entries { get; } = new();
+
+    public bool AutoPlay => _autoPlay;
+
+    public void EnsureLoaded()
+    {
+        if (_loaded) return;
+
+        _loaded = true;
+
+        foreach (var entry in Store.Load()) Entries.Add(entry);
+
+        _autoPlay = SettingsStore.LoadAutoPlay();
+    }
+
+    public PlaylistEntry? Find(string path) => string.IsNullOrEmpty(path)
+        ? null
+        : Entries.FirstOrDefault(entry => entry.Path == path);
+
+    public IReadOnlyList<PlaylistEntry> Search(string? query)
+    {
+        var text = query?.Trim();
+
+        if (string.IsNullOrEmpty(text)) return Entries.ToList();
+
+        return Entries.Where(entry => Matches(entry, text)).ToList();
+    }
+
+    public bool Add(string path) => Find(path) is null && EnsureEntry(path) is not null;
+
+    public int AddRange(IEnumerable<string> paths)
+    {
+        var count = 0;
+
+        foreach (var path in paths)
+            if (Add(path)) count++;
+
+        return count;
+    }
+
+    public bool Remove(string path)
+    {
+        if (Find(path) is not { } entry) return false;
+
+        Entries.Remove(entry);
+
+        Store.Delete(entry.Path);
+
+        return true;
+    }
+
+    public int RemoveRange(IEnumerable<string> paths)
+    {
+        var count = 0;
+
+        foreach (var path in paths)
+            if (Remove(path)) count++;
+
+        return count;
+    }
+
+    public bool Move(int from, int to)
+    {
+        if (from < 0 || from >= Entries.Count) return false;
+        if (to < 0 || to >= Entries.Count) return false;
+        if (from == to) return false;
+
+        Entries.Move(from, to);
+
+        Store.SaveOrder(Entries);
+
+        return true;
+    }
+
+    public bool Move(string path, int offset)
+    {
+        if (Find(path) is not { } entry) return false;
+
+        var index = Entries.IndexOf(entry);
+
+        return Move(index, index + offset);
+    }
+
+    public bool Reveal(string path)
+    {
+        if (!OperatingSystem.IsWindows()) return false;
+
+        try
+        {
+            var target = File.Exists(path) ? path : Path.GetDirectoryName(path);
+
+            if (string.IsNullOrEmpty(target)) return false;
+            if (!File.Exists(target) && !Directory.Exists(target)) return false;
+
+            var arguments = File.Exists(target) ? $"/select,\"{target}\"" : $"\"{target}\"";
+
+            Process.Start(new ProcessStartInfo("explorer.exe", arguments) { UseShellExecute = true });
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Could not open the file location for {path}: {ex.Message}");
+
+            return false;
+        }
+    }
+
+    public bool Play(string path, IReadOnlyList<string>? queue = null)
+    {
+        if (Find(path) is not { } entry) return false;
+
+        entry.MarkMissing(!File.Exists(path));
+
+        if (entry.IsMissing) return false;
+
+        _queue = (queue ?? Entries.Select(item => item.Path)).ToList();
+        _queueIndex = _queue.IndexOf(path);
+        _expectedPath = path;
+
+        PlaybackRequested?.Invoke(path);
+
+        return true;
+    }
+
+    public PlaylistEntry? Track(string path, TimeSpan duration)
+    {
+        if (EnsureEntry(path) is not { } entry) return null;
+
+        if (duration > TimeSpan.Zero) entry.MarkDuration(duration);
+
+        entry.LastPlayedUtc = DateTime.UtcNow;
+
+        Store.Save(entry);
+
+        return entry;
+    }
+
+    public void HandleVideoPlayed(string path, TimeSpan duration)
+    {
+        EnsureLoaded();
+
+        if (path != _expectedPath) ClearQueue();
+
+        foreach (var entry in Entries) entry.MarkPlaying(false);
+
+        Track(path, duration)?.MarkPlaying(true);
+    }
+
+    public void HandleVideoEnded(string path)
+    {
+        if (!_autoPlay) return;
+        if (_queue is not { } queue || path != _expectedPath) return;
+
+        PlayNext(queue);
+    }
+
+    public void SetAutoPlay(bool autoPlay)
+    {
+        if (_autoPlay == autoPlay) return;
+
+        _autoPlay = autoPlay;
+
+        SettingsStore.SaveAutoPlay(autoPlay);
+
+        AutoPlayChanged?.Invoke(autoPlay);
+    }
+
+    private PlaylistStore Store => _store ??= new PlaylistStore();
+
+    private PlaylistSettingsStore SettingsStore => _settingsStore ??= new PlaylistSettingsStore();
+
+    private PlaylistEntry? EnsureEntry(string path)
+    {
+        if (Find(path) is { } existing) return existing;
+        if (string.IsNullOrWhiteSpace(path)) return null;
+
+        var entry = new PlaylistEntry
+        {
+            Path = path,
+            AddedUtc = DateTime.UtcNow,
+            SortIndex = NextSortIndex(),
+        };
+
+        Entries.Add(entry);
+
+        Store.Save(entry);
+
+        return entry;
+    }
+
+    private int NextSortIndex() => Entries.Count == 0 ? 1 : Entries.Max(entry => entry.SortIndex) + 1;
+
+    private static bool Matches(PlaylistEntry entry, string query) =>
+        entry.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+        entry.Path.Contains(query, StringComparison.OrdinalIgnoreCase);
+
+    private void PlayNext(List<string> queue)
+    {
+        for (var index = _queueIndex + 1; index < queue.Count; index++)
+        {
+            _queueIndex = index;
+
+            var path = queue[index];
+
+            if (path == _expectedPath) continue;
+
+            var entry = Find(path);
+
+            if (entry is null) continue;
+
+            entry.MarkMissing(!File.Exists(path));
+
+            if (entry.IsMissing) continue;
+
+            _expectedPath = path;
+
+            PlaybackRequested?.Invoke(path);
+
+            return;
+        }
+
+        ClearQueue();
+    }
+
+    private void ClearQueue()
+    {
+        _queue = null;
+        _queueIndex = -1;
+        _expectedPath = null;
+    }
+}
