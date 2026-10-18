@@ -23,8 +23,8 @@ public partial class PlaylistGrid : UserControl
 
     private string? _filter;
 
-    public static readonly DataFormat<PlaylistEntry> EntryFormat =
-        DataFormat.CreateInProcessFormat<PlaylistEntry>("chroa-playlist-entry");
+    public static readonly DataFormat<IReadOnlyList<PlaylistEntry>> EntriesFormat =
+        DataFormat.CreateInProcessFormat<IReadOnlyList<PlaylistEntry>>("chroa-playlist-entries");
 
     private const double DragThreshold = 4;
 
@@ -150,11 +150,38 @@ public partial class PlaylistGrid : UserControl
 
         if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) return;
 
-        SetCurrent(entry);
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift)) ExtendSelection(entry);
+        else if (e.KeyModifiers.HasFlag(KeyModifiers.Control)) ToggleSelection(entry);
+        else SetCurrent(entry);
 
         _dragTrigger = e;
         _dragEntry = entry;
         _dragOrigin = e.GetPosition(this);
+    }
+
+    private void ToggleSelection(PlaylistEntry entry)
+    {
+        entry.MarkSelected(!entry.IsSelected);
+
+        RefreshState();
+    }
+
+    private void ExtendSelection(PlaylistEntry entry)
+    {
+        if (_service is null) return;
+
+        var anchor = _current ?? entry;
+        var from = _view.IndexOf(anchor);
+        var to = _view.IndexOf(entry);
+
+        if (to < 0) return;
+        if (from < 0) from = to;
+        if (from > to) (from, to) = (to, from);
+
+        for (var index = 0; index < _view.Count; index++)
+            _view[index].MarkSelected(index >= from && index <= to);
+
+        RefreshState();
     }
 
     private void OnRowDoubleTapped(object? sender, TappedEventArgs e)
@@ -240,7 +267,7 @@ public partial class PlaylistGrid : UserControl
 
         var data = new DataTransfer();
 
-        data.Add(DataTransferItem.Create(EntryFormat, entry));
+        data.Add(DataTransferItem.Create(EntriesFormat, DragSources(entry)));
 
         await DragDrop.DoDragDropAsync(trigger, data, DragDropEffects.Move);
     }
@@ -249,7 +276,7 @@ public partial class PlaylistGrid : UserControl
     {
         if (sender is not Control row || row.DataContext is not PlaylistEntry target) return;
 
-        if (!e.DataTransfer.Contains(EntryFormat))
+        if (!e.DataTransfer.Contains(EntriesFormat))
         {
             e.DragEffects = DragDropEffects.None;
 
@@ -274,7 +301,7 @@ public partial class PlaylistGrid : UserControl
     private void OnRowDrop(object? sender, DragEventArgs e)
     {
         if (sender is not Control row || row.DataContext is not PlaylistEntry target) return;
-        if (e.DataTransfer.TryGetValue(EntryFormat) is not { } source) return;
+        if (e.DataTransfer.TryGetValue(EntriesFormat) is not { } sources) return;
 
         var after = e.GetPosition(row).Y > row.Bounds.Height / 2;
 
@@ -283,25 +310,32 @@ public partial class PlaylistGrid : UserControl
         e.DragEffects = DragDropEffects.Move;
         e.Handled = true;
 
-        MoveTo(source, target, after);
+        MoveTo(sources, target, after);
     }
 
-    private void MoveTo(PlaylistEntry source, PlaylistEntry target, bool after)
+    private void MoveTo(IReadOnlyList<PlaylistEntry> sources, PlaylistEntry target, bool after)
     {
         if (_service is not { } service) return;
 
-        var from = service.Entries.IndexOf(source);
-        var index = service.Entries.IndexOf(target);
+        var moving = sources.Where(service.Entries.Contains).ToList();
 
-        if (from < 0 || index < 0 || from == index) return;
+        if (moving.Count == 0) return;
 
-        var to = after ? index + 1 : index;
+        var remaining = service.Entries.Where(entry => !moving.Contains(entry)).ToList();
+        var anchor = remaining.IndexOf(target);
 
-        if (from < to) to--;
+        if (anchor < 0) return;
 
-        if (to < 0 || to >= service.Entries.Count) return;
+        service.MoveRange(moving, after ? anchor + 1 : anchor);
+    }
 
-        service.Move(from, to);
+    private IReadOnlyList<PlaylistEntry> DragSources(PlaylistEntry entry)
+    {
+        if (_service is not { } service) return [entry];
+
+        var selected = service.Entries.Where(item => item.IsSelected).ToList();
+
+        return selected.Count > 1 && selected.Contains(entry) ? selected : [entry];
     }
 
     private void SetDropTarget(PlaylistEntry target, bool after)

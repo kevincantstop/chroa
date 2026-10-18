@@ -375,6 +375,41 @@ Two smaller things worth knowing about the same change:
   window and dropping files on it does nothing. If that matters, the window needs a pointer handler for
   the ring — the panel itself only covers the inset area.
 
+## 14. Drag-to-reorder in an `ItemsControl`: Avalonia has no built-in, here is the recipe
+
+There is no `CanReorderItems` (that is WinUI). Avalonia gives you the generic drag-drop layer and you
+assemble the reorder yourself. Verified against **12.1.4** — the API is not the 11.x one:
+
+```csharp
+// process-local payload, no serialization, so you can carry the item itself
+public static readonly DataFormat<PlaylistEntry> EntryFormat =
+    DataFormat.CreateInProcessFormat<PlaylistEntry>("chroa-playlist-entry");
+
+var data = new DataTransfer();
+data.Add(DataTransferItem.Create(EntryFormat, entry));
+await DragDrop.DoDragDropAsync(trigger, data, DragDropEffects.Move);   // 11.x: DoDragDrop
+```
+
+- `DragDrop.DoDragDropAsync` takes the **`PointerPressedEventArgs` of the original press**, so store it in
+  `PointerPressed` and call the drag from `PointerMoved` once the pointer has moved more than a few pixels.
+  A 4 px threshold is enough to keep click and double-click working.
+- `DragEventArgs.DataTransfer.TryGetValue(format)` / `.Contains(format)` (`DataTransferExtensions`) read it
+  back on the target; `e.GetPosition(row).Y > row.Bounds.Height / 2` is the cheapest before/after rule.
+- The target needs `DragDrop.AllowDrop="True"` plus `DragDrop.DragOver` / `DragLeave` / `Drop`; the attached
+  events are writable in XAML exactly like `DragDrop.DragOver="OnFileDragOver"`.
+- `ObservableCollection.Move(from, to)` is *remove-then-insert*, so `to` must be computed on the
+  post-removal list: `to = index + (after ? 1 : 0); if (from < to) to--;`.
+- **A window-level file-drop handler will kill the internal drag.** The window's `DragOver` runs after the
+  row's, sees no files, sets `DragEffects = None` and `Handled = true` — the drop never happens. Bail out at
+  the top: `if (e.DataTransfer.Contains(EntryFormat)) return;`, and have the row set `e.Handled = true` for
+  its own format so the window never sees it either.
+- Show the insertion point from the *model* (two flags, `IsDropBefore` / `IsDropAfter`, plus two 2 px
+  `Border`s in the row template) rather than from a floating overlay — no `TranslatePoint` maths, and it
+  scrolls with the row for free.
+- What the OS drag loop will not do for you: auto-scroll near the edges, and a drop target for the empty
+  area below the last row. Both need explicit code (a timer, and a container-level `Drop`).
+
+
 
 
 

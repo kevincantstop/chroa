@@ -95,7 +95,22 @@ public sealed class PlaylistService
         if (to < 0 || to >= Entries.Count) return false;
         if (from == to) return false;
 
-        Entries.Move(from, to);
+        return MoveRange([Entries[from]], to);
+    }
+
+    public bool MoveRange(IReadOnlyList<PlaylistEntry> entries, int to)
+    {
+        var moving = Entries.Where(entries.Contains).ToList();
+
+        if (moving.Count == 0) return false;
+        if (moving.Count == Entries.Count) return false;
+
+        foreach (var entry in moving) Entries.Remove(entry);
+
+        if (to < 0) to = 0;
+        if (to > Entries.Count) to = Entries.Count;
+
+        for (var index = 0; index < moving.Count; index++) Entries.Insert(to + index, moving[index]);
 
         Store.SaveOrder(Entries);
 
