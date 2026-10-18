@@ -22,9 +22,13 @@ public partial class PlaylistGrid : UserControl
 
     private PlaylistEntry? _current;
 
+    private PlaylistEntry? _anchor;
+
     private readonly ObservableCollection<PlaylistEntry> _view = new();
 
     private string? _filter;
+
+    private bool _shiftSelection;
 
     private bool _rebuildPending;
 
@@ -56,6 +60,8 @@ public partial class PlaylistGrid : UserControl
     public PlaylistGrid()
     {
         InitializeComponent();
+
+        AddHandler(PointerPressedEvent, OnCheckBoxPointerPressed, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
     public event Action? SelectionChanged;
@@ -141,6 +147,8 @@ public partial class PlaylistGrid : UserControl
 
         if (_current is not null && !_view.Contains(_current)) SetCurrent(null);
 
+        if (_anchor is not null && !_view.Contains(_anchor)) _anchor = null;
+
         for (var index = 0; index < _view.Count; index++)
             _view[index].MarkMovable(index > 0, index < _view.Count - 1);
 
@@ -151,6 +159,8 @@ public partial class PlaylistGrid : UserControl
     {
         var total = TotalCount;
         var selected = SelectionCount;
+
+        if (selected == 0) _anchor = null;
 
         SelectAllBox.IsChecked = selected == 0 || total == 0 ? false
             : selected == total ? true
@@ -179,7 +189,9 @@ public partial class PlaylistGrid : UserControl
 
     private void OnSelectAllClick(object? sender, RoutedEventArgs e)
     {
-        var select = SelectAllBox.IsChecked == true;
+        var allSelected = _view.Count > 0 && _view.All(entry => entry.IsSelected);
+
+        var select = !allSelected;
 
         foreach (var entry in _view) entry.MarkSelected(select);
 
@@ -190,7 +202,22 @@ public partial class PlaylistGrid : UserControl
     {
         if (sender is not CheckBox { DataContext: PlaylistEntry entry } box) return;
 
-        entry.MarkSelected(box.IsChecked == true);
+        if (_shiftSelection)
+        {
+            _shiftSelection = false;
+
+            box.IsChecked = entry.IsSelected;
+
+            return;
+        }
+
+        SetCurrent(entry);
+
+        var select = box.IsChecked == true;
+
+        entry.MarkSelected(select);
+
+        if (select) _anchor = entry;
 
         RefreshState();
     }
@@ -238,11 +265,33 @@ public partial class PlaylistGrid : UserControl
         RefreshState();
     }
 
+    private void OnCheckBoxPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.Handled) return;
+
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        {
+            _shiftSelection = false;
+
+            return;
+        }
+
+        if (e.Source is not Visual source) return;
+        if (source.FindAncestorOfType<CheckBox>(true) is not { DataContext: PlaylistEntry entry }) return;
+
+        _shiftSelection = true;
+
+        ExtendSelection(entry);
+    }
+
     private void ExtendSelection(PlaylistEntry entry)
     {
         if (_service is null) return;
 
-        var anchor = _current ?? entry;
+        var anchor = _anchor ?? entry;
+
+        _anchor = anchor;
+
         var from = _view.IndexOf(anchor);
         var to = _view.IndexOf(entry);
 
