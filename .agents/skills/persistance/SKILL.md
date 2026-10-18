@@ -88,6 +88,12 @@ store.Flush();
   user reorder, and rewriting that timestamp would lie about when the row arrived. Add an integer column,
   order by it, and on load renumber the legacy rows that come back as `0` *in the previous order* before
   returning them, so upgrading does not reshuffle the list. Persist only the rows whose index moved.
+- **Renumbering in memory only makes the user's order revert on every launch.** The next load still sees
+  `0` in the database, treats the table as legacy, and renumbers it back to the add order — for ever. Write
+  the numbers through (the same "only the rows whose index moved" pass does it) the first time a `0` shows
+  up, so the invariant is: every loaded row's in-memory index equals the stored one. Note the pairing trap
+  too: a "skip rows already at the right index" comparison is only safe under that invariant, otherwise it
+  silently skips exactly the rows that need writing.
 
 ## Worked example
 

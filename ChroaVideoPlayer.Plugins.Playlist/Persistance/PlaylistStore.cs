@@ -29,9 +29,7 @@ public sealed class PlaylistStore
     {
         var rows = _store.Query(orderBy: nameof(PlaylistEntry.AddedUtc), limit: MaxEntries).ToList();
 
-        if (rows.Any(entry => entry.SortIndex <= 0))
-            for (var index = 0; index < rows.Count; index++)
-                rows[index].SortIndex = index + 1;
+        if (rows.Any(entry => entry.SortIndex <= 0)) SaveOrder(rows);
 
         return rows.OrderBy(entry => entry.SortIndex).ToList();
     }
