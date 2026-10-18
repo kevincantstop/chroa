@@ -6,6 +6,8 @@ namespace ChroaVideoPlayer.Plugins.Playlist;
 
 public sealed class PlaylistEntry : INotifyPropertyChanged
 {
+    private const double CompletionToleranceSeconds = 1;
+
     private bool _isPlaying;
 
     private bool _isSelected;
@@ -39,6 +41,9 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
     [PersistentColumn]
     public int SortIndex { get; set; }
 
+    [PersistentColumn]
+    public double PlayedSeconds { get; set; }
+
     public bool IsPlaying => _isPlaying;
 
     public bool IsSelected => _isSelected;
@@ -64,6 +69,16 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
         : Duration >= TimeSpan.FromHours(1)
             ? Duration.ToString(@"h\:mm\:ss")
             : Duration.ToString(@"m\:ss");
+
+    public string PlayedDurationText => PlayedSeconds <= 0
+        ? "--:--"
+        : Format(TimeSpan.FromSeconds(PlayedSeconds));
+
+    public string PlayedPercentText => PlayedFraction is { } fraction
+        ? $"{Math.Round(fraction * 100)}%"
+        : "--";
+
+    public bool IsCompleted => PlayedFraction >= 0.995;
 
     public void MarkPlaying(bool playing) => SetFlag(ref _isPlaying, playing, nameof(IsPlaying));
 
@@ -101,6 +116,33 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DurationText)));
     }
+
+    public void MarkPlayed(double seconds)
+    {
+        if (Math.Abs(PlayedSeconds - seconds) < 1) return;
+
+        PlayedSeconds = Math.Max(0, seconds);
+
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PlayedDurationText)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PlayedPercentText)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCompleted)));
+    }
+
+    private double? PlayedFraction
+    {
+        get
+        {
+            if (Duration <= TimeSpan.Zero || PlayedSeconds <= 0) return null;
+
+            if (Duration.TotalSeconds - PlayedSeconds <= CompletionToleranceSeconds) return 1;
+
+            return Math.Clamp(PlayedSeconds / Duration.TotalSeconds, 0, 1);
+        }
+    }
+
+    private static string Format(TimeSpan value) => value >= TimeSpan.FromHours(1)
+        ? value.ToString(@"h\:mm\:ss")
+        : value.ToString(@"m\:ss");
 
     private void SetFlag(ref bool field, bool value, string name)
     {

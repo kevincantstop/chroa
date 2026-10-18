@@ -38,6 +38,10 @@ public partial class MpvVideoPlayer : UserControl
 
     private const double PreviewHoverDelayMs = 150;
 
+    private const int ProgressPublishIntervalMs = 1000;
+
+    private readonly Stopwatch _progressClock = Stopwatch.StartNew();
+
     private readonly DispatcherTimer _copyFeedbackTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private readonly DispatcherTimer _previewTimer =
@@ -208,15 +212,34 @@ public partial class MpvVideoPlayer : UserControl
 
     private void OnProgressChanged(object? sender, PlaybackProgress progress)
     {
-        if (_pendingPlayedPath is not { } path) return;
+        if (_pendingPlayedPath is { } pending)
+        {
+            _pendingPlayedPath = null;
 
-        _pendingPlayedPath = null;
+            var duration = double.IsFinite(progress.Duration) && progress.Duration > 0
+                ? TimeSpan.FromSeconds(progress.Duration)
+                : TimeSpan.Zero;
 
+            Events?.Publish(new VideoPlayed(pending, duration));
+        }
+
+        PublishProgress(progress);
+    }
+
+    private void PublishProgress(PlaybackProgress progress)
+    {
+        if (_openedPath is not { } path) return;
+        if (_progressClock.ElapsedMilliseconds < ProgressPublishIntervalMs) return;
+        if (!double.IsFinite(progress.Position) || progress.Position < 0) return;
+
+        _progressClock.Restart();
+
+        var position = TimeSpan.FromSeconds(progress.Position);
         var duration = double.IsFinite(progress.Duration) && progress.Duration > 0
             ? TimeSpan.FromSeconds(progress.Duration)
             : TimeSpan.Zero;
 
-        Events?.Publish(new VideoPlayed(path, duration));
+        Events?.Publish(new VideoProgress(path, position, duration));
     }
 
     private void OnPlayerPointerPressed(object? sender, PointerPressedEventArgs e)

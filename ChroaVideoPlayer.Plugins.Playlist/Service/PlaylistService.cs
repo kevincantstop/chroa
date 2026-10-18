@@ -23,6 +23,10 @@ public sealed class PlaylistService
 
     private string? _currentPath;
 
+    private const int ProgressSaveIntervalMs = 5000;
+
+    private readonly Stopwatch _progressClock = Stopwatch.StartNew();
+
     private bool _loaded;
 
     private bool _autoPlay = true;
@@ -227,10 +231,32 @@ public sealed class PlaylistService
 
     public void HandleVideoEnded(string path)
     {
+        if (Find(path) is { } entry)
+        {
+            entry.MarkPlayed(entry.Duration.TotalSeconds);
+
+            Store.Save(entry);
+        }
+
         if (!_autoPlay) return;
         if (_queue is not { } queue || path != _expectedPath) return;
 
         PlayNext(queue);
+    }
+
+    public void HandleVideoProgress(string path, TimeSpan position, TimeSpan duration)
+    {
+        if (Find(path) is not { } entry) return;
+
+        if (duration > TimeSpan.Zero && entry.Duration != duration) entry.MarkDuration(duration);
+
+        entry.MarkPlayed(position.TotalSeconds);
+
+        if (_progressClock.ElapsedMilliseconds < ProgressSaveIntervalMs) return;
+
+        _progressClock.Restart();
+
+        Store.Save(entry);
     }
 
     public bool Step(int offset)

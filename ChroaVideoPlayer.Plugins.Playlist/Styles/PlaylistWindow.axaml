@@ -61,6 +61,10 @@
 		<Setter Property="Foreground" Value="#FF6B6B" />
 	</Style>
 
+	<Style Selector="TextBlock.cell.complete">
+		<Setter Property="Foreground" Value="#6BE36B" />
+	</Style>
+
 	<Style Selector="core|SVGIconButton.remove:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="#33FF6B6B" />
 	</Style>

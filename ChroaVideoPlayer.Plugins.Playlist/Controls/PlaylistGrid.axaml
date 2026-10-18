@@ -21,6 +21,10 @@
 					<ColumnDefinition Width="6" />
 					<ColumnDefinition Width="260" />
 					<ColumnDefinition Width="6" />
+					<ColumnDefinition Width="90" />
+					<ColumnDefinition Width="6" />
+					<ColumnDefinition Width="70" />
+					<ColumnDefinition Width="6" />
 					<ColumnDefinition Width="132" />
 				</Grid.ColumnDefinitions>
 
@@ -36,6 +40,10 @@
 				<TextBlock Grid.Column="3" Classes="head" Text="Name" />
 				<GridSplitter Grid.Column="4" Background="Transparent" ResizeDirection="Columns" />
 				<TextBlock Grid.Column="5" Classes="head" Text="Path" />
+				<GridSplitter Grid.Column="6" Background="Transparent" ResizeDirection="Columns" />
+				<TextBlock Grid.Column="7" Classes="head" Text="Last played" />
+				<GridSplitter Grid.Column="8" Background="Transparent" ResizeDirection="Columns" />
+				<TextBlock Grid.Column="9" Classes="head" Text="Played" />
 			</Grid>
 		</core:ChroaVirtualList.Header>
 
@@ -63,10 +71,14 @@
 						<ColumnDefinition Width="6" />
 						<ColumnDefinition Width="260" />
 						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="90" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="70" />
+						<ColumnDefinition Width="6" />
 						<ColumnDefinition Width="132" />
 					</Grid.ColumnDefinitions>
 
-					<Border Grid.ColumnSpan="8"
+					<Border Grid.ColumnSpan="12"
 					        Width="2"
 					        HorizontalAlignment="Left"
 					        Background="#E0E0E0"
@@ -90,7 +102,12 @@
 						<TextBlock Grid.Column="1" Classes="cell" Text="{Binding Path}" ToolTip.Tip="{Binding Path}" />
 					</Grid>
 
-					<StackPanel Grid.Column="7"
+					<TextBlock Grid.Column="7" Classes="cell" Text="{Binding PlayedDurationText}" />
+					<TextBlock Grid.Column="9" Classes="cell"
+					           Classes.complete="{Binding IsCompleted}"
+					           Text="{Binding PlayedPercentText}" />
+
+					<StackPanel Grid.Column="11"
 					            Orientation="Horizontal"
 					            Spacing="6"
 					            VerticalAlignment="Center">
@@ -127,13 +144,13 @@
 						                    ToolTip.Tip="Remove from playlist" />
 					</StackPanel>
 
-					<Border Grid.ColumnSpan="8"
+					<Border Grid.ColumnSpan="12"
 					        Height="2"
 					        VerticalAlignment="Top"
 					        Background="#E0E0E0"
 					        IsVisible="{Binding IsDropBefore}" />
 
-					<Border Grid.ColumnSpan="8"
+					<Border Grid.ColumnSpan="12"
 					        Height="2"
 					        VerticalAlignment="Bottom"
 					        Background="#E0E0E0"
