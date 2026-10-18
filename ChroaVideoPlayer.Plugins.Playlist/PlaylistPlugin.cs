@@ -67,6 +67,8 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
 
         window.AutoPlayChanged += OnAutoPlayChanged;
 
+        window.OrderChanged += OnOrderChanged;
+
         return window;
     }
 
@@ -146,6 +148,8 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         SettingsStore.SaveAutoPlay(autoPlay);
     }
 
+    private void OnOrderChanged() => Store.SaveOrder(_entries);
+
     private void OnPlayRequested(PlaylistEntry entry, IReadOnlyList<string> order)
     {
         _queue = order.ToList();
@@ -188,12 +192,15 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         {
             Path = path,
             AddedUtc = DateTime.UtcNow,
+            SortIndex = NextSortIndex(),
         };
 
         _entries.Add(record);
 
         return record;
     }
+
+    private int NextSortIndex() => _entries.Count == 0 ? 1 : _entries.Max(entry => entry.SortIndex) + 1;
 
     private PlaylistEntry? Find(string path) => _entries.FirstOrDefault(entry => entry.Path == path);
 

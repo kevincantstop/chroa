@@ -14,6 +14,10 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     private bool _isMissing;
 
+    private bool _canMoveUp;
+
+    private bool _canMoveDown;
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     [PersistentColumn]
@@ -28,6 +32,9 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
     [PersistentColumn]
     public DateTime AddedUtc { get; set; }
 
+    [PersistentColumn]
+    public int SortIndex { get; set; }
+
     public bool IsPlaying => _isPlaying;
 
     public bool IsSelected => _isSelected;
@@ -35,6 +42,10 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
     public bool IsCurrent => _isCurrent;
 
     public bool IsMissing => _isMissing;
+
+    public bool CanMoveUp => _canMoveUp;
+
+    public bool CanMoveDown => _canMoveDown;
 
     public string RowTip => _isMissing ? "File not found" : "Double click to play";
 
@@ -51,6 +62,12 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
     public void MarkSelected(bool selected) => SetFlag(ref _isSelected, selected, nameof(IsSelected));
 
     public void MarkCurrent(bool current) => SetFlag(ref _isCurrent, current, nameof(IsCurrent));
+
+    public void MarkMovable(bool up, bool down)
+    {
+        SetFlag(ref _canMoveUp, up, nameof(CanMoveUp));
+        SetFlag(ref _canMoveDown, down, nameof(CanMoveDown));
+    }
 
     public void MarkMissing(bool missing)
     {

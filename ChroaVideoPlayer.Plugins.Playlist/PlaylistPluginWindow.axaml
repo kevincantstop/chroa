@@ -100,7 +100,7 @@
 						<ColumnDefinition Width="6" />
 						<ColumnDefinition Width="260" SharedSizeGroup="Path" />
 						<ColumnDefinition Width="6" />
-						<ColumnDefinition Width="68" />
+						<ColumnDefinition Width="132" />
 					</Grid.ColumnDefinitions>
 
 					<CheckBox Grid.Column="0"
@@ -145,7 +145,7 @@
 									<ColumnDefinition Width="6" />
 									<ColumnDefinition Width="260" SharedSizeGroup="Path" />
 									<ColumnDefinition Width="6" />
-									<ColumnDefinition Width="68" />
+									<ColumnDefinition Width="132" />
 								</Grid.ColumnDefinitions>
 
 								<Border Grid.ColumnSpan="8"
@@ -176,6 +176,22 @@
 								            Orientation="Horizontal"
 								            Spacing="6"
 								            VerticalAlignment="Center">
+									<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/arrow-up.svg"
+									                    ButtonSize="28"
+									                    IconSize="14"
+									                    VerticalAlignment="Center"
+									                    IsEnabled="{Binding CanMoveUp}"
+									                    Click="OnMoveUpClick"
+									                    ToolTip.Tip="Move up" />
+
+									<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/arrow-down.svg"
+									                    ButtonSize="28"
+									                    IconSize="14"
+									                    VerticalAlignment="Center"
+									                    IsEnabled="{Binding CanMoveDown}"
+									                    Click="OnMoveDownClick"
+									                    ToolTip.Tip="Move down" />
+
 									<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/folder.svg"
 									                    ButtonSize="28"
 									                    IconSize="14"

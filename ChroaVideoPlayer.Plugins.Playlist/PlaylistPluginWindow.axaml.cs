@@ -37,6 +37,8 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     public event Action<bool>? AutoPlayChanged;
 
+    public event Action? OrderChanged;
+
     public event Action<IReadOnlyList<string>>? AddRequested;
 
     public void ShowEntries(ObservableCollection<PlaylistEntry> entries)
@@ -106,6 +108,9 @@ public partial class PlaylistPluginWindow : PluginWindow
                 _view.Add(entry);
 
         if (_current is not null && !_view.Contains(_current)) SetCurrent(null);
+
+        for (var index = 0; index < _view.Count; index++)
+            _view[index].MarkMovable(index > 0, index < _view.Count - 1);
 
         RefreshState();
     }
@@ -190,6 +195,32 @@ public partial class PlaylistPluginWindow : PluginWindow
         if (sender is not Button { DataContext: PlaylistEntry entry }) return;
 
         DeleteRequested?.Invoke([entry]);
+    }
+
+    private void OnMoveUpClick(object? sender, RoutedEventArgs e) => MoveRow(sender, -1);
+
+    private void OnMoveDownClick(object? sender, RoutedEventArgs e) => MoveRow(sender, 1);
+
+    private void MoveRow(object? sender, int offset)
+    {
+        if (sender is not Button { DataContext: PlaylistEntry entry }) return;
+        if (_entries is not { } entries) return;
+
+        var index = _view.IndexOf(entry);
+        var target = index + offset;
+
+        if (index < 0 || target < 0 || target >= _view.Count) return;
+
+        var from = entries.IndexOf(entry);
+        var to = entries.IndexOf(_view[target]);
+
+        if (from < 0 || to < 0) return;
+
+        SetCurrent(entry);
+
+        entries.Move(from, to);
+
+        OrderChanged?.Invoke();
     }
 
     private void OnDeleteSelectedClick(object? sender, RoutedEventArgs e)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ChroaVideoPlayer.Core.Persistance;
 
 namespace ChroaVideoPlayer.Plugins.Playlist.Persistance;
@@ -24,10 +25,32 @@ public sealed class PlaylistStore
         "ChroaVideoPlayer",
         DatabaseFileName);
 
-    public IReadOnlyList<PlaylistEntry> Load() =>
-        _store.Query(orderBy: nameof(PlaylistEntry.AddedUtc), limit: MaxEntries);
+    public IReadOnlyList<PlaylistEntry> Load()
+    {
+        var rows = _store.Query(orderBy: nameof(PlaylistEntry.AddedUtc), limit: MaxEntries).ToList();
+
+        if (rows.Any(entry => entry.SortIndex <= 0))
+            for (var index = 0; index < rows.Count; index++)
+                rows[index].SortIndex = index + 1;
+
+        return rows.OrderBy(entry => entry.SortIndex).ToList();
+    }
 
     public void Save(PlaylistEntry entry) => _store.Save(entry.Path, entry);
+
+    public void SaveOrder(IReadOnlyList<PlaylistEntry> entries)
+    {
+        for (var index = 0; index < entries.Count; index++)
+        {
+            var entry = entries[index];
+
+            if (entry.SortIndex == index + 1) continue;
+
+            entry.SortIndex = index + 1;
+
+            _store.Save(entry.Path, entry);
+        }
+    }
 
     public void Delete(string path) => _store.Delete(path);
 }

@@ -80,10 +80,19 @@ store.Flush();
   `[PersistentColumn]` — and the flag then comes back from disk as `true` on the next launch. An unmarked
   property is never a column, and a get-only one cannot be marked in the first place.
 - Store UTC (`DateTime.UtcNow`) in any timestamp you intend to order or cap on.
+- **Adding a column is a safe, automatic migration.** `TableCreator.EnsureCreated` runs
+  `ALTER TABLE … ADD COLUMN` for every schema column the table is missing, and `Materialize` skips
+  `DBNull`, so rows written by the older schema come back with the property's default value. That is how
+  a new field reaches a database that already holds data — no migration script, no data loss.
+- **A manually ordered table needs its own order column.** Ordering by an add timestamp cannot express a
+  user reorder, and rewriting that timestamp would lie about when the row arrived. Add an integer column,
+  order by it, and on load renumber the legacy rows that come back as `0` *in the previous order* before
+  returning them, so upgrading does not reshuffle the list. Persist only the rows whose index moved.
 
 ## Worked example
 
 `ChroaVideoPlayer.Plugins.Playlist/Persistance/PlaylistStore.cs` is the smallest complete example: a
-dedicated database file, a 200-row LRU cap keyed on `AddedUtc`, an **ascending** `Load()` that keeps the
-list in the order entries were added, and an upsert-on-save so replaying a file updates its row instead
-of adding another one.
+dedicated database file, a 200-row LRU cap keyed on `AddedUtc`, a `Load()` that orders by the persistent
+`SortIndex` and renumbers legacy rows from their old add order, a `SaveOrder` that writes only the rows
+whose position changed, and an upsert-on-save so replaying a file updates its row instead of adding
+another one.
