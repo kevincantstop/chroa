@@ -60,7 +60,11 @@ public class ChroaVirtualList : UserControl
 
         _listScroll.ScrollChanged += OnListScrolled;
 
-        _items.LayoutUpdated += (_, _) => SyncColumnWidths();
+        _items.LayoutUpdated += (_, _) =>
+        {
+            SyncColumnWidths();
+            UpdateFillWidth();
+        };
 
         var layout = new Grid
         {
@@ -104,8 +108,23 @@ public class ChroaVirtualList : UserControl
         else if (change.Property == ItemsSourceProperty) _items.ItemsSource = ItemsSource;
     }
 
-    private void OnListScrolled(object? sender, ScrollChangedEventArgs e) =>
+    private void OnListScrolled(object? sender, ScrollChangedEventArgs e)
+    {
         _headerOffset.X = -_listScroll.Offset.X;
+
+        UpdateFillWidth();
+    }
+
+    private void UpdateFillWidth()
+    {
+        var viewport = _listScroll.Viewport.Width;
+
+        if (!double.IsFinite(viewport) || viewport <= 0) return;
+
+        if (_items.MinWidth != viewport) _items.MinWidth = viewport;
+
+        if (_header.Content is Control header && header.MinWidth != viewport) header.MinWidth = viewport;
+    }
 
     private void SyncColumnWidths()
     {
