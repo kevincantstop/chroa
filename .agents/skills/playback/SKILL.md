@@ -129,3 +129,24 @@ Deduction failed repeatedly here; measurement settled it in one run. The recipe:
 
 And before trusting any observation, confirm the process is the build you just made — see the `rules`
 skill, §6.
+
+## 7. Playback progress: reporting it, storing it, resuming from it
+
+`ChroaMpvContext` already throttles `ProgressChanged` to 200 ms; anything that only needs a coarse position
+throws most of those away. The playlist's progress record does:
+
+- `MpvVideoPlayer` re-throttles to **1 s** with a `Stopwatch` and publishes `VideoProgress(path, position,
+  duration)`; the playlist service updates the entry in memory every tick but writes to SQLite at most every
+  **5 s** (plus once on `VideoEnded`). 1 write/second for hours is wasteful; 5 s of loss is invisible.
+- **`end-file` does not land at `position == duration`.** mpv reports a duration a few hundred ms longer
+  than the last decodable frame, so a 31 s clip finished at ~31.0 of 31.6 s and displayed as **98 %** even
+  though `HandleVideoEnded` had written the full duration. Do not chase exactness: treat
+  `duration - position <= 1 s` as complete, and let the percentage, the green "100 %" style and the
+  "restart from 0" decision all read that one helper.
+- Resuming is a `seek`, applied **once** from `file-loaded` (`EnsurePlaying()` → `SeekTo(start)` →
+  `MediaOpened`), not an mpv `start` option: `ChroaMpvContext.Play(path, start)` parks the value in
+  `_startSeconds`, `OnFileLoaded` consumes and clears it. Clearing matters — `TogglePause` restarts an ended
+  file through `Play(_currentFile)`, and a still-set start would jump back on every replay.
+- The resume point and the "is it finished" test must share the same tolerance, otherwise a finished video
+  restarts mid-tail or a half-watched one jumps to the end.
+

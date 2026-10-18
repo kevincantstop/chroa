@@ -235,6 +235,13 @@ public static void KeepInsideWorkingArea(Window window, Window? anchor = null)
   multiply the size by `screen.Scaling` before comparing.
 - Anchor only where anchoring is right: a window the user deliberately dragged to another monitor should keep
   clamping to *its own* screen.
+- **A restored size of 0 makes a frameless window vanish, not minimize.** `chroa.db` rows written while the
+  window was fullscreen or maximized kept `WindowWidth = 0` (the fields are only filled in `Normal` state),
+  and the next restore called `FitInsideWorkingArea(window, 0 + 48, 0 + 48)` → a 48×48 window whose 24 px
+  shadow margin leaves a **0×0 panel**: audio keeps playing, nothing is visible, and there is no edge left to
+  grab. Guard all three layers: skip saving when the window is not `Normal` or its size is non-positive, skip
+  restoring when the stored size is non-positive, and refuse any fit below a sane minimum (200×120) inside
+  the geometry helper so no future caller can reproduce it.
 
 ## 10. Making an input lose focus when the user clicks elsewhere
 
