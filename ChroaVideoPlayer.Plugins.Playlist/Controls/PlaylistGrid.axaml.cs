@@ -31,7 +31,17 @@ public partial class PlaylistGrid : UserControl
     public static readonly DataFormat<IReadOnlyList<PlaylistEntry>> EntriesFormat =
         DataFormat.CreateInProcessFormat<IReadOnlyList<PlaylistEntry>>("chroa-playlist-entries");
 
-    private const double DragThreshold = 4;
+    private const double DoubleClickMs = 500;
+
+    private const double DoubleClickSlop = 8;
+
+    private const double DragThreshold = 8;
+
+    private PlaylistEntry? _lastPressedEntry;
+
+    private DateTime _lastPressedUtc;
+
+    private Point _lastPressedPoint;
 
     private PointerPressedEventArgs? _dragTrigger;
 
@@ -120,6 +130,7 @@ public partial class PlaylistGrid : UserControl
         if (_service is not { } service) return;
 
         _rebuildPending = false;
+        _lastPressedEntry = null;
 
         if (clearSelection)
             foreach (var entry in service.Entries) entry.MarkSelected(false);
@@ -190,13 +201,34 @@ public partial class PlaylistGrid : UserControl
 
         if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) return;
 
+        var position = e.GetPosition(this);
+        var now = DateTime.UtcNow;
+
+        if (ReferenceEquals(_lastPressedEntry, entry) &&
+            (now - _lastPressedUtc).TotalMilliseconds <= DoubleClickMs &&
+            Math.Abs(position.X - _lastPressedPoint.X) <= DoubleClickSlop &&
+            Math.Abs(position.Y - _lastPressedPoint.Y) <= DoubleClickSlop)
+        {
+            _lastPressedEntry = null;
+
+            SetCurrent(entry);
+
+            _service?.Play(entry.Path, VisiblePaths());
+
+            return;
+        }
+
+        _lastPressedEntry = entry;
+        _lastPressedUtc = now;
+        _lastPressedPoint = position;
+
         if (e.KeyModifiers.HasFlag(KeyModifiers.Shift)) ExtendSelection(entry);
         else if (e.KeyModifiers.HasFlag(KeyModifiers.Control)) ToggleSelection(entry);
         else SetCurrent(entry);
 
         _dragTrigger = e;
         _dragEntry = entry;
-        _dragOrigin = e.GetPosition(this);
+        _dragOrigin = position;
     }
 
     private void ToggleSelection(PlaylistEntry entry)
@@ -222,14 +254,6 @@ public partial class PlaylistGrid : UserControl
             _view[index].MarkSelected(index >= from && index <= to);
 
         RefreshState();
-    }
-
-    private void OnRowDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
-        if (sender is not Grid { DataContext: PlaylistEntry entry }) return;
-
-        _service?.Play(entry.Path, VisiblePaths());
     }
 
     private void OnRowContextRequested(object? sender, ContextRequestedEventArgs e)

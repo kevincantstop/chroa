@@ -49,7 +49,6 @@
 				      Classes.missing="{Binding IsMissing}"
 				      ToolTip.Tip="{Binding RowTip}"
 				      PointerPressed="OnRowPointerPressed"
-				      DoubleTapped="OnRowDoubleTapped"
 				      ContextRequested="OnRowContextRequested"
 				      DragDrop.AllowDrop="True"
 				      PointerMoved="OnRowPointerMoved"
