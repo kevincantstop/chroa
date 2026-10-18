@@ -57,22 +57,28 @@ public sealed class PlaylistService
         return Entries.Where(entry => Matches(entry, text)).ToList();
     }
 
-    public bool Add(string path) => Find(path) is null && EnsureEntry(path) is not null;
+    public bool IsFull => Entries.Count >= PlaylistStore.MaxEntries;
 
-    public int AddRange(IEnumerable<string> paths)
+    public bool Add(string path) => EnsureEntry(path) is not null;
+
+    public PlaylistAddResult AddRange(IEnumerable<string> paths)
     {
-        var count = 0;
+        var added = 0;
+        var rejected = 0;
 
         foreach (var path in paths)
-            if (Add(path)) count++;
+        {
+            if (Add(path)) added++;
+            else if (Find(path) is null) rejected++;
+        }
 
-        return count;
+        return new PlaylistAddResult(added, rejected);
     }
 
-    public int AddFolder(string folderPath)
+    public PlaylistAddResult AddFolder(string folderPath)
     {
-        if (string.IsNullOrWhiteSpace(folderPath)) return 0;
-        if (!Directory.Exists(folderPath)) return 0;
+        if (string.IsNullOrWhiteSpace(folderPath)) return default;
+        if (!Directory.Exists(folderPath)) return default;
 
         var files = Directory
             .EnumerateFiles(folderPath, "*", SearchOption.TopDirectoryOnly)
@@ -233,6 +239,7 @@ public sealed class PlaylistService
     {
         if (Find(path) is { } existing) return existing;
         if (string.IsNullOrWhiteSpace(path)) return null;
+        if (IsFull) return null;
 
         var entry = new PlaylistEntry
         {
@@ -289,3 +296,5 @@ public sealed class PlaylistService
         _expectedPath = null;
     }
 }
+
+public readonly record struct PlaylistAddResult(int Added, int Rejected);

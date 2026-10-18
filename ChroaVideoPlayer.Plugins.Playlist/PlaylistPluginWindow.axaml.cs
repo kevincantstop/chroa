@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -8,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using ChroaVideoPlayer.Core.Plugin.UI;
 using ChroaVideoPlayer.Core.Utils;
+using ChroaVideoPlayer.Plugins.Playlist.Persistance;
 using ChroaVideoPlayer.Plugins.Playlist.Service;
 
 namespace ChroaVideoPlayer.Plugins.Playlist;
@@ -71,14 +73,13 @@ public partial class PlaylistPluginWindow : PluginWindow
 
             if (paths.Count == 0) return;
 
-            service.AddRange(paths);
+            await ReportAsync(service.AddRange(paths));
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Add video files failed: {ex}");
         }
     }
-
     private async void OnAddFolderClick(object? sender, RoutedEventArgs e)
     {
         if (_service is not { } service) return;
@@ -94,12 +95,16 @@ public partial class PlaylistPluginWindow : PluginWindow
                 AllowMultiple = true,
             });
 
+            var rejected = 0;
+
             foreach (var folder in folders)
             {
                 var path = folder.TryGetLocalPath();
 
-                if (!string.IsNullOrEmpty(path)) service.AddFolder(path);
+                if (!string.IsNullOrEmpty(path)) rejected += service.AddFolder(path).Rejected;
             }
+
+            await ReportAsync(new PlaylistAddResult(0, rejected));
         }
         catch (Exception ex)
         {
@@ -118,15 +123,27 @@ public partial class PlaylistPluginWindow : PluginWindow
         e.Handled = true;
     }
 
-    private void OnFileDrop(object? sender, DragEventArgs e)
+    private async void OnFileDrop(object? sender, DragEventArgs e)
     {
         e.Handled = true;
 
         var paths = LocalPaths(e.DataTransfer.TryGetFiles());
 
         if (paths.Count == 0) return;
+        if (_service is not { } service) return;
 
-        _service?.AddRange(paths);
+        await ReportAsync(service.AddRange(paths));
+    }
+
+    private async Task ReportAsync(PlaylistAddResult result)
+    {
+        if (result.Rejected == 0) return;
+
+        var message = result.Rejected == 1
+            ? $"The playlist holds at most {PlaylistStore.MaxEntries} videos; 1 was not added."
+            : $"The playlist holds at most {PlaylistStore.MaxEntries} videos; {result.Rejected} were not added.";
+
+        await ChroaDialogs.AlertAsync(this, message, "Playlist is full");
     }
 
     private static List<string> LocalPaths(IEnumerable<IStorageItem>? items)

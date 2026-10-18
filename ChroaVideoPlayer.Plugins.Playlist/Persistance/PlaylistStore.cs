@@ -10,7 +10,7 @@ public sealed class PlaylistStore
 {
     private const string DatabaseFileName = "playlist.db";
 
-    private const int MaxEntries = 200;
+    public const int MaxEntries = 500;
 
     private readonly LocalStore<PlaylistEntry> _store;
 
