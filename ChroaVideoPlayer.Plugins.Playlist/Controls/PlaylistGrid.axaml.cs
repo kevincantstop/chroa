@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Plugins.Playlist.Service;
 
 namespace ChroaVideoPlayer.Plugins.Playlist;
@@ -73,13 +74,21 @@ public partial class PlaylistGrid : UserControl
         RebuildView(clearSelection: true);
     }
 
-    public void RemoveSelected()
+    public async void RemoveSelected()
     {
         if (_service is not { } service) return;
 
         var selected = service.Entries.Where(entry => entry.IsSelected).Select(entry => entry.Path).ToList();
 
         if (selected.Count == 0) return;
+
+        if (TopLevel.GetTopLevel(this) is not Window owner) return;
+
+        var message = selected.Count == 1
+            ? "Remove 1 video from the playlist?"
+            : $"Remove {selected.Count} videos from the playlist?";
+
+        if (!await ChroaDialogs.PromptAsync(owner, message, "Remove", "Remove", "Cancel")) return;
 
         service.RemoveRange(selected);
     }
