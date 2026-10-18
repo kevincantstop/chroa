@@ -40,12 +40,31 @@
 			            Spacing="8"
 			            HorizontalAlignment="Left"
 			            VerticalAlignment="Center">
-				<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/plus.svg"
+				<core:SVGIconButton x:Name="AddButton"
+				                    Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/plus.svg"
 				                    ButtonSize="32"
 				                    IconSize="20"
 				                    VerticalAlignment="Center"
 				                    Click="OnAddClick"
-				                    ToolTip.Tip="Add to playlist" />
+				                    ToolTip.Tip="Add to playlist">
+					<core:SVGIconButton.ContextMenu>
+						<ContextMenu x:Name="AddMenu" Placement="BottomEdgeAlignedLeft">
+							<MenuItem Header="Add video file" Click="OnAddFileClick">
+								<MenuItem.Icon>
+									<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/plus.svg"
+									              IconSize="14" />
+								</MenuItem.Icon>
+							</MenuItem>
+
+							<MenuItem Header="Add folder" Click="OnAddFolderClick">
+								<MenuItem.Icon>
+									<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/folder.svg"
+									              IconSize="14" />
+								</MenuItem.Icon>
+							</MenuItem>
+						</ContextMenu>
+					</core:SVGIconButton.ContextMenu>
+				</core:SVGIconButton>
 
 				<core:SVGIconButton x:Name="AutoPlayButton"
 				                    Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/play-next.svg"

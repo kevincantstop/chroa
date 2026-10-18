@@ -49,7 +49,9 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
-    private async void OnAddClick(object? sender, RoutedEventArgs e)
+    private void OnAddClick(object? sender, RoutedEventArgs e) => AddMenu.Open(AddButton);
+
+    private async void OnAddFileClick(object? sender, RoutedEventArgs e)
     {
         if (_service is not { } service) return;
 
@@ -60,7 +62,7 @@ public partial class PlaylistPluginWindow : PluginWindow
 
             var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Add to Playlist",
+                Title = "Add video files",
                 AllowMultiple = true,
                 FileTypeFilter = VideoFileTypes.Filter,
             });
@@ -73,7 +75,35 @@ public partial class PlaylistPluginWindow : PluginWindow
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Add to playlist picker failed: {ex}");
+            Debug.WriteLine($"Add video files failed: {ex}");
+        }
+    }
+
+    private async void OnAddFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if (_service is not { } service) return;
+
+        try
+        {
+            var storage = TopLevel.GetTopLevel(this)?.StorageProvider;
+            if (storage is null) return;
+
+            var folders = await storage.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Add folder",
+                AllowMultiple = true,
+            });
+
+            foreach (var folder in folders)
+            {
+                var path = folder.TryGetLocalPath();
+
+                if (!string.IsNullOrEmpty(path)) service.AddFolder(path);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Add folder failed: {ex}");
         }
     }
 

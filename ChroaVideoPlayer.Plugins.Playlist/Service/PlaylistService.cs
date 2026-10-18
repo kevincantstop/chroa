@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Plugins.Playlist.Persistance;
 
 namespace ChroaVideoPlayer.Plugins.Playlist.Service;
@@ -66,6 +67,19 @@ public sealed class PlaylistService
             if (Add(path)) count++;
 
         return count;
+    }
+
+    public int AddFolder(string folderPath)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath)) return 0;
+        if (!Directory.Exists(folderPath)) return 0;
+
+        var files = Directory
+            .EnumerateFiles(folderPath, "*", SearchOption.TopDirectoryOnly)
+            .Where(VideoFileTypes.IsVideoFile)
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase);
+
+        return AddRange(files);
     }
 
     public bool Remove(string path)
