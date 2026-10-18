@@ -31,6 +31,8 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         events.Subscribe<VideoPlayed>(OnVideoPlayed);
 
         events.Subscribe<VideoEnded>(OnVideoEnded);
+
+        events.Subscribe<VideoStepRequested>(OnVideoStepRequested);
     }
 
     public PluginWindow CreateWindow()
@@ -56,4 +58,6 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
     private void OnVideoPlayed(VideoPlayed message) => Service.HandleVideoPlayed(message.Path, message.Duration);
 
     private void OnVideoEnded(VideoEnded message) => Service.HandleVideoEnded(message.Path);
+
+    private void OnVideoStepRequested(VideoStepRequested message) => Service.Step(message.Offset);
 }

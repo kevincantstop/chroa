@@ -21,6 +21,8 @@ public sealed class PlaylistService
 
     private string? _expectedPath;
 
+    private string? _currentPath;
+
     private bool _loaded;
 
     private bool _autoPlay = true;
@@ -216,6 +218,8 @@ public sealed class PlaylistService
 
         if (path != _expectedPath) ClearQueue();
 
+        _currentPath = path;
+
         foreach (var entry in Entries) entry.MarkPlaying(false);
 
         Track(path, duration)?.MarkPlaying(true);
@@ -227,6 +231,34 @@ public sealed class PlaylistService
         if (_queue is not { } queue || path != _expectedPath) return;
 
         PlayNext(queue);
+    }
+
+    public bool Step(int offset)
+    {
+        if (offset == 0) return false;
+
+        if (_queue is { } queue && _queueIndex >= 0)
+        {
+            for (var index = _queueIndex + offset; index >= 0 && index < queue.Count; index += offset)
+            {
+                if (TryPlayAt(index, queue[index])) return true;
+            }
+
+            return false;
+        }
+
+        if (_currentPath is null || Find(_currentPath) is not { } current) return false;
+
+        var start = Entries.IndexOf(current);
+
+        if (start < 0) return false;
+
+        for (var index = start + offset; index >= 0 && index < Entries.Count; index += offset)
+        {
+            if (TryPlayAt(index, Entries[index].Path)) return true;
+        }
+
+        return false;
     }
 
     public void SetAutoPlay(bool autoPlay)
@@ -245,6 +277,23 @@ public sealed class PlaylistService
     private PlaylistSettingsStore SettingsStore => _settingsStore ??= new PlaylistSettingsStore();
 
     private PlaylistEntry? EnsureEntry(string path) => Find(path) ?? CreateEntry(path);
+
+    private bool TryPlayAt(int index, string path)
+    {
+        if (Find(path) is not { } entry) return false;
+
+        entry.MarkMissing(!File.Exists(path));
+
+        if (entry.IsMissing) return false;
+
+        if (_queue is not null) _queueIndex = index;
+
+        _expectedPath = path;
+
+        PlaybackRequested?.Invoke(path);
+
+        return true;
+    }
 
     private PlaylistEntry? CreateEntry(string path)
     {

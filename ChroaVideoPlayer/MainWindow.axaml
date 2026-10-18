@@ -21,6 +21,35 @@
 			      DragDrop.DragOver="OnDragOver"
 			      DragDrop.Drop="OnDrop">
 				<chroa:MpvVideoPlayer x:Name="VideoPlayer" />
+
+				<Border Classes="edge"
+				        IsVisible="{Binding ShowVideoNavigation}"
+				        HorizontalAlignment="Left"
+				        VerticalAlignment="Center"
+				        Margin="16,0,0,0">
+					<core:SVGIconButton x:Name="PreviousVideoButton"
+					                    Icon="/Icons/step-backward.svg"
+					                    ButtonShape="Circle"
+					                    ButtonSize="48"
+					                    IconSize="24"
+					                    ToolTip.Tip="Previous video"
+					                    Click="OnPreviousVideoClick" />
+				</Border>
+
+				<Border Classes="edge"
+				        IsVisible="{Binding ShowVideoNavigation}"
+				        HorizontalAlignment="Right"
+				        VerticalAlignment="Center"
+				        Margin="0,0,16,0">
+					<core:SVGIconButton x:Name="NextVideoButton"
+					                    Icon="/Icons/step-forward.svg"
+					                    ButtonShape="Circle"
+					                    ButtonSize="48"
+					                    IconSize="24"
+					                    ToolTip.Tip="Next video"
+					                    Click="OnNextVideoClick" />
+				</Border>
+
 				<chroa:LoadVideoButton IsVisible="{Binding ShowLoadVideo}" Player="{Binding Mpv}" />
 				<chroa:WindowActionButtons x:Name="WindowButtons" />
 				<chroa:HomeMenu x:Name="HomeMenu" />

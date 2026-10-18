@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Controls;
 using ChroaVideoPlayer.Core.EventBus;
+using ChroaVideoPlayer.Core.EventBus.Events;
 using ChroaVideoPlayer.Core.Plugin;
 using ChroaVideoPlayer.Core.Plugin.Context;
 using ChroaVideoPlayer.Core.UI;
@@ -107,8 +108,13 @@ public partial class MainWindow : ChroaWindow
         WakeChrome();
     }
 
-    private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
+    private void OnPreviousVideoClick(object? sender, RoutedEventArgs e) =>
+        _eventBus.Publish(new VideoStepRequested(-1));
+
+    private void OnNextVideoClick(object? sender, RoutedEventArgs e) =>
+        _eventBus.Publish(new VideoStepRequested(1));
+
+    private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)    {
         if (e.PropertyName == nameof(VideoPlayerViewModel.VideoAspect))
         {
             ApplyVideoAspectForCurrentFile(VideoPlayer.ViewModel.VideoAspect);

@@ -18,11 +18,14 @@ namespace ChroaVideoPlayer.ViewModels
 
         public bool ShowLoadVideo => !Player.HasVideo || Player.HasEnded;
 
+        public bool ShowVideoNavigation => !ShowLoadVideo;
+
         private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName is nameof(VideoPlayerViewModel.HasVideo) or nameof(VideoPlayerViewModel.HasEnded))
             {
                 OnPropertyChanged(nameof(ShowLoadVideo));
+                OnPropertyChanged(nameof(ShowVideoNavigation));
             }
         }
     }

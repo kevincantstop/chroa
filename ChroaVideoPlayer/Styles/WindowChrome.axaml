@@ -19,4 +19,24 @@
 	<Style Selector="Grid.root.idle Border.overlay">
 		<Setter Property="Opacity" Value="0" />
 	</Style>
+
+	<Style Selector="Border.edge">
+		<Setter Property="Opacity" Value="0" />
+		<Setter Property="IsHitTestVisible" Value="False" />
+		<Setter Property="Transitions">
+			<Transitions>
+				<DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+			</Transitions>
+		</Setter>
+	</Style>
+
+	<Style Selector="Grid.root:pointerover Border.edge">
+		<Setter Property="Opacity" Value="1" />
+		<Setter Property="IsHitTestVisible" Value="True" />
+	</Style>
+
+	<Style Selector="Grid.root.idle Border.edge">
+		<Setter Property="Opacity" Value="0" />
+		<Setter Property="IsHitTestVisible" Value="False" />
+	</Style>
 </Styles>

@@ -31,6 +31,8 @@ they are authorising this change to be saved.
 | --- | --- |
 | "Move these files to `X` and rename the namespace" | A task spec. The files, the target and the rename were all named — and it is still not approval of any code. |
 | "Start refactoring", "create an attribute in this folder and add the logic" | An imperative describes a need. It does not authorise a diff. |
+| "把列表上限调到 1000 吧", "这两个按钮也不要出现" | A one-line imperative is still a task spec. Propose the one-line diff and wait — size never shortcuts the gate. |
+| A follow-up to something approved a minute ago | Approval is per change, never standing for the session. |
 | "This is fine", "no other problems" | Confirms a *plan* or a description, not writing it to disk. |
 | Answering a design question I asked ("use A", "keep the old name") | That is a design decision, not a landing permit. Even if I wrote "say A and I'll land it", A is still not the permit — ask again. |
 | Silence, follow-up questions, continued discussion | Not permission. |
