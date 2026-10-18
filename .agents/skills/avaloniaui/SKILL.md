@@ -112,6 +112,18 @@ not guesses):
   jumps from 1 when focus arrives). `TextBox.InnerLeftContent` is the supported way to put an icon inside the
   box; `TextBox.Watermark` is obsolete in Avalonia 12 — use `PlaceholderText`.
 
+## 3a. Dialogs for this player are `Core/UI` windows, not Fluent ones
+
+`AlertDialog` / `PromptDialog` (`Core/UI/`), surfaced through the static facade
+`ChroaDialogs.AlertAsync(owner, message)` / `ChroaDialogs.PromptAsync(owner, message)` (returns `bool`) in
+`Core/Utils/`, derive from `ChroaWindow` — so they inherit the
+black panel, the 10 px radius and the `0 6 24 0 #A0000000` shadow for free and only supply content through
+`PanelContent`. They draw their buttons as a plain `Border` + `TextBlock` driven by
+`PointerEntered` / `PointerExited` / `Tapped`, **not** a themed `Button`: on a black panel the Fluent hover
+state repaints the template with a near-white brush, and neutralising it needs a `/template/ ContentPresenter`
+override for every state. Modality: `WindowStartupLocation = CenterOwner`, `SizeToContent = Height`,
+`ShowDialog(owner)` (and `ShowDialog<bool>` when a result is needed).
+
 ## 4. A captured pointer swallows the release, so gestures never complete
 
 `Pointer.Capture(element)` on press routes the release to the capture target and its ancestors — the element
