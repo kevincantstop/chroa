@@ -297,6 +297,17 @@ add-ins.
   leaves through the `PlaybackRequested(path)` event and the host decides what "play" means. The window
   then only renders — it calls the service and keeps its own filtered `_view` — and the plugin class
   shrinks to event wiring plus a public `Service` property that a future MCP layer can resolve.
+- **Split the window the same way the playlist does**: `PlaylistPluginWindow` owns the title, toolbar and
+  window-level drag/drop, and `Controls/PlaylistGrid.axaml` owns the header, rows, context menu and
+  selection. The grid calls the service directly and exposes only `ShowService`, `Filter`,
+  `RemoveSelected`, `TotalCount`, `SelectionCount` and a `SelectionChanged` event — no forwarding events
+  per operation. A window-level `StyleInclude` still styles the user control's content through the logical
+  tree, so a control that borrows the window's stylesheet works; add the same include to the control if it
+  ever has to stand alone.
+- **Detach your event subscriptions when a window closes.** `CreateWindow()` builds a new window each time,
+  and the service it talks to outlives it, so unsubscribing in `OnDetachedFromVisualTree` (both in the
+  window and in any user control it contains) is what stops every closed window from being kept alive by
+  the long-lived collection/`AutoPlayChanged` handlers.
 
 ## 9. Dependencies
 
