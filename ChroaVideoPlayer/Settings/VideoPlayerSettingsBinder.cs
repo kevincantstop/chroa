@@ -104,7 +104,7 @@ public sealed class VideoPlayerSettingsBinder
 
             _window.Topmost = alwaysOnTop;
 
-            if (_window.WindowState == WindowState.Normal)
+            if (_window.WindowState == WindowState.Normal && width > 0 && height > 0)
             {
                 WindowUtils.FitInsideWorkingArea(
                     _window,
@@ -134,7 +134,7 @@ public sealed class VideoPlayerSettingsBinder
         _row.Volume = _viewModel.Volume;
         _row.AlwaysOnTop = _window.Topmost;
 
-        if (_window.WindowState == WindowState.Normal)
+        if (_window.WindowState == WindowState.Normal && _window.Width > 0 && _window.Height > 0)
         {
             _row.WindowWidth = _window.Width - WindowUtils.PanelShadowMargin * 2;
             _row.WindowHeight = _window.Height - WindowUtils.PanelShadowMargin * 2;

@@ -10,6 +10,10 @@ public static class WindowUtils
 
     private const int FrameSlackPixels = 8;
 
+    private const double MinFitWidth = 200;
+
+    private const double MinFitHeight = 120;
+
     public static void ClampToWorkingArea(Window window, double fraction) =>
         FitSize(window, window.Width, window.Height, fraction);
 
@@ -52,7 +56,7 @@ public static class WindowUtils
 
     private static bool FitSize(Window window, double width, double height, double fraction)
     {
-        if (width <= 0 || height <= 0) return false;
+        if (width < MinFitWidth || height < MinFitHeight) return false;
 
         if (GetWorkingAreaSize(window) is not { } area) return false;
 
