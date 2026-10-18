@@ -25,6 +25,9 @@ namespace ChroaVideoPlayer.ViewModels
         public partial bool HasVideo { get; set; }
 
         [ObservableProperty]
+        public partial string CurrentFileName { get; set; } = string.Empty;
+
+        [ObservableProperty]
         public partial double Position { get; set; }
 
         [ObservableProperty]
@@ -160,8 +163,17 @@ namespace ChroaVideoPlayer.ViewModels
         private void OnPauseChanged(object? sender, bool paused) =>
             Dispatcher.UIThread.Post(() => IsPaused = paused);
 
-        private void OnMediaOpened(object? sender, EventArgs e) =>
-            Dispatcher.UIThread.Post(() => HasVideo = true);
+        private void OnMediaOpened(object? sender, EventArgs e)
+        {
+            var name = System.IO.Path.GetFileName(Mpv.CurrentFile);
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                HasVideo = true;
+
+                CurrentFileName = string.IsNullOrEmpty(name) ? string.Empty : name;
+            });
+        }
 
         private void OnProgressChanged(object? sender, PlaybackProgress progress) =>
             Dispatcher.UIThread.Post(() =>

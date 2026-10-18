@@ -82,6 +82,13 @@
 		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
 	</Style>
 
+	<Style Selector="TextBlock.videoTitle">
+		<Setter Property="FontSize" Value="14" />
+		<Setter Property="Foreground" Value="#E0E0E0" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+	</Style>
+
 	<Style Selector="TextBlock.subtitleHint">
 		<Setter Property="FontSize" Value="12" />
 		<Setter Property="Foreground" Value="#808080" />

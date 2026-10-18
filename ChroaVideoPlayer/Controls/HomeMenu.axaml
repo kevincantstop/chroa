@@ -16,6 +16,18 @@
 			                     Click="OnMenuButtonClick" />
 		</Border>
 
+		<Border Classes="overlay"
+		        HorizontalAlignment="Left"
+		        VerticalAlignment="Top"
+				Height="48"
+		        Margin="60,0,0,0"
+		        IsVisible="{Binding Player.HasVideo}">
+			<TextBlock Classes="videoTitle"
+			           MaxWidth="420"
+			           Text="{Binding Player.CurrentFileName}"
+			           ToolTip.Tip="{Binding Player.CurrentFileName}" />
+		</Border>
+
 		<Border Classes="overlay subtitleMenu"
 		        HorizontalAlignment="Left"
 		        VerticalAlignment="Top"
