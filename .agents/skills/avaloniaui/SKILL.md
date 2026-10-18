@@ -421,6 +421,52 @@ await DragDrop.DoDragDropAsync(trigger, data, DragDropEffects.Move);   // 11.x: 
 - What the OS drag loop will not do for you: auto-scroll near the edges, and a drop target for the empty
   area below the last row. Both need explicit code (a timer, and a container-level `Drop`).
 
+## 15. Turning a plain `ItemsControl` list into a virtualized one (`Core/UI/ChroaVirtualList`)
+
+`ItemsControl` does not virtualize until the items panel is a `VirtualizingStackPanel` **and** something
+bounds its viewport. `ChroaVirtualList` (Header / ItemTemplate / ItemsSource) does that: header in row 0, a
+`ScrollViewer` holding the `ItemsControl` in row 1 of an `Auto,*` grid.
+
+```csharp
+_items = new ItemsControl
+{
+    ItemsPanel = new FuncTemplate<Panel?>(() => new VirtualizingStackPanel()),
+};
+```
+
+In 12.1.4 `ITemplate<T>` is no longer paired with a non-generic `ITemplate` you can implement (it erased to
+`object Build()`), so hand-rolled template classes fail with `CS0738` — use `FuncTemplate<T>`.
+
+Three traps, all silent and all hit for real:
+
+- **Do not make the header `IsHitTestVisible = false` to stop it scrolling.** That also kills its checkboxes
+  and `GridSplitter`s. Sync it with a `Border(ClipToBounds) > ContentControl(RenderTransform = TranslateTransform)`
+  and set `transform.X = -listScroll.Offset.X` from `ScrollChanged` — a render transform still hit-tests.
+- **`SharedSizeGroup` stops working once rows are virtualized** (unrealized rows never contribute), and a
+  `GridSplitter` only ever resizes the column definitions of the grid it sits in. Keep the header as the
+  single source of truth and copy its widths onto realized rows after layout:
+
+  ```csharp
+  ItemHost.LayoutUpdated += (_, _) => SyncColumnWidths();
+
+  foreach (var row in ItemHost.GetVisualDescendants().OfType<Grid>())
+  {
+      if (!row.Classes.Contains("row")) continue;
+      for (var index = 0; index < count; index++)
+      {
+          if (row.ColumnDefinitions[index].Width == header.ColumnDefinitions[index].Width) continue;
+          row.ColumnDefinitions[index].Width = header.ColumnDefinitions[index].Width;
+      }
+  }
+  ```
+
+  The `!=` guard is what stops layout from ping-ponging, and the class filter keeps nested grids (a
+  two-column cell inside a row) out of it.
+- **Measure before promising a win.** With virtualization only the visible ~20 containers exist, so opening a
+  500-row list should be instant; if it is not, the panel never got a bounded viewport and no amount of
+  batching elsewhere will help.
+
+
 
 
 

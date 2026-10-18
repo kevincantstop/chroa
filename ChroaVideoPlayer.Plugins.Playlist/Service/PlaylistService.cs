@@ -59,20 +59,29 @@ public sealed class PlaylistService
 
     public bool IsFull => Entries.Count >= PlaylistStore.MaxEntries;
 
-    public bool Add(string path) => EnsureEntry(path) is not null;
+    public bool Add(string path)
+    {
+        if (CreateEntry(path) is not { } entry) return false;
+
+        Store.Save(entry);
+
+        return true;
+    }
 
     public PlaylistAddResult AddRange(IEnumerable<string> paths)
     {
-        var added = 0;
+        var added = new List<PlaylistEntry>();
         var rejected = 0;
 
         foreach (var path in paths)
         {
-            if (Add(path)) added++;
+            if (CreateEntry(path) is { } entry) added.Add(entry);
             else if (Find(path) is null) rejected++;
         }
 
-        return new PlaylistAddResult(added, rejected);
+        Store.SaveRange(added);
+
+        return new PlaylistAddResult(added.Count, rejected);
     }
 
     public PlaylistAddResult AddFolder(string folderPath)
@@ -235,9 +244,11 @@ public sealed class PlaylistService
 
     private PlaylistSettingsStore SettingsStore => _settingsStore ??= new PlaylistSettingsStore();
 
-    private PlaylistEntry? EnsureEntry(string path)
+    private PlaylistEntry? EnsureEntry(string path) => Find(path) ?? CreateEntry(path);
+
+    private PlaylistEntry? CreateEntry(string path)
     {
-        if (Find(path) is { } existing) return existing;
+        if (Find(path) is not null) return null;
         if (string.IsNullOrWhiteSpace(path)) return null;
         if (IsFull) return null;
 
@@ -249,8 +260,6 @@ public sealed class PlaylistService
         };
 
         Entries.Add(entry);
-
-        Store.Save(entry);
 
         return entry;
     }

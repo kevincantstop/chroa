@@ -4,10 +4,12 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Plugins.Playlist.Service;
@@ -23,6 +25,8 @@ public partial class PlaylistGrid : UserControl
     private readonly ObservableCollection<PlaylistEntry> _view = new();
 
     private string? _filter;
+
+    private bool _rebuildPending;
 
     public static readonly DataFormat<IReadOnlyList<PlaylistEntry>> EntriesFormat =
         DataFormat.CreateInProcessFormat<IReadOnlyList<PlaylistEntry>>("chroa-playlist-entries");
@@ -60,11 +64,22 @@ public partial class PlaylistGrid : UserControl
 
         service.Entries.CollectionChanged += OnEntriesChanged;
 
-        foreach (var entry in service.Entries) entry.MarkMissing(!File.Exists(entry.Path));
-
         ItemHost.ItemsSource = _view;
 
         RebuildView(clearSelection: false);
+
+        RefreshMissing(service);
+    }
+
+    private async void RefreshMissing(PlaylistService service)
+    {
+        var entries = service.Entries.ToList();
+
+        var states = await Task.Run(() => entries
+            .Select(entry => (Entry: entry, Missing: !File.Exists(entry.Path)))
+            .ToList());
+
+        foreach (var (entry, missing) in states) entry.MarkMissing(missing);
     }
 
     public void Filter(string? text)
@@ -104,6 +119,8 @@ public partial class PlaylistGrid : UserControl
     {
         if (_service is not { } service) return;
 
+        _rebuildPending = false;
+
         if (clearSelection)
             foreach (var entry in service.Entries) entry.MarkSelected(false);
 
@@ -133,7 +150,21 @@ public partial class PlaylistGrid : UserControl
 
     private List<string> VisiblePaths() => _view.Select(entry => entry.Path).ToList();
 
-    private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e) => RebuildView(clearSelection: false);
+    private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (_rebuildPending) return;
+
+        _rebuildPending = true;
+
+        Dispatcher.UIThread.Post(RefreshPending, DispatcherPriority.Background);
+    }
+
+    private void RefreshPending()
+    {
+        if (!_rebuildPending) return;
+
+        RebuildView(clearSelection: false);
+    }
 
     private void OnSelectAllClick(object? sender, RoutedEventArgs e)
     {

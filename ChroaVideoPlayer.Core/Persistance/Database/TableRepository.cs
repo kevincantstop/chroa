@@ -15,6 +15,49 @@ public sealed class TableRepository<T> where T : class, new()
     public bool Save(SqliteConnection connection, string key, T value) =>
         SaveValues(connection, key, CaptureValues(value));
 
+    public int SaveMany(SqliteConnection connection, IReadOnlyList<KeyValuePair<string, T>> items)
+    {
+        if (items.Count == 0) return 0;
+
+        using var transaction = connection.BeginTransaction();
+
+        using var command = connection.CreateCommand();
+
+        command.Transaction = transaction;
+
+        var names = string.Join(", ", _schema.Columns.Select(c => SqliteSyntax.Quote(c.Name)));
+        var placeholders = string.Join(", ", _schema.Columns.Select((_, i) => "@v" + i));
+        var updates = string.Join(", ", _schema.Columns.Select(c => $"{SqliteSyntax.Quote(c.Name)} = excluded.{SqliteSyntax.Quote(c.Name)}"));
+
+        command.CommandText =
+            $"INSERT INTO {SqliteSyntax.Quote(_schema.Name)} ({SqliteSyntax.Quote(TableSchema.KeyColumn)}, {names}) " +
+            $"VALUES (@key, {placeholders}) " +
+            $"ON CONFLICT({SqliteSyntax.Quote(TableSchema.KeyColumn)}) DO UPDATE SET {updates}";
+
+        command.Parameters.AddWithValue("@key", string.Empty);
+
+        for (var index = 0; index < _schema.Columns.Count; index++)
+            command.Parameters.AddWithValue("@v" + index, DBNull.Value);
+
+        var count = 0;
+
+        foreach (var item in items)
+        {
+            command.Parameters["@key"].Value = item.Key;
+
+            var values = CaptureValues(item.Value);
+
+            for (var index = 0; index < values.Count; index++)
+                command.Parameters["@v" + index].Value = values[index] ?? DBNull.Value;
+
+            count += command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+
+        return count;
+    }
+
     public IReadOnlyList<object?> CaptureValues(T value)
     {
         var values = new object?[_schema.Columns.Count];

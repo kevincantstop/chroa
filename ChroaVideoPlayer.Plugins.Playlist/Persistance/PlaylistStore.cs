@@ -36,6 +36,13 @@ public sealed class PlaylistStore
 
     public void Save(PlaylistEntry entry) => _store.Save(entry.Path, entry);
 
+    public void SaveRange(IReadOnlyList<PlaylistEntry> entries)
+    {
+        if (entries.Count == 0) return;
+
+        _store.SaveMany(entries.Select(entry => new KeyValuePair<string, PlaylistEntry>(entry.Path, entry)));
+    }
+
     public void SaveOrder(IReadOnlyList<PlaylistEntry> entries)
     {
         for (var index = 0; index < entries.Count; index++)

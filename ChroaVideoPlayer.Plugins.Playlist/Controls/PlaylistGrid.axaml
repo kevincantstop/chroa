@@ -3,17 +3,23 @@
              xmlns:playlist="clr-namespace:ChroaVideoPlayer.Plugins.Playlist"
              xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
              x:Class="ChroaVideoPlayer.Plugins.Playlist.PlaylistGrid">
-	<ScrollViewer HorizontalScrollBarVisibility="Auto"
-	              VerticalScrollBarVisibility="Auto">
-		<Grid Grid.IsSharedSizeScope="True" RowDefinitions="Auto,*">
-			<Grid Grid.Row="0" Height="32" Background="#1AFFFFFF">
+	<core:ChroaVirtualList x:Name="ItemHost">
+		<core:ChroaVirtualList.ContextMenu>
+			<playlist:PlaylistEntryMenu x:Name="RowMenu"
+			                            PlayRequested="OnMenuPlayRequested"
+			                            RevealRequested="OnMenuRevealRequested"
+			                            DeleteRequested="OnMenuDeleteRequested" />
+		</core:ChroaVirtualList.ContextMenu>
+
+		<core:ChroaVirtualList.Header>
+			<Grid Height="32" Background="#1AFFFFFF">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="28" />
-					<ColumnDefinition Width="80" SharedSizeGroup="Duration" />
+					<ColumnDefinition Width="80" />
 					<ColumnDefinition Width="6" />
-					<ColumnDefinition Width="180" SharedSizeGroup="Name" />
+					<ColumnDefinition Width="180" />
 					<ColumnDefinition Width="6" />
-					<ColumnDefinition Width="260" SharedSizeGroup="Path" />
+					<ColumnDefinition Width="260" />
 					<ColumnDefinition Width="6" />
 					<ColumnDefinition Width="132" />
 				</Grid.ColumnDefinitions>
@@ -31,119 +37,110 @@
 				<GridSplitter Grid.Column="4" Background="Transparent" ResizeDirection="Columns" />
 				<TextBlock Grid.Column="5" Classes="head" Text="Path" />
 			</Grid>
+		</core:ChroaVirtualList.Header>
 
-			<ItemsControl Grid.Row="1" x:Name="ItemHost">
-				<ItemsControl.ContextMenu>
-					<playlist:PlaylistEntryMenu x:Name="RowMenu"
-					                            PlayRequested="OnMenuPlayRequested"
-					                            RevealRequested="OnMenuRevealRequested"
-					                            DeleteRequested="OnMenuDeleteRequested" />
-				</ItemsControl.ContextMenu>
+		<core:ChroaVirtualList.ItemTemplate>
+			<DataTemplate x:DataType="playlist:PlaylistEntry">
+				<Grid Classes="row interactive"
+				      Height="32"
+				      Classes.playing="{Binding IsPlaying}"
+				      Classes.selected="{Binding IsSelected}"
+				      Classes.current="{Binding IsCurrent}"
+				      Classes.missing="{Binding IsMissing}"
+				      ToolTip.Tip="{Binding RowTip}"
+				      PointerPressed="OnRowPointerPressed"
+				      DoubleTapped="OnRowDoubleTapped"
+				      ContextRequested="OnRowContextRequested"
+				      DragDrop.AllowDrop="True"
+				      PointerMoved="OnRowPointerMoved"
+				      DragDrop.DragOver="OnRowDragOver"
+				      DragDrop.DragLeave="OnRowDragLeave"
+				      DragDrop.Drop="OnRowDrop">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="28" />
+						<ColumnDefinition Width="80" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="180" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="260" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="132" />
+					</Grid.ColumnDefinitions>
 
-				<ItemsControl.ItemTemplate>
-					<DataTemplate x:DataType="playlist:PlaylistEntry">
-						<Grid Classes="row interactive"
-						      Height="32"
-						      Classes.playing="{Binding IsPlaying}"
-						      Classes.selected="{Binding IsSelected}"
-						      Classes.current="{Binding IsCurrent}"
-						      Classes.missing="{Binding IsMissing}"
-						      ToolTip.Tip="{Binding RowTip}"
-						      PointerPressed="OnRowPointerPressed"
-						      DoubleTapped="OnRowDoubleTapped"
-						      ContextRequested="OnRowContextRequested"
-						      DragDrop.AllowDrop="True"
-						      PointerMoved="OnRowPointerMoved"
-						      DragDrop.DragOver="OnRowDragOver"
-						      DragDrop.DragLeave="OnRowDragLeave"
-						      DragDrop.Drop="OnRowDrop">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="28" />
-								<ColumnDefinition Width="80" SharedSizeGroup="Duration" />
-								<ColumnDefinition Width="6" />
-								<ColumnDefinition Width="180" SharedSizeGroup="Name" />
-								<ColumnDefinition Width="6" />
-								<ColumnDefinition Width="260" SharedSizeGroup="Path" />
-								<ColumnDefinition Width="6" />
-								<ColumnDefinition Width="132" />
-							</Grid.ColumnDefinitions>
+					<Border Grid.ColumnSpan="8"
+					        Width="2"
+					        HorizontalAlignment="Left"
+					        Background="#E0E0E0"
+					        IsVisible="{Binding IsPlaying}" />
 
-							<Border Grid.ColumnSpan="8"
-							        Width="2"
-							        HorizontalAlignment="Left"
-							        Background="#E0E0E0"
-							        IsVisible="{Binding IsPlaying}" />
+					<CheckBox Grid.Column="0"
+					          Classes="check"
+					          IsChecked="{Binding IsSelected}"
+					          Click="OnRowCheckClick" />
 
-							<CheckBox Grid.Column="0"
-							          Classes="check"
-							          IsChecked="{Binding IsSelected}"
-							          Click="OnRowCheckClick" />
+					<TextBlock Grid.Column="1" Classes="cell" Text="{Binding DurationText}" />
+					<TextBlock Grid.Column="3" Classes="cell" Text="{Binding Title}" />
+					<Grid Grid.Column="5" ColumnDefinitions="Auto,*">
+						<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/close.svg"
+						              IconSize="12"
+						              Foreground="#FF6B6B"
+						              Margin="8,0,0,0"
+						              HorizontalAlignment="Left"
+						              VerticalAlignment="Center"
+						              IsVisible="{Binding IsMissing}" />
+						<TextBlock Grid.Column="1" Classes="cell" Text="{Binding Path}" ToolTip.Tip="{Binding Path}" />
+					</Grid>
 
-							<TextBlock Grid.Column="1" Classes="cell" Text="{Binding DurationText}" />
-							<TextBlock Grid.Column="3" Classes="cell" Text="{Binding Title}" />
-							<Grid Grid.Column="5" ColumnDefinitions="Auto,*">
-								<core:SvgIcon Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/close.svg"
-								              IconSize="12"
-								              Foreground="#FF6B6B"
-								              Margin="8,0,0,0"
-								              HorizontalAlignment="Left"
-								              VerticalAlignment="Center"
-								              IsVisible="{Binding IsMissing}" />
-								<TextBlock Grid.Column="1" Classes="cell" Text="{Binding Path}" ToolTip.Tip="{Binding Path}" />
-							</Grid>
+					<StackPanel Grid.Column="7"
+					            Orientation="Horizontal"
+					            Spacing="6"
+					            VerticalAlignment="Center">
+						<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/arrow-up.svg"
+						                    ButtonSize="28"
+						                    IconSize="14"
+						                    VerticalAlignment="Center"
+						                    IsEnabled="{Binding CanMoveUp}"
+						                    Click="OnMoveUpClick"
+						                    ToolTip.Tip="Move up" />
 
-							<StackPanel Grid.Column="7"
-							            Orientation="Horizontal"
-							            Spacing="6"
-							            VerticalAlignment="Center">
-								<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/arrow-up.svg"
-								                    ButtonSize="28"
-								                    IconSize="14"
-								                    VerticalAlignment="Center"
-								                    IsEnabled="{Binding CanMoveUp}"
-								                    Click="OnMoveUpClick"
-								                    ToolTip.Tip="Move up" />
+						<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/arrow-down.svg"
+						                    ButtonSize="28"
+						                    IconSize="14"
+						                    VerticalAlignment="Center"
+						                    IsEnabled="{Binding CanMoveDown}"
+						                    Click="OnMoveDownClick"
+						                    ToolTip.Tip="Move down" />
 
-								<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/arrow-down.svg"
-								                    ButtonSize="28"
-								                    IconSize="14"
-								                    VerticalAlignment="Center"
-								                    IsEnabled="{Binding CanMoveDown}"
-								                    Click="OnMoveDownClick"
-								                    ToolTip.Tip="Move down" />
+						<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/folder.svg"
+						                    ButtonSize="28"
+						                    IconSize="14"
+						                    VerticalAlignment="Center"
+						                    Click="OnRevealClick"
+						                    ToolTip.Tip="Show in folder" />
 
-								<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/folder.svg"
-								                    ButtonSize="28"
-								                    IconSize="14"
-								                    VerticalAlignment="Center"
-								                    Click="OnRevealClick"
-								                    ToolTip.Tip="Show in folder" />
+						<core:SVGIconButton Classes="remove"
+						                    Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/trash.svg"
+						                    ButtonSize="28"
+						                    IconSize="14"
+						                    Foreground="#FF6B6B"
+						                    VerticalAlignment="Center"
+						                    Click="OnDeleteClick"
+						                    ToolTip.Tip="Remove from playlist" />
+					</StackPanel>
 
-								<core:SVGIconButton Classes="remove"
-								                    Icon="avares://ChroaVideoPlayer.Plugins.Playlist/Icons/trash.svg"
-								                    ButtonSize="28"
-								                    IconSize="14"
-								                    Foreground="#FF6B6B"
-								                    VerticalAlignment="Center"
-								                    Click="OnDeleteClick"
-								                    ToolTip.Tip="Remove from playlist" />
-							</StackPanel>
+					<Border Grid.ColumnSpan="8"
+					        Height="2"
+					        VerticalAlignment="Top"
+					        Background="#E0E0E0"
+					        IsVisible="{Binding IsDropBefore}" />
 
-							<Border Grid.ColumnSpan="8"
-							        Height="2"
-							        VerticalAlignment="Top"
-							        Background="#E0E0E0"
-							        IsVisible="{Binding IsDropBefore}" />
-
-							<Border Grid.ColumnSpan="8"
-							        Height="2"
-							        VerticalAlignment="Bottom"
-							        Background="#E0E0E0"
-							        IsVisible="{Binding IsDropAfter}" />
-						</Grid>
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
-			</ItemsControl>
-		</Grid>
-	</ScrollViewer>
+					<Border Grid.ColumnSpan="8"
+					        Height="2"
+					        VerticalAlignment="Bottom"
+					        Background="#E0E0E0"
+					        IsVisible="{Binding IsDropAfter}" />
+				</Grid>
+			</DataTemplate>
+		</core:ChroaVirtualList.ItemTemplate>
+	</core:ChroaVirtualList>
 </UserControl>

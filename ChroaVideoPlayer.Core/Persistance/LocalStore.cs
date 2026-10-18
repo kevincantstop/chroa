@@ -60,6 +60,26 @@ public sealed class LocalStore<T> where T : class, new()
         return saved;
     }
 
+    public int SaveMany(IEnumerable<KeyValuePair<string, T>> items)
+    {
+        var batch = new List<KeyValuePair<string, T>>();
+
+        foreach (var item in items)
+        {
+            RequireKey(item.Key);
+
+            batch.Add(item);
+        }
+
+        if (batch.Count == 0) return 0;
+
+        var saved = Run(nameof(SaveMany), connection => _repository.SaveMany(connection, batch), 0);
+
+        _limiter?.Trim(this);
+
+        return saved;
+    }
+
     public T? Get(string key)
     {
         RequireKey(key);
