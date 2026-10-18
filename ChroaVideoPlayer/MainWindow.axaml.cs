@@ -285,6 +285,13 @@ public partial class MainWindow : ChroaWindow
         var path = GetFirstDroppedFilePath(e);
         if (path is null) return;
 
+        if (SubtitleFileTypes.IsSubtitleFile(path))
+        {
+            if (VideoPlayer.ViewModel.HasVideo) VideoPlayer.ViewModel.Mpv.LoadSubtitleFile(path);
+
+            return;
+        }
+
         VideoPlayer.Play(path);
     }
 

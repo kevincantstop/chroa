@@ -249,6 +249,23 @@ play/pause) and the window chrome is 48/24 — and `SVGIconButton` turns any of 
   derive from `ContextMenu` to carry the clicked entry, you **must** override `StyleKeyOverride` (see the
   `avaloniaui` skill) or the popup opens at 0×0 and never appears.
 
+- **Row selection: one anchor, and it only exists while something is selected.** The playlist grid went
+  through four broken versions before settling here, so copy the model rather than inventing one:
+  - `_anchor` is set **only when a row is selected** by a plain click on its checkbox (or by the first
+    Shift click when the selection is empty); `RefreshState` clears it the moment `SelectionCount` hits 0.
+    A plain click on the row body moves the *current row* and must not touch the anchor.
+  - `ExtendSelection` = `anchor ?? clickedRow`, selects everything between the two in the **visible**
+    (`_view`) order, and does not move the anchor — so repeated Shift clicks re-aim the end of the range.
+  - Shift on a checkbox and Shift on the row body are the same operation. The checkbox's own toggle fights
+    it (it flips on release), so remember "this press was a Shift selection" and, in the checkbox's `Click`,
+    set `box.IsChecked = entry.IsSelected` from the model instead of applying the toggled value.
+  - A checkbox swallows `PointerPressed`, so the row handler never sees that press. Register
+    `AddHandler(PointerPressedEvent, …, RoutingStrategies.Bubble, handledEventsToo: true)` and bail out
+    unless `e.Handled` and Shift are both true, otherwise you also steal clicks from the row buttons.
+  - Select-all must decide from the **model** (`all entries in view already selected?`), not from the box's
+    post-toggle `IsChecked`: from the indeterminate state a click yields `false`, which would clear the
+    selection instead of completing it.
+
 ## 6. Icons
 
 Inside your own window, render an SVG asset with the same control the player's chrome uses:
