@@ -31,7 +31,7 @@ public sealed class PlaylistService
 
     private bool _autoPlay = true;
 
-    public event Action<string>? PlaybackRequested;
+    public event Action<string, TimeSpan>? PlaybackRequested;
 
     public event Action<bool>? AutoPlayChanged;
 
@@ -198,7 +198,7 @@ public sealed class PlaylistService
         _queueIndex = _queue.IndexOf(path);
         _expectedPath = path;
 
-        PlaybackRequested?.Invoke(path);
+        PlaybackRequested?.Invoke(path, entry.ResumePosition);
 
         return true;
     }
@@ -316,7 +316,7 @@ public sealed class PlaylistService
 
         _expectedPath = path;
 
-        PlaybackRequested?.Invoke(path);
+        PlaybackRequested?.Invoke(path, entry.ResumePosition);
 
         return true;
     }
@@ -365,7 +365,7 @@ public sealed class PlaylistService
 
             _expectedPath = path;
 
-            PlaybackRequested?.Invoke(path);
+            PlaybackRequested?.Invoke(path, entry.ResumePosition);
 
             return;
         }

@@ -24,6 +24,8 @@ public sealed partial class ChroaMpvContext
 
     private string? _currentFile;
 
+    private double _startSeconds;
+
     private bool _ended;
 
     private const string HardwareDecodingMode = "auto-safe";
@@ -62,9 +64,15 @@ public sealed partial class ChroaMpvContext
 
     public event EventHandler<bool>? EndedChanged;
 
-    public void Play(string path)
+    public void Play(string path) => Play(path, 0);
+
+    public void Play(string path, TimeSpan start) => Play(path, start.TotalSeconds);
+
+    public void Play(string path, double startSeconds)
     {
         _currentFile = path;
+
+        _startSeconds = double.IsFinite(startSeconds) && startSeconds > 0 ? startSeconds : 0;
 
         var context = _context;
         if (context is null)
@@ -240,6 +248,15 @@ public sealed partial class ChroaMpvContext
             _ = RefreshSubtitlesAsync();
 
             EnsurePlaying();
+
+            if (_startSeconds > 0)
+            {
+                var start = _startSeconds;
+
+                _startSeconds = 0;
+
+                SeekTo(start);
+            }
 
             MediaOpened?.Invoke(this, EventArgs.Empty);
 

@@ -80,6 +80,12 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     public bool IsCompleted => PlayedFraction >= 0.995;
 
+    public TimeSpan ResumePosition => Duration > TimeSpan.Zero &&
+                                      PlayedSeconds > 0 &&
+                                      Duration.TotalSeconds - PlayedSeconds > CompletionToleranceSeconds
+        ? TimeSpan.FromSeconds(PlayedSeconds)
+        : TimeSpan.Zero;
+
     public void MarkPlaying(bool playing) => SetFlag(ref _isPlaying, playing, nameof(IsPlaying));
 
     public void MarkSelected(bool selected) => SetFlag(ref _isSelected, selected, nameof(IsSelected));

@@ -55,7 +55,7 @@ public sealed class PlaylistPlugin : IChroaPlugin, IChroaPluginEvents
         return service;
     }
 
-    private void OnPlaybackRequested(string path) => Context?.Mpv.Play(path);
+    private void OnPlaybackRequested(string path, TimeSpan start) => Context?.Mpv.Play(path, start);
 
     private void OnVideoPlayed(VideoPlayed message) => Service.HandleVideoPlayed(message.Path, message.Duration);
 
