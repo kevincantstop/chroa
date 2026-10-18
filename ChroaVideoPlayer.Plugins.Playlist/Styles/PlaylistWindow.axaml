@@ -33,6 +33,14 @@
 		<Setter Property="Background" Value="#33FFFFFF" />
 	</Style>
 
+	<Style Selector="Grid.row.current">
+		<Setter Property="Background" Value="#26FFFFFF" />
+	</Style>
+
+	<Style Selector="Grid.row.current:pointerover">
+		<Setter Property="Background" Value="#33FFFFFF" />
+	</Style>
+
 	<Style Selector="Grid.row.playing">
 		<Setter Property="Background" Value="#33FFFFFF" />
 	</Style>

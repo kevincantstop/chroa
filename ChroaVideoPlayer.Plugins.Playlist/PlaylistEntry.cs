@@ -10,6 +10,8 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     private bool _isSelected;
 
+    private bool _isCurrent;
+
     private bool _isMissing;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -30,6 +32,8 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
 
     public bool IsSelected => _isSelected;
 
+    public bool IsCurrent => _isCurrent;
+
     public bool IsMissing => _isMissing;
 
     public string RowTip => _isMissing ? "File not found" : "Double click to play";
@@ -45,6 +49,8 @@ public sealed class PlaylistEntry : INotifyPropertyChanged
     public void MarkPlaying(bool playing) => SetFlag(ref _isPlaying, playing, nameof(IsPlaying));
 
     public void MarkSelected(bool selected) => SetFlag(ref _isSelected, selected, nameof(IsSelected));
+
+    public void MarkCurrent(bool current) => SetFlag(ref _isCurrent, current, nameof(IsCurrent));
 
     public void MarkMissing(bool missing)
     {

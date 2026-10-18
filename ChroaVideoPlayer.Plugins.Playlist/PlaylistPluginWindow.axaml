@@ -131,8 +131,10 @@
 							      Height="32"
 							      Classes.playing="{Binding IsPlaying}"
 							      Classes.selected="{Binding IsSelected}"
+							      Classes.current="{Binding IsCurrent}"
 							      Classes.missing="{Binding IsMissing}"
 							      ToolTip.Tip="{Binding RowTip}"
+							      PointerPressed="OnRowPointerPressed"
 							      DoubleTapped="OnRowDoubleTapped"
 							      ContextRequested="OnRowContextRequested">
 								<Grid.ColumnDefinitions>

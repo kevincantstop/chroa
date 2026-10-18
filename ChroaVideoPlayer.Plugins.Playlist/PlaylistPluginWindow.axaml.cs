@@ -20,6 +20,8 @@ public partial class PlaylistPluginWindow : PluginWindow
 {
     private ObservableCollection<PlaylistEntry>? _entries;
 
+    private PlaylistEntry? _current;
+
     private readonly ObservableCollection<PlaylistEntry> _view = new();
 
     private bool _autoPlay;
@@ -102,6 +104,8 @@ public partial class PlaylistPluginWindow : PluginWindow
         foreach (var entry in entries)
             if (string.IsNullOrEmpty(query) || Matches(entry, query))
                 _view.Add(entry);
+
+        if (_current is not null && !_view.Contains(_current)) SetCurrent(null);
 
         RefreshState();
     }
@@ -237,6 +241,15 @@ public partial class PlaylistPluginWindow : PluginWindow
 
     private static string Count(int total) => total == 1 ? "video" : "videos";
 
+    private void OnRowPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Grid { DataContext: PlaylistEntry entry }) return;
+
+        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) return;
+
+        SetCurrent(entry);
+    }
+
     private void OnRowDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (e.Source is Visual source && source.FindAncestorOfType<Button>(true) is not null) return;
@@ -257,14 +270,18 @@ public partial class PlaylistPluginWindow : PluginWindow
 
         RowMenu.Entry = entry;
 
-        if (entry.IsSelected) return;
+        SetCurrent(entry);
+    }
 
-        if (_entries is { } entries)
-            foreach (var other in entries) other.MarkSelected(false);
+    private void SetCurrent(PlaylistEntry? entry)
+    {
+        if (ReferenceEquals(_current, entry)) return;
 
-        entry.MarkSelected(true);
+        _current?.MarkCurrent(false);
 
-        RefreshState();
+        _current = entry;
+
+        _current?.MarkCurrent(true);
     }
 
     private void OnMenuPlayRequested(PlaylistEntry entry) => PlayRequested?.Invoke(entry, VisiblePaths());
