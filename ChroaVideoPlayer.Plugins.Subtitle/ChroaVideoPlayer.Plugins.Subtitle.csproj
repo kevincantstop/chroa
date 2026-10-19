@@ -17,4 +17,10 @@
   <ItemGroup>
     <AvaloniaResource Include="Icons\**" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Styles\" />
+    <Folder Include="Controls\" />
+    <Folder Include="ViewModels\" />
+  </ItemGroup>
 </Project>

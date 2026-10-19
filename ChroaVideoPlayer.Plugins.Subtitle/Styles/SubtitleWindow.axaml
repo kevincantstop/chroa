@@ -1,0 +1,29 @@
+<Styles xmlns="https://github.com/avaloniaui">
+	<Style Selector="TextBlock.head">
+		<Setter Property="Foreground" Value="#B0FFFFFF" />
+		<Setter Property="FontSize" Value="14" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Margin" Value="8,0,0,0" />
+	</Style>
+
+	<Style Selector="TextBlock.cell">
+		<Setter Property="Foreground" Value="#E0E0E0" />
+		<Setter Property="FontSize" Value="14" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Margin" Value="8,0,0,0" />
+		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+	</Style>
+
+	<Style Selector="Grid.trackRow">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="Cursor" Value="Hand" />
+	</Style>
+
+	<Style Selector="Grid.trackRow:pointerover">
+		<Setter Property="Background" Value="#1AFFFFFF" />
+	</Style>
+
+	<Style Selector="Grid.trackRow.selected">
+		<Setter Property="Background" Value="#26FFFFFF" />
+	</Style>
+</Styles>

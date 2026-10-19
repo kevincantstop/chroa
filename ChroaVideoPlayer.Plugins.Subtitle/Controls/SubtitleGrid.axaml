@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
+             xmlns:sub="clr-namespace:ChroaVideoPlayer.Plugins.Subtitle"
+             x:Class="ChroaVideoPlayer.Plugins.Subtitle.SubtitleGrid"
+             x:DataType="sub:SubtitleWindowViewModel">
+	<core:ChroaVirtualList ItemsSource="{Binding Tracks}">
+		<core:ChroaVirtualList.Header>
+			<Grid Height="32" Background="#1AFFFFFF">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="6" />
+					<ColumnDefinition Width="110" />
+				</Grid.ColumnDefinitions>
+
+				<TextBlock Grid.Column="0" Classes="head" Text="Track" />
+				<TextBlock Grid.Column="2" Classes="head" Text="Source" />
+			</Grid>
+		</core:ChroaVirtualList.Header>
+
+		<core:ChroaVirtualList.ItemTemplate>
+			<DataTemplate x:DataType="sub:SubtitleTrackRow">
+				<Grid Classes="trackRow"
+				      Height="32"
+				      Classes.selected="{Binding IsSelected}"
+				      ToolTip.Tip="{Binding Tip}"
+				      PointerPressed="OnTrackPressed">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="110" />
+					</Grid.ColumnDefinitions>
+
+					<TextBlock Grid.Column="0" Classes="cell" Text="{Binding Label}" />
+					<TextBlock Grid.Column="2" Classes="cell" Text="{Binding Source}" />
+				</Grid>
+			</DataTemplate>
+		</core:ChroaVirtualList.ItemTemplate>
+	</core:ChroaVirtualList>
+</UserControl>
