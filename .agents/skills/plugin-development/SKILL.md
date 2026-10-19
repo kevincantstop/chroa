@@ -9,11 +9,12 @@ A plugin is a class library that the player discovers at startup by scanning the
 `ChroaVideoPlayer.exe` (plus its own assembly). Every enabled plugin gets one entry in the home menu, and
 clicking that entry opens the plugin's window.
 
-Two working examples ship with the repository:
+Three working examples ship with the repository:
 
 | Project | Enabled | Why it exists |
 | --- | --- | --- |
 | `ChroaVideoPlayer.Plugins.Playlist` | yes | A real plugin: records every played video in a table |
+| `ChroaVideoPlayer.Plugins.Subtitle` | yes | Multi-track subtitle composition (scaffold so far, see `docs/multi-subtitle-plugin.md`) |
 | `ChroaVideoPlayer.Plugins.Sample` | no | Kept switched off, to exercise assembly scanning |
 
 ## 1. Project setup
@@ -45,6 +46,125 @@ build deploys it next to the player:
 
 `IsPlugin="true"` is what the `CopyPlugins` target selects on, so the project path only has to be written
 once. There is no registration code to write anywhere.
+
+### 1a. Copy-paste skeleton (five files, compiles and shows up in the menu)
+
+This is the shape `ChroaVideoPlayer.Plugins.Subtitle` was scaffolded from — it builds, ships to
+`$(OutDir)Plugins`, and opens a dockable window before any feature code exists. Do the same for a new
+plugin, then build *before* writing behaviour.
+
+`MyPlugin/MyPlugin.csproj`
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MyPlugin</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ChroaVideoPlayer.Core\ChroaVideoPlayer.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Icons\**" />
+  </ItemGroup>
+</Project>
+```
+
+`MyPlugin/MyPluginPlugin.cs`
+
+```csharp
+using ChroaVideoPlayer.Core.Plugin;
+using ChroaVideoPlayer.Core.Plugin.Context;
+using ChroaVideoPlayer.Core.Plugin.UI;
+
+namespace MyPlugin;
+
+public sealed class MyPluginPlugin : IChroaPlugin
+{
+    public string Name => "my-plugin";
+
+    public string Label => "My Plugin";
+
+    public string Icon => "avares://MyPlugin/Icons/icon.svg";
+
+    public PluginLocation Location => PluginLocation.MainMenu;
+
+    public bool Enabled => true;
+
+    public ChroaApplicationContext? Context { get; set; }
+
+    public PluginWindow CreateWindow() => new MyPluginWindow();
+}
+```
+
+`MyPlugin/MyPluginWindow.axaml`
+
+```xml
+<chroa:PluginWindow xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:chroa="clr-namespace:ChroaVideoPlayer.Core.Plugin.UI;assembly=ChroaVideoPlayer.Core"
+                    xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
+                    x:Class="MyPlugin.MyPluginWindow"
+                    Title="My Plugin"
+                    Width="580"
+                    Height="770"
+                    MinWidth="530"
+                    MinHeight="700"
+                    InitialDockSide="Right">
+	<Grid Margin="12" RowDefinitions="Auto,*">
+		<Grid ColumnDefinitions="*,Auto">
+			<TextBlock Text="My Plugin"
+			           FontSize="16"
+			           Foreground="White"
+			           VerticalAlignment="Center" />
+
+			<core:SVGIconButton Grid.Column="1"
+			                    Icon="avares://MyPlugin/Icons/x.svg"
+			                    ButtonSize="32"
+			                    IconSize="16"
+			                    HorizontalAlignment="Right"
+			                    VerticalAlignment="Center"
+			                    Click="OnCloseClick"
+			                    ToolTip.Tip="Close" />
+		</Grid>
+	</Grid>
+</chroa:PluginWindow>
+```
+
+`MyPlugin/MyPluginWindow.axaml.cs`
+
+```csharp
+using Avalonia.Interactivity;
+using ChroaVideoPlayer.Core.Plugin.UI;
+
+namespace MyPlugin;
+
+public partial class MyPluginWindow : PluginWindow
+{
+    public MyPluginWindow()
+    {
+        InitializeComponent();
+    }
+
+    private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
+}
+```
+
+`MyPlugin/Icons/icon.svg` and `MyPlugin/Icons/x.svg` — plain 24×24 stroke SVG, `stroke="currentColor"`
+(`SvgIcon` strokes the path with `Foreground`). Then the two registration edits from §1, and build.
+
+Checklist after scaffolding: build is 0/0, the DLL appears in `bin\<Config>\net10.0\Plugins\`, the home menu
+shows the label with the icon, the window docks and closes, and **no** stale copy of a previously named
+plugin project is left in `Plugins\` (see §10) — renaming a plugin means deleting the old project folder,
+not just the files, or two menu entries appear.
+
 
 ## 2. The contract
 

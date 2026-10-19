@@ -1,0 +1,36 @@
+<chroa:PluginWindow xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:chroa="clr-namespace:ChroaVideoPlayer.Core.Plugin.UI;assembly=ChroaVideoPlayer.Core"
+                    xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
+                    x:Class="ChroaVideoPlayer.Plugins.Subtitle.SubtitleWindow"
+                    Title="Subtitle Editor"
+                    Width="580"
+                    Height="770"
+                    MinWidth="530"
+                    MinHeight="700"
+                    InitialDockSide="Right">
+	<Grid Margin="12" RowDefinitions="Auto,*">
+		<Grid ColumnDefinitions="*,Auto">
+			<TextBlock Text="Subtitle Editor"
+			           FontSize="16"
+			           Foreground="White"
+			           VerticalAlignment="Center" />
+
+			<core:SVGIconButton Grid.Column="1"
+			                    Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/x.svg"
+			                    ButtonSize="32"
+			                    IconSize="16"
+			                    HorizontalAlignment="Right"
+			                    VerticalAlignment="Center"
+			                    Click="OnCloseClick"
+			                    ToolTip.Tip="Close" />
+		</Grid>
+
+		<TextBlock Grid.Row="1"
+		           Text="No subtitle tracks yet."
+		           FontSize="14"
+		           Foreground="#B0FFFFFF"
+		           Margin="0,16,0,0"
+		           VerticalAlignment="Top" />
+	</Grid>
+</chroa:PluginWindow>

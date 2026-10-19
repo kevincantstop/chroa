@@ -12,6 +12,7 @@
     <ProjectReference Include="..\ChroaVideoPlayer.Core\ChroaVideoPlayer.Core.csproj" />
     <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Playlist\ChroaVideoPlayer.Plugins.Playlist.csproj" ReferenceOutputAssembly="false" Private="false" IsPlugin="true" />
     <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Sample\ChroaVideoPlayer.Plugins.Sample.csproj" ReferenceOutputAssembly="false" Private="false" IsPlugin="true" />
+    <ProjectReference Include="..\ChroaVideoPlayer.Plugins.Subtitle\ChroaVideoPlayer.Plugins.Subtitle.csproj" ReferenceOutputAssembly="false" Private="false" IsPlugin="true" />
     <ProjectReference Include="..\ChroaVideoPlayer.Headless\ChroaVideoPlayer.Headless.csproj" ReferenceOutputAssembly="false" Private="false" IsHeadless="true" />
   </ItemGroup>
 

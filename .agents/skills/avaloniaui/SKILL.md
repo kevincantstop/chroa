@@ -446,9 +446,25 @@ In 12.1.4 `ITemplate<T>` is no longer paired with a non-generic `ITemplate` you 
 
 Three traps, all silent and all hit for real:
 
-- **Do not make the header `IsHitTestVisible = false` to stop it scrolling.** That also kills its checkboxes
-  and `GridSplitter`s. Sync it with a `Border(ClipToBounds) > ContentControl(RenderTransform = TranslateTransform)`
-  and set `transform.X = -listScroll.Offset.X` from `ScrollChanged` — a render transform still hit-tests.
+- **Give the header and the rows one shared horizontal scroll context — do not fake it.** The first version
+  put the header in a `Border(ClipToBounds) > ContentControl(RenderTransform)` and moved it by
+  `-listScroll.Offset.X`. Three attempts to make that behave ("fill the width", "also recompute on
+  `SizeChanged`/`LayoutUpdated`") all left a chunk of the header background missing once the horizontal
+  scrollbar existed: a `Border` arranges its child at the *border's* size, so the header paints only the
+  visible strip and the translate then exposes an unpainted region. The arrangement that works is nested
+  scroll viewers:
+
+  ```
+  ScrollViewer (horizontal Auto, vertical Disabled)      ← scrolls header + rows together
+    Grid  RowDefinitions="Auto,*"  MinWidth = outer viewport   ← fills the window
+      ContentControl  header (stretches)
+      ScrollViewer (horizontal Disabled, vertical Auto)  ← this is the viewport VSP virtualizes against
+        ItemsControl  ItemsPanel = VirtualizingStackPanel
+  ```
+
+  Horizontal position can then never disagree, the fill is a single `MinWidth` on the shared grid, and the
+  inner scroll viewer still gives `VirtualizingStackPanel` a bounded height. `IsHitTestVisible = false` is
+  not needed anywhere, so checkboxes and `GridSplitter`s keep working.
 - **`SharedSizeGroup` stops working once rows are virtualized** (unrealized rows never contribute), and a
   `GridSplitter` only ever resizes the column definitions of the grid it sits in. Keep the header as the
   single source of truth and copy its widths onto realized rows after layout:
@@ -458,7 +474,7 @@ Three traps, all silent and all hit for real:
 
   foreach (var row in ItemHost.GetVisualDescendants().OfType<Grid>())
   {
-      if (!row.Classes.Contains("row")) continue;
+      if (row.ColumnDefinitions.Count != header.ColumnDefinitions.Count) continue;
       for (var index = 0; index < count; index++)
       {
           if (row.ColumnDefinitions[index].Width == header.ColumnDefinitions[index].Width) continue;
@@ -467,8 +483,8 @@ Three traps, all silent and all hit for real:
   }
   ```
 
-  The `!=` guard is what stops layout from ping-ponging, and the class filter keeps nested grids (a
-  two-column cell inside a row) out of it.
+  The `!=` guard is what stops layout from ping-ponging; match on the column count (rows are the
+  `ContentPresenter`'s direct `Grid` child) rather than on a business class name.
 - **Measure before promising a win.** With virtualization only the visible ~20 containers exist, so opening a
   500-row list should be instant; if it is not, the panel never got a bounded viewport and no amount of
   batching elsewhere will help.
