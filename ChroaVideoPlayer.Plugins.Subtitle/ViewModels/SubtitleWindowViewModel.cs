@@ -37,6 +37,8 @@ public partial class SubtitleWindowViewModel : ObservableObject
 
     public void Select(SubtitleTrackRow row) => _mpv?.SelectSubtitle(row.Id);
 
+    public void LoadSubtitle(string path) => _mpv?.LoadSubtitleFile(path);
+
     private void OnSubtitlesChanged(object? sender, SubtitleState state) => ShowTracks(state);
 
     private void ShowTracks(SubtitleState state)

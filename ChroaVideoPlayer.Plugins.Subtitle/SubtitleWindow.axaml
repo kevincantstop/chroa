@@ -15,7 +15,7 @@
 		<StyleInclude Source="avares://ChroaVideoPlayer.Plugins.Subtitle/Styles/SubtitleWindow.axaml" />
 	</chroa:PluginWindow.Styles>
 
-	<Grid Margin="12" RowDefinitions="Auto,*">
+	<Grid Margin="12" RowDefinitions="Auto,Auto,*">
 		<Grid ColumnDefinitions="*,Auto">
 			<TextBlock Text="Subtitle Editor"
 			           FontSize="16"
@@ -32,14 +32,23 @@
 			                    ToolTip.Tip="Close" />
 		</Grid>
 
-		<Grid Grid.Row="1" Margin="0,12,0,0">
+		<Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="0,12,0,10">
+			<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/plus.svg"
+			                    ButtonSize="32"
+			                    IconSize="20"
+			                    VerticalAlignment="Center"
+			                    Click="OnAddSubtitleClick"
+			                    ToolTip.Tip="Add subtitle file" />
+		</Grid>
+
+		<Grid Grid.Row="2">
 			<sub:SubtitleGrid />
 
 			<TextBlock x:Name="EmptyHint"
 			           Text="No subtitle tracks."
 			           FontSize="14"
 			           Foreground="#B0FFFFFF"
-			           Margin="8,56,0,0"
+			           Margin="8,44,0,0"
 			           HorizontalAlignment="Left"
 			           VerticalAlignment="Top"
 			           IsVisible="{Binding IsEmpty}" />
