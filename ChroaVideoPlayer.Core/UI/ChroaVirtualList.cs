@@ -5,8 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
-using Avalonia.Layout;
-using Avalonia.Media;
 using Avalonia.VisualTree;
 
 namespace ChroaVideoPlayer.Core.UI;
@@ -22,29 +20,19 @@ public class ChroaVirtualList : UserControl
     public static readonly StyledProperty<IEnumerable?> ItemsSourceProperty =
         AvaloniaProperty.Register<ChroaVirtualList, IEnumerable?>(nameof(ItemsSource));
 
-    private readonly TranslateTransform _headerOffset = new();
-
     private readonly ContentControl _header;
-
-    private readonly Border _headerClip;
 
     private readonly ItemsControl _items;
 
     private readonly ScrollViewer _listScroll;
 
+    private readonly Grid _body;
+
+    private readonly ScrollViewer _scroll;
+
     public ChroaVirtualList()
     {
-        _header = new ContentControl
-        {
-            HorizontalAlignment = HorizontalAlignment.Left,
-            RenderTransform = _headerOffset,
-        };
-
-        _headerClip = new Border
-        {
-            ClipToBounds = true,
-            Child = _header,
-        };
+        _header = new ContentControl();
 
         _items = new ItemsControl
         {
@@ -53,12 +41,32 @@ public class ChroaVirtualList : UserControl
 
         _listScroll = new ScrollViewer
         {
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             Content = _items,
         };
 
-        _listScroll.ScrollChanged += OnListScrolled;
+        _body = new Grid
+        {
+            RowDefinitions = new RowDefinitions("Auto,*"),
+            Children =
+            {
+                _header,
+                _listScroll,
+            },
+        };
+
+        Grid.SetRow(_listScroll, 1);
+
+        _scroll = new ScrollViewer
+        {
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            Content = _body,
+        };
+
+        _scroll.ScrollChanged += (_, _) => UpdateFillWidth();
+        _scroll.SizeChanged += (_, _) => UpdateFillWidth();
 
         _items.LayoutUpdated += (_, _) =>
         {
@@ -66,19 +74,9 @@ public class ChroaVirtualList : UserControl
             UpdateFillWidth();
         };
 
-        var layout = new Grid
-        {
-            RowDefinitions = new RowDefinitions("Auto,*"),
-            Children =
-            {
-                _headerClip,
-                _listScroll,
-            },
-        };
+        LayoutUpdated += (_, _) => UpdateFillWidth();
 
-        Grid.SetRow(_listScroll, 1);
-
-        Content = layout;
+        Content = _scroll;
     }
 
     public object? Header
@@ -108,22 +106,13 @@ public class ChroaVirtualList : UserControl
         else if (change.Property == ItemsSourceProperty) _items.ItemsSource = ItemsSource;
     }
 
-    private void OnListScrolled(object? sender, ScrollChangedEventArgs e)
-    {
-        _headerOffset.X = -_listScroll.Offset.X;
-
-        UpdateFillWidth();
-    }
-
     private void UpdateFillWidth()
     {
-        var viewport = _listScroll.Viewport.Width;
+        var viewport = _scroll.Viewport.Width;
 
         if (!double.IsFinite(viewport) || viewport <= 0) return;
 
-        if (_items.MinWidth != viewport) _items.MinWidth = viewport;
-
-        if (_header.Content is Control header && header.MinWidth != viewport) header.MinWidth = viewport;
+        if (_body.MinWidth != viewport) _body.MinWidth = viewport;
     }
 
     private void SyncColumnWidths()
