@@ -8,7 +8,7 @@ public sealed class SubtitlePlugin : IChroaPlugin
 {
     public string Name => "subtitle";
 
-    public string Label => "Subtitle Editor";
+    public string Label => "Video Subtitles";
 
     public string Icon => "avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/captions.svg";
 

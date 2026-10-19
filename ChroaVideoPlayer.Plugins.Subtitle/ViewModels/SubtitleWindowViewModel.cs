@@ -1,4 +1,6 @@
+using System;
 using System.Collections.ObjectModel;
+using Avalonia.Threading;
 using ChroaVideoPlayer.Core.Mpv;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -17,6 +19,9 @@ public partial class SubtitleWindowViewModel : ObservableObject
 
     public bool IsEmpty => Tracks.Count == 0;
 
+    [ObservableProperty]
+    public partial bool CanAddSubtitle { get; set; }
+
     public void Attach(ChroaMpvContext mpv)
     {
         Detach();
@@ -24,13 +29,20 @@ public partial class SubtitleWindowViewModel : ObservableObject
         _mpv = mpv;
 
         _mpv.SubtitlesChanged += OnSubtitlesChanged;
+        _mpv.MediaOpened += OnMediaOpened;
+
+        CanAddSubtitle = !string.IsNullOrEmpty(mpv.CurrentFile);
 
         ShowTracks(mpv.Subtitles);
     }
 
     public void Detach()
     {
-        if (_mpv is not null) _mpv.SubtitlesChanged -= OnSubtitlesChanged;
+        if (_mpv is not null)
+        {
+            _mpv.SubtitlesChanged -= OnSubtitlesChanged;
+            _mpv.MediaOpened -= OnMediaOpened;
+        }
 
         _mpv = null;
     }
@@ -39,7 +51,20 @@ public partial class SubtitleWindowViewModel : ObservableObject
 
     public void LoadSubtitle(string path) => _mpv?.LoadSubtitleFile(path);
 
-    private void OnSubtitlesChanged(object? sender, SubtitleState state) => ShowTracks(state);
+    private void OnMediaOpened(object? sender, EventArgs e) =>
+        Dispatcher.UIThread.Post(() => CanAddSubtitle = true);
+
+    private void OnSubtitlesChanged(object? sender, SubtitleState state)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            ShowTracks(state);
+
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => ShowTracks(state));
+    }
 
     private void ShowTracks(SubtitleState state)
     {
