@@ -160,7 +160,7 @@ public partial class MyPluginWindow : PluginWindow
 `MyPlugin/Icons/icon.svg` and `MyPlugin/Icons/x.svg` — plain 24×24 stroke SVG, `stroke="currentColor"`
 (`SvgIcon` strokes the path with `Foreground`). Then the two registration edits from §1, and build.
 
-Checklist after scaffolding: build is 0/0, the DLL appears in `bin\<Config>\net10.0\Plugins\`, the home menu
+Checklist after scaffolding a plugin: build is 0/0, the DLL appears in `bin\<Config>\net10.0\Plugins\`, the home menu
 shows the label with the icon, the window docks and closes, and **no** stale copy of a previously named
 plugin project is left in `Plugins\` (see §10) — renaming a plugin means deleting the old project folder,
 not just the files, or two menu entries appear.
