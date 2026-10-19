@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:chroa="clr-namespace:ChroaVideoPlayer.Core.Plugin.UI;assembly=ChroaVideoPlayer.Core"
                     xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
+                    xmlns:sub="clr-namespace:ChroaVideoPlayer.Plugins.Subtitle"
                     x:Class="ChroaVideoPlayer.Plugins.Subtitle.SubtitleWindow"
                     Title="Subtitle Editor"
                     Width="580"
@@ -9,6 +10,36 @@
                     MinWidth="530"
                     MinHeight="700"
                     InitialDockSide="Right">
+	<chroa:PluginWindow.Styles>
+		<Style Selector="TextBlock.head">
+			<Setter Property="Foreground" Value="#B0FFFFFF" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Margin" Value="8,0,0,0" />
+		</Style>
+
+		<Style Selector="TextBlock.cell">
+			<Setter Property="Foreground" Value="#E0E0E0" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Margin" Value="8,0,0,0" />
+			<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+		</Style>
+
+		<Style Selector="Grid.trackRow">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="Cursor" Value="Hand" />
+		</Style>
+
+		<Style Selector="Grid.trackRow:pointerover">
+			<Setter Property="Background" Value="#1AFFFFFF" />
+		</Style>
+
+		<Style Selector="Grid.trackRow.selected">
+			<Setter Property="Background" Value="#26FFFFFF" />
+		</Style>
+	</chroa:PluginWindow.Styles>
+
 	<Grid Margin="12" RowDefinitions="Auto,*">
 		<Grid ColumnDefinitions="*,Auto">
 			<TextBlock Text="Subtitle Editor"
@@ -26,11 +57,48 @@
 			                    ToolTip.Tip="Close" />
 		</Grid>
 
-		<TextBlock Grid.Row="1"
-		           Text="No subtitle tracks yet."
-		           FontSize="14"
-		           Foreground="#B0FFFFFF"
-		           Margin="0,16,0,0"
-		           VerticalAlignment="Top" />
+		<Grid Grid.Row="1" Margin="0,12,0,0">
+			<core:ChroaVirtualList x:Name="TrackList">
+				<core:ChroaVirtualList.Header>
+					<Grid Height="32" Background="#1AFFFFFF">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="6" />
+							<ColumnDefinition Width="110" />
+						</Grid.ColumnDefinitions>
+
+						<TextBlock Grid.Column="0" Classes="head" Text="Track" />
+						<TextBlock Grid.Column="2" Classes="head" Text="Source" />
+					</Grid>
+				</core:ChroaVirtualList.Header>
+
+				<core:ChroaVirtualList.ItemTemplate>
+					<DataTemplate x:DataType="sub:SubtitleTrackRow">
+						<Grid Classes="trackRow"
+						      Height="32"
+						      Classes.selected="{Binding IsSelected}"
+						      ToolTip.Tip="{Binding Tip}"
+						      PointerPressed="OnTrackPressed">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="6" />
+								<ColumnDefinition Width="110" />
+							</Grid.ColumnDefinitions>
+
+							<TextBlock Grid.Column="0" Classes="cell" Text="{Binding Label}" />
+							<TextBlock Grid.Column="2" Classes="cell" Text="{Binding Source}" />
+						</Grid>
+					</DataTemplate>
+				</core:ChroaVirtualList.ItemTemplate>
+			</core:ChroaVirtualList>
+
+			<TextBlock x:Name="EmptyHint"
+			           Text="No subtitle tracks."
+			           FontSize="14"
+			           Foreground="#B0FFFFFF"
+			           Margin="8,56,0,0"
+			           HorizontalAlignment="Left"
+			           VerticalAlignment="Top" />
+		</Grid>
 	</Grid>
 </chroa:PluginWindow>

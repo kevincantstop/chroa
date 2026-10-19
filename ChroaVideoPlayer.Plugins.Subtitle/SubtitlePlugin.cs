@@ -18,5 +18,12 @@ public sealed class SubtitlePlugin : IChroaPlugin
 
     public ChroaApplicationContext? Context { get; set; }
 
-    public PluginWindow CreateWindow() => new SubtitleWindow();
+    public PluginWindow CreateWindow()
+    {
+        var window = new SubtitleWindow();
+
+        if (Context is { } context) window.Attach(context.Mpv);
+
+        return window;
+    }
 }

@@ -6,7 +6,13 @@ using HanumanInstitute.LibMpv;
 
 namespace ChroaVideoPlayer.Core.Mpv;
 
-public readonly record struct SubtitleTrackInfo(int Id, string Label, bool IsSelected);
+public readonly record struct SubtitleTrackInfo(
+    int Id,
+    string Label,
+    bool IsSelected,
+    string Language,
+    bool IsExternal,
+    string Codec);
 
 public readonly record struct SubtitleState(IReadOnlyList<SubtitleTrackInfo> Tracks, bool IsVisible);
 
@@ -14,7 +20,11 @@ public sealed partial class ChroaMpvContext
 {
     private static readonly SubtitleState NoSubtitles = new(Array.Empty<SubtitleTrackInfo>(), false);
 
+    private SubtitleState _subtitles = NoSubtitles;
+
     public event EventHandler<SubtitleState>? SubtitlesChanged;
+
+    public SubtitleState Subtitles => _subtitles;
 
     public void SelectSubtitle(int id)
     {
@@ -101,7 +111,17 @@ public sealed partial class ChroaMpvContext
                 var isSelected = context.TrackListIsSelected[i].Get() ?? false;
                 if (isSelected) selected = id;
 
-                tracks.Add(new SubtitleTrackInfo(id, DescribeSubtitleTrack(context, i, id), isSelected));
+                var language = context.TrackListLanguage[i].Get() ?? string.Empty;
+                var isExternal = context.TrackListIsExternal[i].Get() ?? false;
+                var codec = context.TrackListCodec[i].Get() ?? string.Empty;
+
+                tracks.Add(new SubtitleTrackInfo(
+                    id,
+                    DescribeSubtitleTrack(context, i, id),
+                    isSelected,
+                    language,
+                    isExternal,
+                    codec));
             }
 
             if (context.SubId.GetNo()) selected = 0;
@@ -147,5 +167,10 @@ public sealed partial class ChroaMpvContext
         _ => code.ToUpperInvariant(),
     };
 
-    private void PublishSubtitles(SubtitleState state) => SubtitlesChanged?.Invoke(this, state);
+    private void PublishSubtitles(SubtitleState state)
+    {
+        _subtitles = state;
+
+        SubtitlesChanged?.Invoke(this, state);
+    }
 }
