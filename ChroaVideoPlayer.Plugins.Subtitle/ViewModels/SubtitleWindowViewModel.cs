@@ -10,6 +10,8 @@ public partial class SubtitleWindowViewModel : ObservableObject
 {
     private ChroaMpvContext? _mpv;
 
+    private int _currentId;
+
     public SubtitleWindowViewModel()
     {
         Tracks.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsEmpty));
@@ -47,7 +49,19 @@ public partial class SubtitleWindowViewModel : ObservableObject
         _mpv = null;
     }
 
-    public void Select(SubtitleTrackRow row) => _mpv?.SelectSubtitle(row.Id);
+    public void SetCurrent(SubtitleTrackRow? row)
+    {
+        _currentId = row?.Id ?? 0;
+
+        ApplyCurrent();
+    }
+
+    public void Activate(SubtitleTrackRow row)
+    {
+        SetCurrent(row);
+
+        _mpv?.SelectSubtitle(row.Id);
+    }
 
     public void LoadSubtitle(string path) => _mpv?.LoadSubtitleFile(path);
 
@@ -71,5 +85,12 @@ public partial class SubtitleWindowViewModel : ObservableObject
         Tracks.Clear();
 
         foreach (var track in state.Tracks) Tracks.Add(new SubtitleTrackRow(track));
+
+        ApplyCurrent();
+    }
+
+    private void ApplyCurrent()
+    {
+        foreach (var track in Tracks) track.IsCurrent = track.Id == _currentId;
     }
 }

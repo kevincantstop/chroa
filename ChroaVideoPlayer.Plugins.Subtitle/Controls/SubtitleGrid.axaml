@@ -11,6 +11,8 @@
 					<ColumnDefinition Width="*" />
 					<ColumnDefinition Width="6" />
 					<ColumnDefinition Width="110" />
+					<ColumnDefinition Width="6" />
+					<ColumnDefinition Width="44" />
 				</Grid.ColumnDefinitions>
 
 				<TextBlock Grid.Column="0" Classes="head" Text="Track" />
@@ -23,16 +25,34 @@
 				<Grid Classes="trackRow"
 				      Height="32"
 				      Classes.selected="{Binding IsSelected}"
+				      Classes.current="{Binding IsCurrent}"
 				      ToolTip.Tip="{Binding Tip}"
 				      PointerPressed="OnTrackPressed">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="*" />
 						<ColumnDefinition Width="6" />
 						<ColumnDefinition Width="110" />
+						<ColumnDefinition Width="6" />
+						<ColumnDefinition Width="44" />
 					</Grid.ColumnDefinitions>
+
+					<Border Grid.ColumnSpan="5"
+					        Width="2"
+					        HorizontalAlignment="Left"
+					        Background="#E0E0E0"
+					        IsVisible="{Binding IsCurrent}" />
 
 					<TextBlock Grid.Column="0" Classes="cell" Text="{Binding Label}" />
 					<TextBlock Grid.Column="2" Classes="cell" Text="{Binding Source}" />
+
+					<core:SVGIconButton Grid.Column="4"
+					                    Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/layers-plus.svg"
+					                    ButtonSize="28"
+					                    IconSize="16"
+					                    HorizontalAlignment="Left"
+					                    VerticalAlignment="Center"
+					                    Click="OnAddClick"
+					                    ToolTip.Tip="Use this subtitle" />
 				</Grid>
 			</DataTemplate>
 		</core:ChroaVirtualList.ItemTemplate>

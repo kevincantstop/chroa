@@ -1,8 +1,9 @@
 using ChroaVideoPlayer.Core.Mpv;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ChroaVideoPlayer.Plugins.Subtitle;
 
-public sealed class SubtitleTrackRow
+public partial class SubtitleTrackRow : ObservableObject
 {
     public SubtitleTrackRow(SubtitleTrackInfo track)
     {
@@ -13,6 +14,9 @@ public sealed class SubtitleTrackRow
         IsSelected = track.IsSelected;
         Tip = track.Codec;
     }
+
+    [ObservableProperty]
+    public partial bool IsCurrent { get; set; }
 
     public int Id { get; }
 
