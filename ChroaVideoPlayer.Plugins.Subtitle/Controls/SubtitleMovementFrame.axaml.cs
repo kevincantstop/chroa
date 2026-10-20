@@ -16,9 +16,9 @@ public partial class SubtitleMovementFrame : UserControl
 
     private const double FrameMinHeight = 32;
 
-    private const double ConfirmSize = 28;
+    private const double ConfirmSize = 36;
 
-    private const double ConfirmInset = 6;
+    private const double ConfirmInset = 8;
 
     private SubtitleWindowViewModel? _viewModel;
 
@@ -31,6 +31,8 @@ public partial class SubtitleMovementFrame : UserControl
     private double _xPercent = 50;
 
     private double _yPercent = 88;
+
+    private double _baselinePercent = 88;
 
     private Point _dragOrigin;
 
@@ -108,6 +110,8 @@ public partial class SubtitleMovementFrame : UserControl
         _registration = overlay.Add(this);
 
         _viewModel?.DisableControls();
+
+        _viewModel?.ApplySubtitlePosition(_baselinePercent);
     }
 
     private void Close()
@@ -139,6 +143,8 @@ public partial class SubtitleMovementFrame : UserControl
 
         Canvas.SetLeft(ConfirmButton, left + frameWidth - ConfirmSize - ConfirmInset);
         Canvas.SetTop(ConfirmButton, top + (frameHeight - ConfirmSize) / 2);
+
+        _baselinePercent = Math.Clamp((top + frameHeight - picture.Y) / picture.Height * 100, 0, 100);
     }
 
     private Rect PictureRect(Size size)
@@ -199,6 +205,8 @@ public partial class SubtitleMovementFrame : UserControl
         ArrangeFrame(Bounds.Size);
 
         viewModel.MoveFrame(_xPercent, _yPercent);
+
+        viewModel.ApplySubtitlePosition(_baselinePercent);
     }
 
     private void OnFrameReleased(object? sender, PointerReleasedEventArgs e)

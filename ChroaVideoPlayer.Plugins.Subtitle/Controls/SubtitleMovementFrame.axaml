@@ -27,8 +27,8 @@
 		<core:SVGIconButton x:Name="ConfirmButton"
 		                    Classes="confirm"
 		                    Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/check.svg"
-		                    ButtonSize="28"
-		                    IconSize="16"
+		                    ButtonSize="36"
+		                    IconSize="20"
 		                    Foreground="#FFFFFF"
 		                    ToolTip.Tip="Confirm position"
 		                    Click="OnConfirmClick" />

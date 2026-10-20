@@ -107,11 +107,12 @@ public partial class SubtitleWindowViewModel : ObservableObject
 
         _positions[id] = (Math.Clamp(xPercent, 0, 100), Math.Clamp(yPercent, 0, 100));
 
-        _mpv?.SetSubtitleVerticalPosition(yPercent);
-
         OnPropertyChanged(nameof(FrameX));
         OnPropertyChanged(nameof(FrameY));
     }
+
+    public void ApplySubtitlePosition(double subtitlePosition) =>
+        _mpv?.SetSubtitleVerticalPosition(subtitlePosition);
 
     private int PlayingTrackId => Tracks.FirstOrDefault(track => track.IsSelected)?.Id ?? 0;
 
