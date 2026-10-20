@@ -104,6 +104,10 @@ public partial class MpvVideoPlayer : UserControl
         set => SetValue(IsTopMostProperty, value);
     }
 
+    public void DisableControls() => SetControlsHidden(true);
+
+    public void EnableControls() => SetControlsHidden(false);
+
     public void Play(string path)
     {
         ViewModel.Mpv.ViewContext = MpvViewControl.MpvContext;
@@ -112,6 +116,8 @@ public partial class MpvVideoPlayer : UserControl
     }
 
     public void ClearPreviewCache() => Preview.ClearCache();
+
+    private void SetControlsHidden(bool hidden) => Classes.Set("controls-hidden", hidden);
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {

@@ -35,7 +35,8 @@ public partial class MainWindow : ChroaWindow
 
         _application = new ChroaApplicationContext(
             VideoPlayer.ViewModel.Mpv,
-            new VideoOverlayHost(RootGrid, VideoPlayer));
+            new VideoOverlayHost(RootGrid, VideoPlayer),
+            new VideoControls(this));
 
         VideoPlayer.Events = _eventBus;
 
@@ -318,5 +319,26 @@ public partial class MainWindow : ChroaWindow
         }
 
         return null;
+    }
+
+    private sealed class VideoControls : IVideoControls
+    {
+        private readonly MainWindow _window;
+
+        public VideoControls(MainWindow window) => _window = window;
+
+        public void DisableControls()
+        {
+            _window.VideoPlayer.DisableControls();
+
+            _window.RootGrid.Classes.Set("controls-hidden", true);
+        }
+
+        public void EnableControls()
+        {
+            _window.VideoPlayer.EnableControls();
+
+            _window.RootGrid.Classes.Set("controls-hidden", false);
+        }
     }
 }

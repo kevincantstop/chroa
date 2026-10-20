@@ -24,4 +24,7 @@ public partial class SubtitleGrid : UserControl
 
         (DataContext as SubtitleWindowViewModel)?.Activate(row);
     }
+
+    private void OnFrameClick(object? sender, RoutedEventArgs e) =>
+        (DataContext as SubtitleWindowViewModel)?.ToggleFrame();
 }

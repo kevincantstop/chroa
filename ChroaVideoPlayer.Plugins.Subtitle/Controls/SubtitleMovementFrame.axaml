@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:ChroaVideoPlayer.Core.UI;assembly=ChroaVideoPlayer.Core"
+             x:Class="ChroaVideoPlayer.Plugins.Subtitle.SubtitleMovementFrame">
+	<UserControl.Styles>
+		<Style Selector="core|SVGIconButton.confirm">
+			<Setter Property="Background" Value="#66000000" />
+		</Style>
+
+		<Style Selector="core|SVGIconButton.confirm:pointerover /template/ ContentPresenter">
+			<Setter Property="Background" Value="#99000000" />
+		</Style>
+
+		<Style Selector="core|SVGIconButton.confirm:pressed /template/ ContentPresenter">
+			<Setter Property="Background" Value="#CC000000" />
+		</Style>
+	</UserControl.Styles>
+
+	<Canvas>
+		<Border x:Name="Frame"
+		        BorderBrush="#FFFFFF"
+		        BorderThickness="2"
+		        Background="#1AFFFFFF"
+		        CornerRadius="4"
+		        Cursor="SizeAll" />
+
+		<core:SVGIconButton x:Name="ConfirmButton"
+		                    Classes="confirm"
+		                    Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/check.svg"
+		                    ButtonSize="28"
+		                    IconSize="16"
+		                    Foreground="#FFFFFF"
+		                    ToolTip.Tip="Confirm position"
+		                    Click="OnConfirmClick" />
+	</Canvas>
+</UserControl>

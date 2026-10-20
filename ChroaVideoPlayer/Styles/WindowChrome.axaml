@@ -39,4 +39,14 @@
 		<Setter Property="Opacity" Value="0" />
 		<Setter Property="IsHitTestVisible" Value="False" />
 	</Style>
+
+	<Style Selector=".controls-hidden Border.overlay">
+		<Setter Property="Opacity" Value="0" />
+		<Setter Property="IsHitTestVisible" Value="False" />
+	</Style>
+
+	<Style Selector=".controls-hidden Border.edge">
+		<Setter Property="Opacity" Value="0" />
+		<Setter Property="IsHitTestVisible" Value="False" />
+	</Style>
 </Styles>

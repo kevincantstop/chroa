@@ -13,6 +13,8 @@ namespace ChroaVideoPlayer.Plugins.Subtitle;
 
 public partial class SubtitleWindow : PluginWindow
 {
+    private readonly SubtitleMovementFrame _frame = new();
+
     public SubtitleWindow()
     {
         InitializeComponent();
@@ -22,13 +24,22 @@ public partial class SubtitleWindow : PluginWindow
 
     private SubtitleWindowViewModel? ViewModel => DataContext as SubtitleWindowViewModel;
 
-    public void Attach(ChroaMpvContext mpv, IVideoOverlayHost? overlay) => ViewModel?.Attach(mpv, overlay);
+    public void Attach(ChroaMpvContext mpv, IVideoOverlayHost? overlay, IVideoControls? controls)
+    {
+        if (ViewModel is not { } viewModel) return;
+
+        viewModel.Attach(mpv, overlay, controls);
+
+        if (overlay is not null) _frame.Attach(viewModel, overlay);
+    }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
 
         ViewModel?.Detach();
+
+        _frame.Detach();
     }
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();

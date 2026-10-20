@@ -124,6 +124,15 @@ public sealed partial class ChroaMpvContext
         SeekTo(target);
     }
 
+    public void SetSubtitleVerticalPosition(double percent)
+    {
+        var context = _context;
+        if (context is null || !double.IsFinite(percent)) return;
+
+        SafeRun(nameof(SetSubtitleVerticalPosition),
+            () => context.SubPos.Set((int)Math.Round(Math.Clamp(percent, 0, 100))));
+    }
+
     private static async Task PlayAsync(MpvContext context, string path)
     {
         try
