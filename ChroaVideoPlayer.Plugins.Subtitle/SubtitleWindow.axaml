@@ -32,7 +32,10 @@
 			                    ToolTip.Tip="Close" />
 		</Grid>
 
-		<Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="0,12,0,10">
+		<StackPanel Grid.Row="1"
+		            Orientation="Horizontal"
+		            Spacing="8"
+		            Margin="0,12,0,10">
 			<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/plus.svg"
 			                    ButtonSize="32"
 			                    IconSize="20"
@@ -40,7 +43,15 @@
 			                    IsEnabled="{Binding CanAddSubtitle}"
 			                    Click="OnAddSubtitleClick"
 			                    ToolTip.Tip="Add subtitle file" />
-		</Grid>
+
+			<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/layers.svg"
+			                    ButtonSize="32"
+			                    IconSize="20"
+			                    VerticalAlignment="Center"
+			                    IsEnabled="{Binding CanAddSubtitle}"
+			                    Click="OnComposeClick"
+			                    ToolTip.Tip="Compose added subtitles into one track" />
+		</StackPanel>
 
 		<Grid Grid.Row="2">
 			<sub:SubtitleGrid />

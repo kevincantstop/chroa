@@ -16,4 +16,13 @@ public static class ChroaDialogs
         string okText = "OK",
         string cancelText = "Cancel") =>
         new PromptDialog(title, message, okText, cancelText).ShowDialog<bool>(owner);
+
+    public static Task<string?> InputAsync(
+        Window owner,
+        string message,
+        string title = "Input",
+        string value = "",
+        string okText = "OK",
+        string cancelText = "Cancel") =>
+        new InputDialog(title, message, value, okText, cancelText).ShowDialog<string?>(owner);
 }

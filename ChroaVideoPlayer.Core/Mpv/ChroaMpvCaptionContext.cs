@@ -24,6 +24,8 @@ public sealed partial class ChroaMpvContext
 
     public event EventHandler<SubtitleState>? SubtitlesChanged;
 
+    public event EventHandler<string>? SubtitleFileLoaded;
+
     public SubtitleState Subtitles => _subtitles;
 
     public void SelectSubtitle(int id)
@@ -51,6 +53,8 @@ public sealed partial class ChroaMpvContext
     {
         var context = _context;
         if (context is null || string.IsNullOrWhiteSpace(path)) return;
+
+        SubtitleFileLoaded?.Invoke(this, path);
 
         _ = AddSubtitleAsync(context, path);
     }
@@ -138,6 +142,10 @@ public sealed partial class ChroaMpvContext
 
     private static string DescribeSubtitleTrack(MpvContext context, int index, int id)
     {
+        var title = ReadTitle(context, index);
+
+        if (!string.IsNullOrWhiteSpace(title)) return title;
+
         var language = context.TrackListLanguage[index].Get();
 
         if (!string.IsNullOrWhiteSpace(language) && !language.Equals("und", StringComparison.OrdinalIgnoreCase))
@@ -146,6 +154,20 @@ public sealed partial class ChroaMpvContext
         }
 
         return $"Track {id}";
+    }
+
+    private static string ReadTitle(MpvContext context, int index)
+    {
+        try
+        {
+            return context.GetPropertyString($"track-list/{index}/title") ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"track title not readable ({ex.GetType().Name})");
+
+            return string.Empty;
+        }
     }
 
     private static string LanguageLabel(string code) => code.ToLowerInvariant() switch

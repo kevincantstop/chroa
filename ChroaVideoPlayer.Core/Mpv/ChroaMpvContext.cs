@@ -124,8 +124,24 @@ public sealed partial class ChroaMpvContext
         SeekTo(target);
     }
 
-    public void SetSubtitleVerticalPosition(double percent)
+    public (int Width, int Height) GetVideoSize()
     {
+        var context = _context;
+        if (context is null) return (0, 0);
+
+        try
+        {
+            return (context.DisplayWidth.Get() ?? 0, context.DisplayHeight.Get() ?? 0);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"video size not ready yet ({ex.GetType().Name})");
+
+            return (0, 0);
+        }
+    }
+
+    public void SetSubtitleVerticalPosition(double percent)    {
         var context = _context;
         if (context is null || !double.IsFinite(percent)) return;
 

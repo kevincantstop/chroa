@@ -25,6 +25,8 @@ public abstract class ChroaDialog : ChroaWindow
 
     private readonly StackPanel _actions;
 
+    private readonly StackPanel _content;
+
     protected ChroaDialog(string title, string message)
     {
         ShowInTaskbar = false;
@@ -62,7 +64,7 @@ public abstract class ChroaDialog : ChroaWindow
             Margin = new Thickness(0, 10, 0, 0),
         };
 
-        PanelContent = new StackPanel
+        _content = new StackPanel
         {
             Margin = new Thickness(24, 20, 24, 20),
             Children =
@@ -72,11 +74,15 @@ public abstract class ChroaDialog : ChroaWindow
                 _actions,
             },
         };
+
+        PanelContent = _content;
     }
 
     protected Action? DefaultAction { get; set; }
 
     protected Action? CancelAction { get; set; }
+
+    protected void AddField(Control field) => _content.Children.Insert(_content.Children.Count - 1, field);
 
     protected void AddAction(string text, bool primary, Action action) =>
         _actions.Children.Add(CreateButton(text, primary, action));

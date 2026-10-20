@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ChroaVideoPlayer.Core.ClipCapture;
+namespace ChroaVideoPlayer.Core.Utils;
 
 public readonly record struct TaskResult(int ExitCode, string Output, string Error, bool TimedOut)
 {

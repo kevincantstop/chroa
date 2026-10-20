@@ -44,6 +44,25 @@ public partial class SubtitleWindow : PluginWindow
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
+    private async void OnComposeClick(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel is not { } viewModel) return;
+
+        var name = await ChroaDialogs.InputAsync(
+            this,
+            "Name this composed subtitle",
+            "Compose subtitles",
+            viewModel.SuggestComposeName(),
+            "Compose",
+            "Cancel");
+
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (await viewModel.ComposeAsync(name) is not { } message) return;
+
+        await ChroaDialogs.AlertAsync(this, message, "Subtitle composer");
+    }
+
     private async void OnAddSubtitleClick(object? sender, RoutedEventArgs e)
     {
         try

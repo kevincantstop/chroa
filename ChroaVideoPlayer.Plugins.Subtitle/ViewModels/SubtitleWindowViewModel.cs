@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using ChroaVideoPlayer.Core.Mpv;
 using ChroaVideoPlayer.Core.Plugin.Context;
@@ -12,6 +15,8 @@ namespace ChroaVideoPlayer.Plugins.Subtitle;
 public partial class SubtitleWindowViewModel : ObservableObject
 {
     private readonly Dictionary<int, (double X, double Y)> _positions = new();
+
+    private readonly List<string> _importedPaths = new();
 
     private ChroaMpvContext? _mpv;
 
@@ -55,6 +60,7 @@ public partial class SubtitleWindowViewModel : ObservableObject
         _mpv.SubtitlesChanged += OnSubtitlesChanged;
         _mpv.MediaOpened += OnMediaOpened;
         _mpv.VideoAspectDetected += OnVideoAspectDetected;
+        _mpv.SubtitleFileLoaded += OnSubtitleFileLoaded;
 
         CanAddSubtitle = !string.IsNullOrEmpty(mpv.CurrentFile);
 
@@ -68,6 +74,7 @@ public partial class SubtitleWindowViewModel : ObservableObject
             _mpv.SubtitlesChanged -= OnSubtitlesChanged;
             _mpv.MediaOpened -= OnMediaOpened;
             _mpv.VideoAspectDetected -= OnVideoAspectDetected;
+            _mpv.SubtitleFileLoaded -= OnSubtitleFileLoaded;
         }
 
         _mpv = null;
@@ -92,6 +99,71 @@ public partial class SubtitleWindowViewModel : ObservableObject
     }
 
     public void LoadSubtitle(string path) => _mpv?.LoadSubtitleFile(path);
+
+    public string SuggestComposeName()
+    {
+        if (_importedPaths.Count == 0) return "Composed subtitles";
+
+        return _importedPaths.Count == 1
+            ? Path.GetFileNameWithoutExtension(_importedPaths[0])
+            : $"Subtitles ({_importedPaths.Count})";
+    }
+
+    public async Task<string?> ComposeAsync(string name)
+    {
+        if (_mpv is not { } mpv) return "The player is not ready.";
+
+        var sources = new List<(string Label, string Path)>();
+
+        foreach (var path in _importedPaths) sources.Add((Path.GetFileNameWithoutExtension(path), path));
+
+        if (mpv.CurrentFile is { } video && File.Exists(video))
+        {
+            var extracted = await EmbeddedSubtitleExtractor.ExtractAsync(video, SubtitleCompositionPath.Root);
+
+            foreach (var item in extracted) sources.Add(($"Embedded {item.StreamOrder + 1}", item.Path));
+        }
+
+        if (sources.Count == 0)
+            return "No subtitle source found - add a subtitle file, or install ffmpeg to read embedded subtitles.";
+
+        var tracks = new List<ComposedTrack>();
+
+        foreach (var source in sources)
+        {
+            var cues = SrtParser.Load(source.Path);
+
+            if (cues.Count > 0) tracks.Add(new ComposedTrack(source.Label, cues));
+        }
+
+        if (tracks.Count == 0) return "No subtitle cues could be read from the available sources.";
+
+        var title = string.IsNullOrWhiteSpace(name) ? "Composed subtitles" : name.Trim();
+        var (width, height) = mpv.GetVideoSize();
+        var content = AssComposer.Build(tracks, width, height, title);
+
+        Directory.CreateDirectory(SubtitleCompositionPath.Root);
+
+        var target = Path.Combine(SubtitleCompositionPath.Root, $"{Sanitize(title)}.ass");
+
+        File.WriteAllText(target, content, new UTF8Encoding(false));
+
+        mpv.LoadSubtitleFile(target);
+
+        return null;
+    }
+
+    private static string Sanitize(string name)
+    {
+        var builder = new StringBuilder(name.Length);
+
+        foreach (var character in name)
+            builder.Append(Path.GetInvalidFileNameChars().Contains(character) ? '_' : character);
+
+        var result = builder.ToString().Trim();
+
+        return string.IsNullOrEmpty(result) ? "composed" : result;
+    }
 
     public void ToggleFrame() => IsFrameVisible = !IsFrameVisible;
 
@@ -122,6 +194,27 @@ public partial class SubtitleWindowViewModel : ObservableObject
     private void OnMediaOpened(object? sender, EventArgs e) =>
         Dispatcher.UIThread.Post(() => CanAddSubtitle = true);
 
+    private void OnSubtitleFileLoaded(object? sender, string path)
+    {
+        if (string.IsNullOrEmpty(path)) return;
+
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            TrackImport(path);
+
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => TrackImport(path));
+    }
+
+    private void TrackImport(string path)
+    {
+        if (path.StartsWith(SubtitleCompositionPath.Root, StringComparison.OrdinalIgnoreCase)) return;
+
+        if (!_importedPaths.Contains(path)) _importedPaths.Add(path);
+    }
+
     private void OnVideoAspectDetected(object? sender, double aspect) =>
         Dispatcher.UIThread.Post(() =>
         {
@@ -130,8 +223,7 @@ public partial class SubtitleWindowViewModel : ObservableObject
             OnPropertyChanged(nameof(VideoAspect));
         });
 
-    private void OnSubtitlesChanged(object? sender, SubtitleState state)
-    {
+    private void OnSubtitlesChanged(object? sender, SubtitleState state)    {
         if (Dispatcher.UIThread.CheckAccess())
         {
             ShowTracks(state);
