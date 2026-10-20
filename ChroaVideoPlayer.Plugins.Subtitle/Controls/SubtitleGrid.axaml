@@ -40,7 +40,7 @@
 					        Width="2"
 					        HorizontalAlignment="Left"
 					        Background="#E0E0E0"
-					        IsVisible="{Binding IsCurrent}" />
+					        IsVisible="{Binding IsSelected}" />
 
 					<TextBlock Grid.Column="0" Classes="cell" Text="{Binding Label}" />
 					<TextBlock Grid.Column="2" Classes="cell" Text="{Binding Source}" />

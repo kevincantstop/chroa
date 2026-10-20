@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using ChroaVideoPlayer.Core.Mpv;
+using ChroaVideoPlayer.Core.Plugin.Context;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ChroaVideoPlayer.Plugins.Subtitle;
@@ -24,11 +25,14 @@ public partial class SubtitleWindowViewModel : ObservableObject
     [ObservableProperty]
     public partial bool CanAddSubtitle { get; set; }
 
-    public void Attach(ChroaMpvContext mpv)
+    public IVideoOverlayHost? Overlay { get; private set; }
+
+    public void Attach(ChroaMpvContext mpv, IVideoOverlayHost? overlay)
     {
         Detach();
 
         _mpv = mpv;
+        Overlay = overlay;
 
         _mpv.SubtitlesChanged += OnSubtitlesChanged;
         _mpv.MediaOpened += OnMediaOpened;

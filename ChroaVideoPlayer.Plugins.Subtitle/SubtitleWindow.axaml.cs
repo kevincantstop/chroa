@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using ChroaVideoPlayer.Core.Mpv;
+using ChroaVideoPlayer.Core.Plugin.Context;
 using ChroaVideoPlayer.Core.Plugin.UI;
 using ChroaVideoPlayer.Core.Utils;
 
@@ -21,7 +22,7 @@ public partial class SubtitleWindow : PluginWindow
 
     private SubtitleWindowViewModel? ViewModel => DataContext as SubtitleWindowViewModel;
 
-    public void Attach(ChroaMpvContext mpv) => ViewModel?.Attach(mpv);
+    public void Attach(ChroaMpvContext mpv, IVideoOverlayHost? overlay) => ViewModel?.Attach(mpv, overlay);
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {

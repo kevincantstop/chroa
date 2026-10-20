@@ -12,6 +12,7 @@ using ChroaVideoPlayer.Core.EventBus;
 using ChroaVideoPlayer.Core.EventBus.Events;
 using ChroaVideoPlayer.Core.Plugin;
 using ChroaVideoPlayer.Core.Plugin.Context;
+using ChroaVideoPlayer.Core.Plugin.UI;
 using ChroaVideoPlayer.Core.UI;
 using ChroaVideoPlayer.Core.Utils;
 using ChroaVideoPlayer.Settings;
@@ -32,7 +33,9 @@ public partial class MainWindow : ChroaWindow
 
         _eventBus = new UIEventBus(new EventBus());
 
-        _application = new ChroaApplicationContext(VideoPlayer.ViewModel.Mpv);
+        _application = new ChroaApplicationContext(
+            VideoPlayer.ViewModel.Mpv,
+            new VideoOverlayHost(RootGrid, VideoPlayer));
 
         VideoPlayer.Events = _eventBus;
 

@@ -24,10 +24,10 @@
 	</Style>
 
 	<Style Selector="Grid.trackRow.current">
-		<Setter Property="Background" Value="#1AFFFFFF" />
+		<Setter Property="Background" Value="#26FFFFFF" />
 	</Style>
 
 	<Style Selector="Grid.trackRow.selected">
-		<Setter Property="Background" Value="#26FFFFFF" />
+		<Setter Property="Background" Value="#1AFFFFFF" />
 	</Style>
 </Styles>
