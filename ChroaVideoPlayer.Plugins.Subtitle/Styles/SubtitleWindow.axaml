@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui">
+﻿<Styles xmlns="https://github.com/avaloniaui">
 	<Style Selector="TextBlock.head">
 		<Setter Property="Foreground" Value="#B0FFFFFF" />
 		<Setter Property="FontSize" Value="14" />

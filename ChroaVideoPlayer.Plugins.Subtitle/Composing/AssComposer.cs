@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,10 +6,6 @@ namespace ChroaVideoPlayer.Plugins.Subtitle;
 
 public static class AssComposer
 {
-    private const double BottomPercent = 88;
-
-    private const double SlotGapPercent = 20;
-
     private const string StyleFormat =
         "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding";
 
@@ -52,9 +48,6 @@ public static class AssComposer
 
         return builder.ToString();
     }
-
-    public static double SlotPercent(int index, int count) =>
-        Math.Max(8, BottomPercent - (count - 1 - index) * SlotGapPercent);
 
     private static string StyleName(int index) => $"Track{index + 1}";
 

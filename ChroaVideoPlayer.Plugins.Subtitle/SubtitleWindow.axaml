@@ -40,7 +40,7 @@
 			                    ButtonSize="32"
 			                    IconSize="20"
 			                    VerticalAlignment="Center"
-			                    IsEnabled="{Binding CanCompose}"
+			                    IsEnabled="{Binding CanAddSubtitle}"
 			                    Click="OnAddSubtitleClick"
 			                    ToolTip.Tip="Add subtitle file" />
 

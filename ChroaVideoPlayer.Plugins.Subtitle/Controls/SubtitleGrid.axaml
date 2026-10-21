@@ -64,7 +64,6 @@
 					                    IconSize="16"
 					                    HorizontalAlignment="Left"
 					                    VerticalAlignment="Center"
-					                    IsEnabled="{Binding IsSelected}"
 					                    Click="OnFrameClick"
 					                    ToolTip.Tip="Position this subtitle" />
 				</Grid>

@@ -15,21 +15,15 @@ namespace ChroaVideoPlayer.Plugins.Subtitle;
 
 public partial class SubtitleWindowViewModel : ObservableObject
 {
-    private readonly List<ComposedSource> _sources = new();
+    private readonly Dictionary<string, SubtitleComposition> _compositions = new();
 
-    private readonly Dictionary<string, (double X, double Y)> _sourcePositions = new();
-
-    private readonly List<string> _importedPaths = new();
+    private readonly Dictionary<string, IReadOnlyList<SubtitleStreamInfo>> _streamMaps = new();
 
     private ChroaMpvContext? _mpv;
 
-    private ComposedSource? _editedSource;
+    private SubtitleComposition? _active;
 
     private CancellationTokenSource? _applyDebounce;
-
-    private string? _compositionPath;
-
-    private bool _compositionMounted;
 
     private int _currentId;
 
@@ -45,11 +39,7 @@ public partial class SubtitleWindowViewModel : ObservableObject
     public bool IsEmpty => Tracks.Count == 0;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanCompose))]
-    public partial bool CanAddSubtitle { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanCompose))]
+    [NotifyPropertyChangedFor(nameof(CanAddSubtitle))]
     public partial bool IsComposing { get; set; }
 
     [ObservableProperty]
@@ -58,7 +48,7 @@ public partial class SubtitleWindowViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsFrameVisible { get; set; }
 
-    public bool CanCompose => CanAddSubtitle && !IsComposing;
+    public bool CanAddSubtitle => !IsComposing;
 
     public IVideoOverlayHost? Overlay { get; private set; }
 
@@ -67,7 +57,7 @@ public partial class SubtitleWindowViewModel : ObservableObject
     public double VideoAspect => _aspect;
 
     public (double X, double Y) EditedSourcePosition =>
-        _editedSource is { } source ? (source.XPercent, source.YPercent) : (50, 88);
+        _active?.EditedSource is { } source ? (source.XPercent, source.YPercent) : (50, 88);
 
     public void Attach(ChroaMpvContext mpv, IVideoOverlayHost? overlay, IVideoControls? controls)
     {
@@ -78,11 +68,7 @@ public partial class SubtitleWindowViewModel : ObservableObject
         Controls = controls;
 
         _mpv.SubtitlesChanged += OnSubtitlesChanged;
-        _mpv.MediaOpened += OnMediaOpened;
         _mpv.VideoAspectDetected += OnVideoAspectDetected;
-        _mpv.SubtitleFileLoaded += OnSubtitleFileLoaded;
-
-        CanAddSubtitle = !string.IsNullOrEmpty(mpv.CurrentFile);
 
         ShowTracks(mpv.Subtitles);
     }
@@ -92,18 +78,13 @@ public partial class SubtitleWindowViewModel : ObservableObject
         if (_mpv is not null)
         {
             _mpv.SubtitlesChanged -= OnSubtitlesChanged;
-            _mpv.MediaOpened -= OnMediaOpened;
             _mpv.VideoAspectDetected -= OnVideoAspectDetected;
-            _mpv.SubtitleFileLoaded -= OnSubtitleFileLoaded;
         }
 
         _mpv = null;
 
-        _compositionPath = null;
-        _compositionMounted = false;
-        _editedSource = null;
-
-        _sources.Clear();
+        _compositions.Clear();
+        _active = null;
 
         IsFrameVisible = false;
 
@@ -126,19 +107,43 @@ public partial class SubtitleWindowViewModel : ObservableObject
 
     public void LoadSubtitle(string path) => _mpv?.LoadSubtitleFile(path);
 
-    public string SuggestComposeName()
+    public async Task<string?> ShowMovementAsync(SubtitleTrackRow? row)
     {
-        if (_importedPaths.Count > 0)
+        if (row is null) return "Select a subtitle first.";
+
+        if (GetComposition(row) is { } existing)
         {
-            return _importedPaths.Count == 1
-                ? Path.GetFileNameWithoutExtension(_importedPaths[0])
-                : $"Subtitles ({_importedPaths.Count})";
+            _active = existing;
+
+            IsFrameVisible = true;
+
+            return null;
         }
 
-        return "Embedded subtitles";
+        if (await ComposeSingleAsync(row) is { } error) return error;
+
+        IsFrameVisible = true;
+
+        return null;
     }
 
-    public async Task<string?> ComposeAsync()
+    public void MoveEditedSource(double xPercent, double yPercent)
+    {
+        if (_active is not { } composition) return;
+
+        var source = composition.EditedSource;
+
+        source.XPercent = Math.Clamp(xPercent, 0, 100);
+        source.YPercent = Math.Clamp(yPercent, 0, 100);
+
+        ScheduleApply();
+    }
+
+    public void DisableControls() => Controls?.DisableControls();
+
+    public void EnableControls() => Controls?.EnableControls();
+
+    private async Task<string?> ComposeSingleAsync(SubtitleTrackRow row)
     {
         if (_mpv is not { } mpv) return "The player is not ready.";
 
@@ -146,62 +151,23 @@ public partial class SubtitleWindowViewModel : ObservableObject
 
         try
         {
-            var built = new List<ComposedSource>();
+            ComposeStatus = "Reading subtitle...";
 
-            foreach (var path in _importedPaths)
-            {
-                var cues = SrtParser.Load(path);
+            var sources = await BuildSourcesAsync(row);
 
-                if (cues.Count > 0) built.Add(new ComposedSource($"file:{path}", Path.GetFileNameWithoutExtension(path), cues));
-            }
+            if (sources.Count == 0) return $"Could not read: {row.Label}";
 
-            var order = PlayingEmbeddedOrder();
+            var title = $"{Sanitize(row.Label)}_{DateTime.Now:yyyyMMdd-HHmmss}";
+            var composition = new SubtitleComposition(
+                title,
+                Path.Combine(SubtitleCompositionPath.Root, $"{title}.ass"),
+                sources,
+                sources[0]);
 
-            if (order >= 0 && mpv.CurrentFile is { } video && File.Exists(video))
-            {
-                ComposeStatus = "Extracting embedded subtitles...";
+            _compositions[title] = composition;
+            _active = composition;
 
-                if (await EmbeddedSubtitleExtractor.ExtractAsync(video, SubtitleCompositionPath.Root, order) is { } extracted)
-                {
-                    var cues = SrtParser.Load(extracted.Path);
-
-                    if (cues.Count > 0) built.Add(new ComposedSource($"emb:{order}", "Embedded", cues));
-                }
-            }
-
-            if (built.Count == 0)
-                return "No subtitle source found - add a subtitle file, or select an embedded subtitle.";
-
-            ComposedSource? edited = null;
-
-            for (var index = 0; index < built.Count; index++)
-            {
-                var source = built[index];
-
-                if (_sourcePositions.TryGetValue(source.Key, out var saved))
-                {
-                    source.XPercent = saved.X;
-                    source.YPercent = saved.Y;
-                }
-                else
-                {
-                    source.YPercent = AssComposer.SlotPercent(index, built.Count);
-                }
-
-                if (source.Key == $"emb:{order}") edited = source;
-            }
-
-            _sources.Clear();
-            _sources.AddRange(built);
-
-            _editedSource = edited ?? _sources[^1];
-
-            var title = SuggestComposeName();
-
-            _compositionPath = Path.Combine(SubtitleCompositionPath.Root, $"{Sanitize(title)}.ass");
-            _compositionMounted = false;
-
-            ComposeStatus = "Writing subtitles...";
+            ComposeStatus = "Writing subtitle...";
 
             return await ApplyCompositionAsync(mpv);
         }
@@ -213,53 +179,60 @@ public partial class SubtitleWindowViewModel : ObservableObject
         }
     }
 
-    public async Task<string?> ShowMovementAsync()
-    {
-        if (_compositionPath is null || _sources.Count == 0)
-        {
-            var error = await ComposeAsync();
+    private async Task<List<ComposedSource>> BuildSourcesAsync(SubtitleTrackRow row) =>
+        row.IsExternal
+            ? SubtitleSourceLoader.Load(row.ExternalFileName).ToList()
+            : await BuildEmbeddedSourcesAsync(row);
 
-            if (error is not null) return error;
+    private async Task<List<ComposedSource>> BuildEmbeddedSourcesAsync(SubtitleTrackRow row)
+    {
+        var sources = new List<ComposedSource>();
+
+        if (_mpv is not { } mpv) return sources;
+        if (mpv.CurrentFile is not { } video || !File.Exists(video)) return sources;
+
+        ComposeStatus = "Reading subtitle streams...";
+
+        if (!_streamMaps.TryGetValue(video, out var map))
+        {
+            map = await SubtitleStreamMap.ReadAsync(video);
+
+            _streamMaps[video] = map;
         }
 
-        IsFrameVisible = true;
+        var embeddedTracks = Tracks.Where(track => !track.IsExternal).Select(track => track.Info).ToList();
+        var streamIndex = SubtitleStreamMap.Resolve(map, embeddedTracks, row.Info);
 
-        return null;
+        if (streamIndex < 0) return sources;
+
+        ComposeStatus = "Extracting subtitle...";
+
+        if (await EmbeddedSubtitleExtractor.ExtractAsync(video, SubtitleCompositionPath.Root, streamIndex) is not { } extracted)
+            return sources;
+
+        var cues = SrtParser.Load(extracted.Path);
+
+        if (cues.Count > 0) sources.Add(new ComposedSource($"emb:{row.Id}", row.Label, cues));
+
+        return sources;
     }
-
-    public void MoveEditedSource(double xPercent, double yPercent)
-    {
-        if (_editedSource is not { } source) return;
-
-        source.XPercent = Math.Clamp(xPercent, 0, 100);
-        source.YPercent = Math.Clamp(yPercent, 0, 100);
-
-        _sourcePositions[source.Key] = (source.XPercent, source.YPercent);
-
-        ScheduleApply();
-    }
-
-    public void DisableControls() => Controls?.DisableControls();
-
-    public void EnableControls() => Controls?.EnableControls();
 
     private async Task<string?> ApplyCompositionAsync(ChroaMpvContext mpv)
     {
-        if (_compositionPath is not { } path) return "Nothing to compose.";
+        if (_active is not { } composition) return "Nothing to compose.";
 
-        var title = Path.GetFileNameWithoutExtension(path);
         var (width, height) = mpv.GetVideoSize();
-        var content = AssComposer.Build(_sources, width, height, title);
+        var content = AssComposer.Build(composition.Sources, width, height, composition.Title);
 
         Directory.CreateDirectory(SubtitleCompositionPath.Root);
 
-        await File.WriteAllTextAsync(path, content, new UTF8Encoding(false));
+        await File.WriteAllTextAsync(composition.Path, content, new UTF8Encoding(false));
 
-        if (_compositionMounted && mpv.ReloadSubtitle()) return null;
+        if (composition.IsMounted && mpv.ReloadSubtitle()) return null;
 
-        mpv.LoadSubtitleFile(path);
+        mpv.LoadSubtitleFile(composition.Path);
 
-        _compositionMounted = true;
+        composition.IsMounted = true;
 
         return null;
     }
@@ -292,21 +265,11 @@ public partial class SubtitleWindowViewModel : ObservableObject
         await ApplyCompositionAsync(mpv);
     }
 
-    private int PlayingEmbeddedOrder()
-    {
-        var order = -1;
+    private SubtitleComposition? GetComposition(SubtitleTrackRow row) =>
+        _compositions.TryGetValue(CompositionName(row.Label), out var composition) ? composition : null;
 
-        foreach (var track in Tracks)
-        {
-            if (track.IsExternal) continue;
-
-            order++;
-
-            if (track.IsSelected) return order;
-        }
-
-        return -1;
-    }
+    private static string CompositionName(string label) =>
+        label.EndsWith(".ass", StringComparison.OrdinalIgnoreCase) ? label[..^4] : label;
 
     private static string Sanitize(string name)
     {
@@ -317,31 +280,7 @@ public partial class SubtitleWindowViewModel : ObservableObject
 
         var result = builder.ToString().Trim();
 
-        return string.IsNullOrEmpty(result) ? "composed" : result;
-    }
-
-    private void OnMediaOpened(object? sender, EventArgs e) =>
-        Dispatcher.UIThread.Post(() => CanAddSubtitle = true);
-
-    private void OnSubtitleFileLoaded(object? sender, string path)
-    {
-        if (string.IsNullOrEmpty(path)) return;
-
-        if (Dispatcher.UIThread.CheckAccess())
-        {
-            TrackImport(path);
-
-            return;
-        }
-
-        Dispatcher.UIThread.Post(() => TrackImport(path));
-    }
-
-    private void TrackImport(string path)
-    {
-        if (path.StartsWith(SubtitleCompositionPath.Root, StringComparison.OrdinalIgnoreCase)) return;
-
-        if (!_importedPaths.Contains(path)) _importedPaths.Add(path);
+        return string.IsNullOrEmpty(result) ? "subtitle" : result;
     }
 
     private void OnVideoAspectDetected(object? sender, double aspect) =>

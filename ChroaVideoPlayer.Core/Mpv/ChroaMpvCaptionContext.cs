@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -11,6 +11,8 @@ public readonly record struct SubtitleTrackInfo(
     string Label,
     bool IsSelected,
     string Language,
+    string Title,
+    string ExternalFileName,
     bool IsExternal,
     string Codec);
 
@@ -75,38 +77,6 @@ public sealed partial class ChroaMpvContext
             Debug.WriteLine($"sub-reload failed ({ex.GetType().Name})");
 
             return false;
-        }
-    }
-
-    public double ReadSubtitleVerticalPosition()
-    {
-        var context = _context;
-        if (context is null) return 100;
-
-        try
-        {
-            return context.SubPos.Get() ?? 100;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"sub-pos not readable ({ex.GetType().Name})");
-
-            return 100;
-        }
-    }
-
-    public void RestoreSubtitleVerticalPosition(double percent)
-    {
-        var context = _context;
-        if (context is null) return;
-
-        try
-        {
-            context.SubPos.Set((int)Math.Round(Math.Clamp(percent, 0, 100)));
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"sub-pos not restorable ({ex.GetType().Name})");
         }
     }
 
@@ -175,6 +145,8 @@ public sealed partial class ChroaMpvContext
                     DescribeSubtitleTrack(context, i, id),
                     isSelected,
                     language,
+                    ReadTitle(context, i),
+                    ReadExternalFileName(context, i),
                     isExternal,
                     codec));
             }
@@ -188,6 +160,20 @@ public sealed partial class ChroaMpvContext
         {
             Debug.WriteLine($"subtitle tracks not ready yet ({ex.GetType().Name})");
             return false;
+        }
+    }
+
+    private static string ReadExternalFileName(MpvContext context, int index)
+    {
+        try
+        {
+            return context.GetPropertyString($"track-list/{index}/external-filename") ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"external filename not readable ({ex.GetType().Name})");
+
+            return string.Empty;
         }
     }
 
