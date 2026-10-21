@@ -11,6 +11,7 @@ public partial class SubtitleTrackRow : ObservableObject
         Label = track.Label;
         Source = track.IsExternal ? "External" : "Embedded";
         Codec = track.Codec;
+        IsExternal = track.IsExternal;
         IsSelected = track.IsSelected;
         Tip = track.Codec;
     }
@@ -25,6 +26,8 @@ public partial class SubtitleTrackRow : ObservableObject
     public string Source { get; }
 
     public string Codec { get; }
+
+    public bool IsExternal { get; }
 
     public bool IsSelected { get; }
 

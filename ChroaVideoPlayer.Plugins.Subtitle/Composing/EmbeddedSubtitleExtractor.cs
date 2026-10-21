@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,34 +11,29 @@ public sealed record ExtractedSubtitle(int StreamOrder, string Path);
 
 public static class EmbeddedSubtitleExtractor
 {
-    private const int MaxStreams = 16;
+    private static readonly TaskRunner Runner = new(TimeSpan.FromMinutes(5));
 
-    private static readonly TaskRunner Runner = new(TimeSpan.FromSeconds(60));
-
-    public static async Task<IReadOnlyList<ExtractedSubtitle>> ExtractAsync(string videoPath, string cacheRoot)
+    public static async Task<ExtractedSubtitle?> ExtractAsync(
+        string videoPath,
+        string cacheRoot,
+        int subtitleOrder)
     {
-        var result = new List<ExtractedSubtitle>();
-
-        if (string.IsNullOrEmpty(videoPath) || !File.Exists(videoPath)) return result;
-
-        if (FfmpegLocator.Resolve() is not { } ffmpeg) return result;
+        if (string.IsNullOrEmpty(videoPath) || !File.Exists(videoPath)) return null;
+        if (subtitleOrder < 0) return null;
+        if (FfmpegLocator.Resolve() is not { } ffmpeg) return null;
 
         var stamp = File.GetLastWriteTimeUtc(videoPath).Ticks;
         var key = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes($"{videoPath}|{stamp}")))[..16];
 
         Directory.CreateDirectory(cacheRoot);
 
-        for (var order = 0; order < MaxStreams; order++)
-        {
-            var target = Path.Combine(cacheRoot, $"{key}-s{order}.srt");
+        var target = Path.Combine(cacheRoot, $"{key}-s{subtitleOrder}.srt");
 
-            if (!File.Exists(target) && !await TryExtractAsync(ffmpeg, videoPath, order, target)) break;
+        if (File.Exists(target) && new FileInfo(target).Length == 0) File.Delete(target);
 
-            if (File.Exists(target) && new FileInfo(target).Length > 0)
-                result.Add(new ExtractedSubtitle(order, target));
-        }
+        if (!File.Exists(target) && !await TryExtractAsync(ffmpeg, videoPath, subtitleOrder, target)) return null;
 
-        return result;
+        return new ExtractedSubtitle(subtitleOrder, target);
     }
 
     private static async Task<bool> TryExtractAsync(string ffmpeg, string videoPath, int order, string target)
@@ -49,6 +43,7 @@ public static class EmbeddedSubtitleExtractor
             new[]
             {
                 "-y",
+                "-nostdin",
                 "-v",
                 "error",
                 "-i",
@@ -60,6 +55,10 @@ public static class EmbeddedSubtitleExtractor
                 target,
             });
 
-        return result is { Succeeded: true } && File.Exists(target) && new FileInfo(target).Length > 0;
+        if (result is { Succeeded: true } && File.Exists(target) && new FileInfo(target).Length > 0) return true;
+
+        if (File.Exists(target)) File.Delete(target);
+
+        return false;
     }
 }

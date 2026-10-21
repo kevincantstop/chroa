@@ -34,7 +34,17 @@ public partial class SubtitleWindowViewModel : ObservableObject
     public bool IsEmpty => Tracks.Count == 0;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCompose))]
     public partial bool CanAddSubtitle { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanCompose))]
+    public partial bool IsComposing { get; set; }
+
+    [ObservableProperty]
+    public partial string ComposeStatus { get; set; } = string.Empty;
+
+    public bool CanCompose => CanAddSubtitle && !IsComposing;
 
     [ObservableProperty]
     public partial bool IsFrameVisible { get; set; }
@@ -113,44 +123,76 @@ public partial class SubtitleWindowViewModel : ObservableObject
     {
         if (_mpv is not { } mpv) return "The player is not ready.";
 
-        var sources = new List<(string Label, string Path)>();
+        IsComposing = true;
 
-        foreach (var path in _importedPaths) sources.Add((Path.GetFileNameWithoutExtension(path), path));
-
-        if (mpv.CurrentFile is { } video && File.Exists(video))
+        try
         {
-            var extracted = await EmbeddedSubtitleExtractor.ExtractAsync(video, SubtitleCompositionPath.Root);
+            var sources = new List<(string Label, string Path)>();
 
-            foreach (var item in extracted) sources.Add(($"Embedded {item.StreamOrder + 1}", item.Path));
+            foreach (var path in _importedPaths) sources.Add((Path.GetFileNameWithoutExtension(path), path));
+
+            var order = PlayingEmbeddedOrder();
+
+            if (order >= 0 && mpv.CurrentFile is { } video && File.Exists(video))
+            {
+                ComposeStatus = "Extracting embedded subtitles...";
+
+                if (await EmbeddedSubtitleExtractor.ExtractAsync(video, SubtitleCompositionPath.Root, order) is { } extracted)
+                    sources.Add(("Embedded", extracted.Path));
+            }
+
+            if (sources.Count == 0)
+                return "No subtitle source found - add a subtitle file, or select an embedded subtitle.";
+
+            ComposeStatus = "Composing...";
+
+            var tracks = new List<ComposedTrack>();
+
+            foreach (var source in sources)
+            {
+                var cues = SrtParser.Load(source.Path);
+
+                if (cues.Count > 0) tracks.Add(new ComposedTrack(source.Label, cues));
+            }
+
+            if (tracks.Count == 0) return "No subtitle cues could be read from the available sources.";
+
+            var title = string.IsNullOrWhiteSpace(name) ? "Composed subtitles" : name.Trim();
+            var (width, height) = mpv.GetVideoSize();
+            var content = AssComposer.Build(tracks, width, height, title);
+
+            Directory.CreateDirectory(SubtitleCompositionPath.Root);
+
+            var target = Path.Combine(SubtitleCompositionPath.Root, $"{Sanitize(title)}.ass");
+
+            File.WriteAllText(target, content, new UTF8Encoding(false));
+
+            mpv.LoadSubtitleFile(target);
+
+            return null;
+        }
+        finally
+        {
+            ComposeStatus = string.Empty;
+
+            IsComposing = false;
+        }
+    }
+
+    private int PlayingEmbeddedOrder()
+    {
+        var order = -1;
+
+        foreach (var track in Tracks)
+        {
+            if (track.IsExternal) continue;
+
+            order++;
+
+            if (track.IsSelected) return order;
         }
 
-        if (sources.Count == 0)
-            return "No subtitle source found - add a subtitle file, or install ffmpeg to read embedded subtitles.";
-
-        var tracks = new List<ComposedTrack>();
-
-        foreach (var source in sources)
-        {
-            var cues = SrtParser.Load(source.Path);
-
-            if (cues.Count > 0) tracks.Add(new ComposedTrack(source.Label, cues));
-        }
-
-        if (tracks.Count == 0) return "No subtitle cues could be read from the available sources.";
-
-        var title = string.IsNullOrWhiteSpace(name) ? "Composed subtitles" : name.Trim();
-        var (width, height) = mpv.GetVideoSize();
-        var content = AssComposer.Build(tracks, width, height, title);
-
-        Directory.CreateDirectory(SubtitleCompositionPath.Root);
-
-        var target = Path.Combine(SubtitleCompositionPath.Root, $"{Sanitize(title)}.ass");
-
-        File.WriteAllText(target, content, new UTF8Encoding(false));
-
-        mpv.LoadSubtitleFile(target);
-
-        return null;
+        return -1;
     }
 
     private static string Sanitize(string name)

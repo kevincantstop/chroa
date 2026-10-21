@@ -40,7 +40,7 @@
 			                    ButtonSize="32"
 			                    IconSize="20"
 			                    VerticalAlignment="Center"
-			                    IsEnabled="{Binding CanAddSubtitle}"
+			                    IsEnabled="{Binding CanCompose}"
 			                    Click="OnAddSubtitleClick"
 			                    ToolTip.Tip="Add subtitle file" />
 
@@ -48,9 +48,21 @@
 			                    ButtonSize="32"
 			                    IconSize="20"
 			                    VerticalAlignment="Center"
-			                    IsEnabled="{Binding CanAddSubtitle}"
+			                    IsEnabled="{Binding CanCompose}"
 			                    Click="OnComposeClick"
 			                    ToolTip.Tip="Compose added subtitles into one track" />
+
+			<ProgressBar Width="120"
+			             Height="4"
+			             IsIndeterminate="True"
+			             VerticalAlignment="Center"
+			             IsVisible="{Binding IsComposing}" />
+
+			<TextBlock Text="{Binding ComposeStatus}"
+			           FontSize="12"
+			           Foreground="#B0FFFFFF"
+			           VerticalAlignment="Center"
+			           IsVisible="{Binding IsComposing}" />
 		</StackPanel>
 
 		<Grid Grid.Row="2">
