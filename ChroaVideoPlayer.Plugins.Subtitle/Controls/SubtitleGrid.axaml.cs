@@ -15,8 +15,17 @@ public partial class SubtitleGrid : UserControl
     private void OnTrackPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: SubtitleTrackRow row }) return;
+        if (DataContext is not SubtitleWindowViewModel viewModel) return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
 
-        (DataContext as SubtitleWindowViewModel)?.SetCurrent(row);
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            viewModel.ToggleInclude(row);
+
+            return;
+        }
+
+        viewModel.SetCurrent(row);
     }
 
     private void OnAddClick(object? sender, RoutedEventArgs e)
@@ -28,6 +37,7 @@ public partial class SubtitleGrid : UserControl
 
     private async void OnFrameClick(object? sender, RoutedEventArgs e)
     {
+        if (sender is not Control { DataContext: SubtitleTrackRow row }) return;
         if (DataContext is not SubtitleWindowViewModel viewModel) return;
 
         if (viewModel.IsFrameVisible)
@@ -37,7 +47,7 @@ public partial class SubtitleGrid : UserControl
             return;
         }
 
-        if (await viewModel.ShowMovementAsync() is not { } message) return;
+        if (await viewModel.ShowMovementAsync(row) is not { } message) return;
         if (TopLevel.GetTopLevel(this) is not Window owner) return;
 
         await ChroaDialogs.AlertAsync(owner, message, "Subtitle composer");

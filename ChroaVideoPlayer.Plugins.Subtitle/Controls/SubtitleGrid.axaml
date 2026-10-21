@@ -28,6 +28,7 @@
 				      Height="32"
 				      Classes.selected="{Binding IsSelected}"
 				      Classes.current="{Binding IsCurrent}"
+				      Classes.included="{Binding IsIncluded}"
 				      ToolTip.Tip="{Binding Tip}"
 				      PointerPressed="OnTrackPressed">
 					<Grid.ColumnDefinitions>
@@ -64,7 +65,7 @@
 					                    IconSize="16"
 					                    HorizontalAlignment="Left"
 					                    VerticalAlignment="Center"
-					                    IsEnabled="{Binding IsSelected}"
+					                    IsEnabled="{Binding CanPosition}"
 					                    Click="OnFrameClick"
 					                    ToolTip.Tip="Position this subtitle" />
 				</Grid>

@@ -17,6 +17,8 @@ public sealed class ComposedSource
 
     public IReadOnlyList<SubtitleCue> Cues { get; }
 
+    public bool HasPosition { get; set; }
+
     public double XPercent { get; set; } = 50;
 
     public double YPercent { get; set; } = 88;

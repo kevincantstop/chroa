@@ -7,58 +7,41 @@ using ChroaVideoPlayer.Core.Utils;
 
 namespace ChroaVideoPlayer.Plugins.Subtitle;
 
-public sealed record ExtractedSubtitle(int StreamOrder, string Path);
+public sealed record ExtractedSubtitle(string Path);
 
 public static class EmbeddedSubtitleExtractor
 {
-    private static readonly TaskRunner Runner = new(TimeSpan.FromMinutes(5));
+    private static readonly TaskRunner Runner = new(TimeSpan.FromMinutes(15));
 
     public static async Task<ExtractedSubtitle?> ExtractAsync(
         string videoPath,
         string cacheRoot,
-        int subtitleOrder)
+        int streamIndex)
     {
         if (string.IsNullOrEmpty(videoPath) || !File.Exists(videoPath)) return null;
-        if (subtitleOrder < 0) return null;
-        if (FfmpegLocator.Resolve() is not { } ffmpeg) return null;
+        if (streamIndex < 0) return null;
+        if (ToolLocator.Resolve("ffmpeg") is not { } ffmpeg) return null;
 
         var stamp = File.GetLastWriteTimeUtc(videoPath).Ticks;
         var key = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes($"{videoPath}|{stamp}")))[..16];
 
         Directory.CreateDirectory(cacheRoot);
 
-        var target = Path.Combine(cacheRoot, $"{key}-s{subtitleOrder}.srt");
+        var target = Path.Combine(cacheRoot, $"{key}-id{streamIndex}.srt");
 
         if (File.Exists(target) && new FileInfo(target).Length == 0) File.Delete(target);
 
-        if (!File.Exists(target) && !await TryExtractAsync(ffmpeg, videoPath, subtitleOrder, target)) return null;
+        if (File.Exists(target)) return new ExtractedSubtitle(target);
 
-        return new ExtractedSubtitle(subtitleOrder, target);
-    }
-
-    private static async Task<bool> TryExtractAsync(string ffmpeg, string videoPath, int order, string target)
-    {
         var result = await Runner.RunAsync(
             ffmpeg,
-            new[]
-            {
-                "-y",
-                "-nostdin",
-                "-v",
-                "error",
-                "-i",
-                videoPath,
-                "-map",
-                $"0:s:{order}",
-                "-f",
-                "srt",
-                target,
-            });
+            new[] { "-y", "-nostdin", "-v", "error", "-i", videoPath, "-map", $"0:{streamIndex}", "-f", "srt", target });
 
-        if (result is { Succeeded: true } && File.Exists(target) && new FileInfo(target).Length > 0) return true;
+        if (result is { Succeeded: true } && File.Exists(target) && new FileInfo(target).Length > 0)
+            return new ExtractedSubtitle(target);
 
         if (File.Exists(target)) File.Delete(target);
 
-        return false;
+        return null;
     }
 }

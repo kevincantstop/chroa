@@ -44,6 +44,15 @@ public partial class SubtitleWindow : PluginWindow
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
+    private async void OnMergeClick(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel?.ComposeMergedAsync() is not { } task) return;
+
+        if (await task is not { } message) return;
+
+        await ChroaDialogs.AlertAsync(this, message, "Subtitle composer");
+    }
+
     private async void OnAddSubtitleClick(object? sender, RoutedEventArgs e)
     {
         try

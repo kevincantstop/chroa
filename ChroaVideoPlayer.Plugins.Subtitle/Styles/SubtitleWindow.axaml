@@ -23,6 +23,10 @@
 		<Setter Property="Background" Value="#1AFFFFFF" />
 	</Style>
 
+	<Style Selector="Grid.trackRow.included">
+		<Setter Property="Background" Value="#1F4A90D9" />
+	</Style>
+
 	<Style Selector="Grid.trackRow.current">
 		<Setter Property="Background" Value="#26FFFFFF" />
 	</Style>
