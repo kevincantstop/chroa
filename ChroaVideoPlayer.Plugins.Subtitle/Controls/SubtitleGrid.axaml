@@ -13,8 +13,6 @@
 					<ColumnDefinition Width="110" />
 					<ColumnDefinition Width="6" />
 					<ColumnDefinition Width="44" />
-					<ColumnDefinition Width="6" />
-					<ColumnDefinition Width="44" />
 				</Grid.ColumnDefinitions>
 
 				<TextBlock Grid.Column="0" Classes="head" Text="Track" />
@@ -27,20 +25,16 @@
 				<Grid Classes="trackRow"
 				      Height="32"
 				      Classes.selected="{Binding IsSelected}"
-				      Classes.current="{Binding IsCurrent}"
-				      ToolTip.Tip="{Binding Tip}"
-				      PointerPressed="OnTrackPressed">
+				      ToolTip.Tip="{Binding Tip}">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="*" />
 						<ColumnDefinition Width="6" />
 						<ColumnDefinition Width="110" />
 						<ColumnDefinition Width="6" />
 						<ColumnDefinition Width="44" />
-						<ColumnDefinition Width="6" />
-						<ColumnDefinition Width="44" />
 					</Grid.ColumnDefinitions>
 
-					<Border Grid.ColumnSpan="7"
+					<Border Grid.ColumnSpan="5"
 					        Width="2"
 					        HorizontalAlignment="Left"
 					        Background="#E0E0E0"
@@ -55,17 +49,8 @@
 					                    IconSize="16"
 					                    HorizontalAlignment="Left"
 					                    VerticalAlignment="Center"
-					                    Click="OnAddClick"
+					                    Click="OnSelectClick"
 					                    ToolTip.Tip="Use this subtitle" />
-
-					<core:SVGIconButton Grid.Column="6"
-					                    Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/book-copy.svg"
-					                    ButtonSize="28"
-					                    IconSize="16"
-					                    HorizontalAlignment="Left"
-					                    VerticalAlignment="Center"
-					                    Click="OnFrameClick"
-					                    ToolTip.Tip="Position this subtitle" />
 				</Grid>
 			</DataTemplate>
 		</core:ChroaVirtualList.ItemTemplate>

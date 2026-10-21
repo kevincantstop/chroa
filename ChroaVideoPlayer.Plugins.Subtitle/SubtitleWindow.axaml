@@ -17,7 +17,7 @@
 
 	<Grid Margin="12" RowDefinitions="Auto,Auto,*">
 		<Grid ColumnDefinitions="*,Auto">
-			<TextBlock Text="Subtitles"
+			<TextBlock Text="Subtitle Editor"
 			           FontSize="16"
 			           Foreground="White"
 			           VerticalAlignment="Center" />
@@ -40,21 +40,8 @@
 			                    ButtonSize="32"
 			                    IconSize="20"
 			                    VerticalAlignment="Center"
-			                    IsEnabled="{Binding CanAddSubtitle}"
 			                    Click="OnAddSubtitleClick"
 			                    ToolTip.Tip="Add subtitle file" />
-
-			<ProgressBar Width="120"
-			             Height="4"
-			             IsIndeterminate="True"
-			             VerticalAlignment="Center"
-			             IsVisible="{Binding IsComposing}" />
-
-			<TextBlock Text="{Binding ComposeStatus}"
-			           FontSize="12"
-			           Foreground="#B0FFFFFF"
-			           VerticalAlignment="Center"
-			           IsVisible="{Binding IsComposing}" />
 		</StackPanel>
 
 		<Grid Grid.Row="2">

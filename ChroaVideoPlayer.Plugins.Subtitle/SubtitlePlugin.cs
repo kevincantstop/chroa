@@ -22,7 +22,7 @@ public sealed class SubtitlePlugin : IChroaPlugin
     {
         var window = new SubtitleWindow();
 
-        if (Context is { } context) window.Attach(context.Mpv, context.Overlay, context.Controls);
+        if (Context is { } context) window.Attach(context.Mpv);
 
         return window;
     }
