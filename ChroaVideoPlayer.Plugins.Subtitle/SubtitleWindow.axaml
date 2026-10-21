@@ -44,14 +44,6 @@
 			                    Click="OnAddSubtitleClick"
 			                    ToolTip.Tip="Add subtitle file" />
 
-			<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/layers.svg"
-			                    ButtonSize="32"
-			                    IconSize="20"
-			                    VerticalAlignment="Center"
-			                    IsEnabled="{Binding CanCompose}"
-			                    Click="OnComposeClick"
-			                    ToolTip.Tip="Compose added subtitles into one track" />
-
 			<ProgressBar Width="120"
 			             Height="4"
 			             IsIndeterminate="True"

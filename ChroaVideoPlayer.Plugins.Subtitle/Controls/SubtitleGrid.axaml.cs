@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using ChroaVideoPlayer.Core.Utils;
 
 namespace ChroaVideoPlayer.Plugins.Subtitle;
 
@@ -25,6 +26,20 @@ public partial class SubtitleGrid : UserControl
         (DataContext as SubtitleWindowViewModel)?.Activate(row);
     }
 
-    private void OnFrameClick(object? sender, RoutedEventArgs e) =>
-        (DataContext as SubtitleWindowViewModel)?.ToggleFrame();
+    private async void OnFrameClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SubtitleWindowViewModel viewModel) return;
+
+        if (viewModel.IsFrameVisible)
+        {
+            viewModel.IsFrameVisible = false;
+
+            return;
+        }
+
+        if (await viewModel.ShowMovementAsync() is not { } message) return;
+        if (TopLevel.GetTopLevel(this) is not Window owner) return;
+
+        await ChroaDialogs.AlertAsync(owner, message, "Subtitle composer");
+    }
 }

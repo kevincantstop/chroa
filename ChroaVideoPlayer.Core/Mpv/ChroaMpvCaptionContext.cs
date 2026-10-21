@@ -59,6 +59,57 @@ public sealed partial class ChroaMpvContext
         _ = AddSubtitleAsync(context, path);
     }
 
+    public bool ReloadSubtitle()
+    {
+        var context = _context;
+        if (context is null) return false;
+
+        try
+        {
+            _ = context.SubReload().InvokeAsync();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"sub-reload failed ({ex.GetType().Name})");
+
+            return false;
+        }
+    }
+
+    public double ReadSubtitleVerticalPosition()
+    {
+        var context = _context;
+        if (context is null) return 100;
+
+        try
+        {
+            return context.SubPos.Get() ?? 100;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"sub-pos not readable ({ex.GetType().Name})");
+
+            return 100;
+        }
+    }
+
+    public void RestoreSubtitleVerticalPosition(double percent)
+    {
+        var context = _context;
+        if (context is null) return;
+
+        try
+        {
+            context.SubPos.Set((int)Math.Round(Math.Clamp(percent, 0, 100)));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"sub-pos not restorable ({ex.GetType().Name})");
+        }
+    }
+
     private async Task AddSubtitleAsync(MpvContext context, string path)
     {
         try
