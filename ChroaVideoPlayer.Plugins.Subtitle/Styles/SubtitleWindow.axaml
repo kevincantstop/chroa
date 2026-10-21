@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui">
+﻿<Styles xmlns="https://github.com/avaloniaui">
 	<Style Selector="TextBlock.head">
 		<Setter Property="Foreground" Value="#B0FFFFFF" />
 		<Setter Property="FontSize" Value="14" />
@@ -21,10 +21,6 @@
 
 	<Style Selector="Grid.trackRow:pointerover">
 		<Setter Property="Background" Value="#1AFFFFFF" />
-	</Style>
-
-	<Style Selector="Grid.trackRow.included">
-		<Setter Property="Background" Value="#1F4A90D9" />
 	</Style>
 
 	<Style Selector="Grid.trackRow.current">

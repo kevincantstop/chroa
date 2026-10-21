@@ -1,4 +1,4 @@
-﻿using ChroaVideoPlayer.Core.Mpv;
+using ChroaVideoPlayer.Core.Mpv;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ChroaVideoPlayer.Plugins.Subtitle;
@@ -18,12 +18,6 @@ public partial class SubtitleTrackRow : ObservableObject
 
     [ObservableProperty]
     public partial bool IsCurrent { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsIncluded { get; set; }
-
-    [ObservableProperty]
-    public partial bool CanPosition { get; set; }
 
     public SubtitleTrackInfo Info { get; }
 

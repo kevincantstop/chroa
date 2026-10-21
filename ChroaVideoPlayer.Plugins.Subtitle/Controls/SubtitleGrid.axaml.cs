@@ -18,13 +18,6 @@ public partial class SubtitleGrid : UserControl
         if (DataContext is not SubtitleWindowViewModel viewModel) return;
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
 
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
-        {
-            viewModel.ToggleInclude(row);
-
-            return;
-        }
-
         viewModel.SetCurrent(row);
     }
 
@@ -50,6 +43,6 @@ public partial class SubtitleGrid : UserControl
         if (await viewModel.ShowMovementAsync(row) is not { } message) return;
         if (TopLevel.GetTopLevel(this) is not Window owner) return;
 
-        await ChroaDialogs.AlertAsync(owner, message, "Subtitle composer");
+        await ChroaDialogs.AlertAsync(owner, message, "Subtitle");
     }
 }

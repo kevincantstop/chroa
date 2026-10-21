@@ -40,17 +40,9 @@
 			                    ButtonSize="32"
 			                    IconSize="20"
 			                    VerticalAlignment="Center"
-			                    IsEnabled="{Binding CanCompose}"
+			                    IsEnabled="{Binding CanAddSubtitle}"
 			                    Click="OnAddSubtitleClick"
 			                    ToolTip.Tip="Add subtitle file" />
-
-			<core:SVGIconButton Icon="avares://ChroaVideoPlayer.Plugins.Subtitle/Icons/layers.svg"
-			                    ButtonSize="32"
-			                    IconSize="20"
-			                    VerticalAlignment="Center"
-			                    IsEnabled="{Binding CanMerge}"
-			                    Click="OnMergeClick"
-			                    ToolTip.Tip="Compose selected subtitles" />
 
 			<ProgressBar Width="120"
 			             Height="4"
@@ -63,11 +55,6 @@
 			           Foreground="#B0FFFFFF"
 			           VerticalAlignment="Center"
 			           IsVisible="{Binding IsComposing}" />
-
-			<TextBlock Text="{Binding CompositionSummary}"
-			           FontSize="12"
-			           Foreground="#B0FFFFFF"
-			           VerticalAlignment="Center" />
 		</StackPanel>
 
 		<Grid Grid.Row="2">
